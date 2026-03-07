@@ -567,9 +567,9 @@ export async function POST(req: Request) {
               role: "system",
               content:
                 `Generate realistic interview questions. Return STRICT JSON ONLY:\n` +
-                `{"questions":["q1","q2","q3","q4","q5","q6","q7","q8"]}\n\n` +
+                `{"questions":["q1","q2","q3","q4","q5","q6","q7","q8, ","q9","q10","q11","q12","q13","q14","q15","q16","q17","q18","q19","q20","q21","q22","q23","q24","q25","q26","q27","q28","q29","q30","q31","q32","q33","q34","q35","q36","q37","q38","q39","q40","q41","q42","q43","q44","q45","q46","q47","q48","q49","q50"]}\n\n` +
                 `RULES:\n` +
-                `- Exactly 8 questions (strings only, no numbering inside)\n` +
+                `- Exactly 50 questions (strings only, no numbering inside)\n` +
                 `- Mix technical, behavioral, and situational questions\n` +
                 `- DO NOT include "Tell me about yourself" (frontend forces it)\n` +
                 `- Base questions on their resume and job description\n`,

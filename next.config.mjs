@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // This line fixes the "request to fonts.googleapis.com failed" error
+  // Add this line below to fix the Google Fonts build error
   optimizeFonts: false, 
 };
 

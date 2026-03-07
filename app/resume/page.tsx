@@ -45,21 +45,21 @@ export default function ResumePage() {
     if (!jd) return alert("Paste a Job Description first!");
     setLoading(true);
     try {
-      const r = await fetch("http://localhost:8082/api/v1/resume/tailor", {
+      const r = await fetch("https://ai-powered-developer-assistance-platform-backend.onrender.com/api/v1/resume/tailor", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jd, masterResume: resumeData }),
       });
       if (!r.ok) throw new Error();
       setResumeData(await r.json());
       setActiveTab("edit");
-    } catch { alert("Error: Check Java on port 8082 & Groq key."); }
+    } catch { alert("Error: AI Tailoring failed. Check Render backend status."); }
     finally { setLoading(false); }
   };
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const r = await fetch("http://localhost:8082/api/v1/resume/save", {
+      const r = await fetch("https://ai-powered-developer-assistance-platform-backend.onrender.com/api/v1/resume/save", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: resumeData.personalInfo.name,
@@ -73,7 +73,7 @@ export default function ResumePage() {
           accentColor: ac, fontSize: fs,
         }),
       });
-      if (r.ok) alert("Saved!");
+      if (r.ok) alert("Saved to database!");
     } catch { alert("Save failed."); }
     finally { setLoading(false); }
   };
@@ -81,7 +81,6 @@ export default function ResumePage() {
   // Builds the pure resume HTML string (used by both print and iframe)
   const buildResumeHTML = () => {
     const li = `font-family:${ff};font-size:${fs}px;color:#1f2937;line-height:1.6;margin-bottom:2px;list-style-type:disc;list-style-position:outside;display:list-item;`;
-    // Section heading uses a colored div for the line (not border-bottom) so it prints in color
     const sh = (title: string) => `
       <div style="margin-bottom:6px;">
         <div style="font-family:${ff};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.07em;color:${ac};margin-bottom:3px;">${title}</div>
@@ -99,7 +98,6 @@ export default function ResumePage() {
   body{background:#fff;color:#111827;font-family:${ff};font-size:${fs}px;line-height:1.5;}
   ul{list-style:disc;padding-left:18px;}
   li{display:list-item;list-style-type:disc;}
-  [style*="border-bottom"]{border-color:inherit!important;}
   @page{size:A4 portrait;margin:14mm 16mm;}
 </style></head><body>
 
@@ -202,7 +200,6 @@ ${(resumeData.certifications?.length??0)>0 ? `
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
   };
 
-  // ── PRINT: Blob URL opened in new tab — no popups, colors preserved ──
   const handlePrint = () => {
     const html = buildResumeHTML();
     const blob = new Blob([html], { type: "text/html" });
@@ -217,7 +214,6 @@ ${(resumeData.certifications?.length??0)>0 ? `
     setTimeout(() => URL.revokeObjectURL(url), 15000);
   };
 
-  // ── Screen preview helpers ──
   const rs = (size = fs, color = "#111827", extra: React.CSSProperties = {}): React.CSSProperties => ({
     margin: 0, padding: 0, fontFamily: ff, fontSize: `${size}px`, color, lineHeight: 1.5, ...extra,
   });
@@ -243,7 +239,6 @@ ${(resumeData.certifications?.length??0)>0 ? `
 
   return (
     <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden", backgroundColor: "#0f1117", color: "white", fontFamily: "system-ui,sans-serif" }}>
-
 
       {/* RAIL */}
       <div style={{ width: 60, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 20, paddingBottom: 20, gap: 6, borderRight: "1px solid #1e2433", backgroundColor: "#0a0d14" }}>
