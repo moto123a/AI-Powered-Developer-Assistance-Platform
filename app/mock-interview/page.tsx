@@ -12,6 +12,11 @@ type Feedback = {
   resume_proof?: any;
 };
 
+type InterviewTurn = {
+  role: "interviewer" | "candidate";
+  text: string;
+};
+
 // --- Render Safe Helper ---
 const renderSafe = (val: any) => {
   if (val === null || val === undefined) return "";
@@ -84,6 +89,16 @@ const normalizeQuestions = (res: any): string[] => {
   return cleaned;
 };
 
+const normalizeSingleQuestion = (res: any): string => {
+  const q1 = res?.question;
+  const q2 = res?.data?.question;
+  const q3 = res?.result?.question;
+  const raw = [q1, q2, q3].find((x) => typeof x === "string") || "";
+  const clean = String(raw || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  return clean.endsWith("?") ? clean : `${clean}?`;
+};
+
 // --- SHUFFLE ---
 const shuffle = (arr: string[]) => {
   const a = [...arr];
@@ -133,10 +148,12 @@ export default function MockInterviewPage() {
   const [lastFeedback, setLastFeedback] = useState<Feedback | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoadingNextQuestion, setIsLoadingNextQuestion] = useState(false);
 
   const [sessionId, setSessionId] = useState<string>("");
   const [scores, setScores] = useState<number[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
+  const [conversationHistory, setConversationHistory] = useState<InterviewTurn[]>([]);
 
   // --- Pre-Start Camera Prompt ---
   const [showPreStart, setShowPreStart] = useState(false);
@@ -403,6 +420,20 @@ export default function MockInterviewPage() {
 
   const handleSubmit = async (finalAnswer: string) => {
     const cleanAns = (finalAnswer || "").trim();
+    const cleanQuestion = (activeQuestions[index] || "").trim();
+    const nextHistory: InterviewTurn[] = [...conversationHistory];
+
+    if (
+      cleanQuestion &&
+      !(nextHistory[nextHistory.length - 1]?.role === "interviewer" &&
+        nextHistory[nextHistory.length - 1]?.text === cleanQuestion)
+    ) {
+      nextHistory.push({ role: "interviewer", text: cleanQuestion });
+    }
+    if (cleanAns) {
+      nextHistory.push({ role: "candidate", text: cleanAns });
+    }
+    setConversationHistory(nextHistory);
 
     if (isTooShortAnswer(cleanAns)) {
       autoNextArmedRef.current = true;
@@ -419,6 +450,7 @@ export default function MockInterviewPage() {
           answer: cleanAns,
           resume: resumeText,
           jd: jdText,
+          conversationHistory: nextHistory,
         });
 
         const fb: Feedback = {
@@ -454,6 +486,7 @@ export default function MockInterviewPage() {
         answer: cleanAns,
         resume: resumeText,
         jd: jdText,
+        conversationHistory: nextHistory,
       });
       setLastFeedback(res);
       setScores((p) => [...p, res.score || 0]);
@@ -464,13 +497,43 @@ export default function MockInterviewPage() {
     setShowFeedback(true);
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
+    if (isLoadingNextQuestion) return;
+    setIsLoadingNextQuestion(true);
     setShowFeedback(false);
-    if (index >= activeQuestions.length - 1) { setStarted(false); return; }
-    setIndex((prev) => prev + 1);
+    const nextIndex = index + 1;
+
+    if (nextIndex >= activeQuestions.length) {
+      setStarted(false);
+      setIsLoadingNextQuestion(false);
+      return;
+    }
+
+    try {
+      const followupRes = await fetchAi({
+        mode: "generate_followup_question",
+        resume: resumeText,
+        jd: jdText,
+        conversationHistory,
+      });
+      const followupQuestion = normalizeSingleQuestion(followupRes);
+
+      if (followupQuestion) {
+        setGeneratedQuestions((prev) => {
+          const source = prev.length > 0 ? [...prev] : [...activeQuestions];
+          source[nextIndex] = followupQuestion;
+          return source;
+        });
+      }
+    } catch {
+      addLog("Using prepared next question");
+    }
+
+    setIndex(nextIndex);
     setAnswer("");
     setAnswerLocked(false);
     autoNextArmedRef.current = false;
+    setIsLoadingNextQuestion(false);
   };
 
   const speakQuestion = () => {
@@ -507,6 +570,8 @@ export default function MockInterviewPage() {
     autoNextArmedRef.current = false;
     shouldAutoListenRef.current = false;
     setIsAnalyzing(false);
+    setIsLoadingNextQuestion(false);
+    setConversationHistory([]);
   };
 
   const confirmStart = async (enableCamera: boolean) => {
@@ -630,7 +695,15 @@ export default function MockInterviewPage() {
                 </div>
                 <div className="mt-4 flex gap-3">
                   <button onClick={() => handleSubmit(answer)} disabled={answer.length < 5 || isAnalyzing} className="flex-1 bg-blue-600 transition px-5 py-3 rounded-xl text-sm font-extrabold">{isAnalyzing ? "Analyzing…" : "Submit Answer"}</button>
-                  {showFeedback && <button onClick={nextQuestion} className="px-5 py-3 rounded-xl text-sm font-extrabold bg-emerald-600">Next</button>}
+                  {showFeedback && (
+                    <button
+                      onClick={nextQuestion}
+                      disabled={isLoadingNextQuestion}
+                      className="px-5 py-3 rounded-xl text-sm font-extrabold bg-emerald-600 disabled:opacity-50"
+                    >
+                      {isLoadingNextQuestion ? "Next..." : "Next"}
+                    </button>
+                  )}
                 </div>
 
                 {showFeedback && lastFeedback && (

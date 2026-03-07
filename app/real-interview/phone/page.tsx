@@ -106,6 +106,9 @@ export default function MobilePhonePage() {
   const [transcript, setTranscript] = useState("");
   const [partial, setPartial] = useState("");
   const [finalAnswer, setFinalAnswer] = useState("");
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ role: "interviewer" | "candidate"; text: string }>
+  >([]);
   const [startTime, setStartTime] = useState<number | null>(null);
   const hiddenDraftRef = useRef("");
   const [copied, setCopied] = useState(false);
@@ -165,6 +168,7 @@ export default function MobilePhonePage() {
   const performFetch = async () => {
     const fullText = (transcriptRef.current + " " + partialRef.current).trim();
     if (!fullText || fullText.length < 5) return;
+    const previewHistory = [...conversationHistory, { role: "interviewer" as const, text: fullText }];
     const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
     try {
       const response = await fetch("/api/stt/tokens", {
@@ -173,6 +177,7 @@ export default function MobilePhonePage() {
         body: JSON.stringify({
           transcript: fullText,
           resume: resume,
+          conversationHistory: previewHistory,
           userEmail: auth.currentUser?.email || "unknown",
           duration: duration,
         }),
@@ -199,16 +204,36 @@ export default function MobilePhonePage() {
     };
   }, [partial, transcript, isRecording]);
 
+  // ✅ FIXED: Proper mic pause/resume behavior
   const toggleRecording = useCallback(async () => {
     if (isRecording) {
-      sttClient.current?.stop();
+      // ========================================
+      // STOPPING RECORDING - MIC GOES OFF
+      // ========================================
+      
+      // 1. IMMEDIATELY stop and destroy the Speechmatics client
+      if (sttClient.current) {
+        sttClient.current.stop();
+        sttClient.current = null; // Complete cleanup
+      }
+      
+      // 2. Update UI state
       setIsRecording(false);
+      
+      // 3. Calculate duration
       const duration = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      const fullText = (transcriptRef.current + " " + partialRef.current).trim();
+      const finalHistory = fullText
+        ? [...conversationHistory, { role: "interviewer" as const, text: fullText }]
+        : [...conversationHistory];
+      
+      // 4. Show draft answer immediately if available
       if (hiddenDraftRef.current) {
         setFinalAnswer(hiddenDraftRef.current);
       }
-      const fullText = (transcriptRef.current + " " + partialRef.current).trim();
-      if (fullText) {
+      
+      // 5. Get final answer from backend (only if we have text)
+      if (fullText && fullText.length > 3) {
         try {
           const response = await fetch("/api/stt/tokens", {
             method: "POST",
@@ -216,15 +241,32 @@ export default function MobilePhonePage() {
             body: JSON.stringify({
               transcript: fullText,
               resume: resume,
+              conversationHistory: finalHistory,
               userEmail: auth.currentUser?.email || "unknown",
               duration: duration,
             }),
           });
           const data = await response.json();
-          setFinalAnswer(data.answer);
-        } catch (e) {}
+          if (data.answer) {
+            setFinalAnswer(data.answer);
+            setConversationHistory([...finalHistory, { role: "candidate", text: data.answer }]);
+          } else {
+            setConversationHistory(finalHistory);
+          }
+        } catch (e) {
+          console.error("API error:", e);
+          setConversationHistory(finalHistory);
+        }
       }
+      
+      // ✅ MIC IS NOW OFF - User must manually press button to restart
+      
     } else {
+      // ========================================
+      // STARTING NEW RECORDING - MIC GOES ON
+      // ========================================
+      
+      // 1. Reset all states for fresh session
       setIsRecording(true);
       setStartTime(Date.now());
       setTranscript("");
@@ -233,25 +275,69 @@ export default function MobilePhonePage() {
       hiddenDraftRef.current = "";
       transcriptRef.current = "";
       partialRef.current = "";
+      
+      // 2. Create brand new Speechmatics client
       sttClient.current = new SpeechmaticsClient();
       sttClient.current.start({
         language: "en",
         onStatus: () => {},
         onPartial: (text: string) => {
+          // Show partial text in real-time
           setPartial(text);
           partialRef.current = text;
         },
         onFinal: (text: string) => {
-          const newTotal = (transcriptRef.current + " " + text).trim();
+          // ✅ FIX DUPLICATION: Only add new text, don't repeat partial
+          const cleanText = text.trim();
+          if (!cleanText) return;
+          
+          // Check if this text is already at the end of transcript (prevents duplication)
+          const currentTranscript = transcriptRef.current.trim();
+          if (currentTranscript.endsWith(cleanText)) {
+            // Already have this text, skip
+            setPartial("");
+            partialRef.current = "";
+            return;
+          }
+          
+          // Add new text with single space separator
+          const newTotal = currentTranscript 
+            ? `${currentTranscript} ${cleanText}` 
+            : cleanText;
+          
           setTranscript(newTotal);
           transcriptRef.current = newTotal;
           setPartial("");
           partialRef.current = "";
         },
-        onError: () => setIsRecording(false),
+        onError: () => {
+          // On error, fully stop recording
+          setIsRecording(false);
+          if (sttClient.current) {
+            sttClient.current.stop();
+            sttClient.current = null;
+          }
+        },
       });
     }
-  }, [isRecording, resume, startTime]);
+  }, [isRecording, resume, startTime, conversationHistory]);
+
+  // ✅ SPACE KEY CONTROL - Must be AFTER toggleRecording is defined
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only work in interview view, and don't trigger if typing in input
+      if (view !== "interview") return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault(); // Prevent page scroll
+        toggleRecording();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [view, toggleRecording]);
 
   const copyAnswer = () => {
     navigator.clipboard.writeText(finalAnswer);
@@ -381,7 +467,11 @@ export default function MobilePhonePage() {
                 </motion.div>
 
                 <motion.button
-                  onClick={() => (resume ? setView("interview") : null)}
+                  onClick={() => {
+                    if (!resume) return;
+                    setConversationHistory([]);
+                    setView("interview");
+                  }}
                   disabled={!resume}
                   whileTap={{ scale: 0.97 }}
                   className={`w-full py-6 rounded-2xl font-bold text-xl transition-all shadow-2xl ${
@@ -422,6 +512,7 @@ export default function MobilePhonePage() {
                     setTranscript("");
                     setFinalAnswer("");
                     hiddenDraftRef.current = "";
+                    setConversationHistory([]);
                   }}
                   className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl"
                 >
@@ -530,13 +621,14 @@ export default function MobilePhonePage() {
                       <MicOff size={32} className="text-white mb-1 relative z-10" />
                       <span className="text-sm font-bold tracking-wide text-white relative z-10">STOP & GENERATE SCRIPT</span>
                       <span className="text-[10px] text-red-100 mt-1 relative z-10 opacity-90 flex items-center gap-1 font-mono uppercase">
-                        <ShieldAlert size={10} fill="currentColor" /> Audio Filter Active
+                        <ShieldAlert size={10} fill="currentColor" /> Press SPACE to Stop
                       </span>
                     </>
                   ) : (
                     <>
                       <Mic size={36} className="text-white mb-2" />
                       <span className="text-sm font-bold tracking-wide text-white">TAP TO LISTEN INTERVIEWER</span>
+                      <span className="text-[10px] text-white/70 mt-1 font-mono">or press SPACE</span>
                     </>
                   )}
                 </motion.button>

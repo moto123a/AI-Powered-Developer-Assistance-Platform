@@ -151,6 +151,9 @@ function InterviewDashboard({ config, onBack }) {
   const [transcript, setTranscript] = useState("");
   const [partial, setPartial] = useState("");
   const [answer, setAnswer] = useState("");
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ role: "interviewer" | "candidate"; text: string }>
+  >([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [recorder, setRecorder] = useState(null);
   const [sessionTime, setSessionTime] = useState(0);
@@ -174,6 +177,7 @@ function InterviewDashboard({ config, onBack }) {
   const generateAnswer = async () => {
     const fullText = (transcript + " " + partial).trim();
     if (!fullText || isGenerating) return;
+    const nextHistory = [...conversationHistory, { role: "interviewer" as const, text: fullText }];
     
     // 1. Mute Mic immediately
     stopMic();
@@ -181,6 +185,7 @@ function InterviewDashboard({ config, onBack }) {
     // 2. Start loading state
     setIsGenerating(true);
     setAnswer(""); 
+    setConversationHistory(nextHistory);
 
     try {
       const response = await fetch("/api/stt/tokens", {
@@ -189,6 +194,8 @@ function InterviewDashboard({ config, onBack }) {
         body: JSON.stringify({ 
           transcript: fullText, 
           resume: config.resume, 
+          jd: config.jobDescription,
+          conversationHistory: nextHistory,
           context: `
             Role: ${config.role}
             Company: ${config.companyName}
@@ -202,7 +209,11 @@ function InterviewDashboard({ config, onBack }) {
       if (!response.ok) throw new Error("API Route Failed");
 
       const data = await response.json();
-      setAnswer(data.answer || "No response generated.");
+      const nextAnswer = data.answer || "No response generated.";
+      setAnswer(nextAnswer);
+      if (data.answer) {
+        setConversationHistory([...nextHistory, { role: "candidate", text: data.answer }]);
+      }
     } catch (err) { 
       console.error("Answer generation error:", err);
       setAnswer("ERROR: AI LINK SEVERED. Check console for POST errors."); 
