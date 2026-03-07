@@ -73,7 +73,7 @@ export default function ResumePage() {
           accentColor: ac, fontSize: fs,
         }),
       });
-      if (r.ok) alert("Saved to database!");
+      if (r.ok) alert("Saved!");
     } catch { alert("Save failed."); }
     finally { setLoading(false); }
   };
@@ -81,6 +81,7 @@ export default function ResumePage() {
   // Builds the pure resume HTML string (used by both print and iframe)
   const buildResumeHTML = () => {
     const li = `font-family:${ff};font-size:${fs}px;color:#1f2937;line-height:1.6;margin-bottom:2px;list-style-type:disc;list-style-position:outside;display:list-item;`;
+    // Section heading uses a colored div for the line (not border-bottom) so it prints in color
     const sh = (title: string) => `
       <div style="margin-bottom:6px;">
         <div style="font-family:${ff};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.07em;color:${ac};margin-bottom:3px;">${title}</div>
@@ -98,6 +99,7 @@ export default function ResumePage() {
   body{background:#fff;color:#111827;font-family:${ff};font-size:${fs}px;line-height:1.5;}
   ul{list-style:disc;padding-left:18px;}
   li{display:list-item;list-style-type:disc;}
+  [style*="border-bottom"]{border-color:inherit!important;}
   @page{size:A4 portrait;margin:14mm 16mm;}
 </style></head><body>
 
@@ -172,7 +174,7 @@ ${(resumeData.education?.length??0)>0 ? `
 <div style="margin-bottom:16px;">
   ${sh("Education")}
   ${resumeData.education.map((e:any,i:number)=>`
-    <div style="margin-top:${i===0?0:10}px;display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="margin-top:${i===0?0:10};display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
         <div style="${tx(fs+0.5,"#111827","font-weight:700;")}">
           ${e.school||e.institution||""}
@@ -305,7 +307,7 @@ ${(resumeData.certifications?.length??0)>0 ? `
         {activeTab === "style" && <>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, color: "#34d399", fontWeight: 700, fontSize: 14 }}><Palette size={16} /> Design</div>
           <div style={{ marginBottom: 22 }}>
-            <label style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, display: "block", marginBottom: 10 }}>Accent Color</label>
+            <label style={lbl}>Accent Color</label>
             <div style={{ display: "flex", gap: 7, marginBottom: 10, flexWrap: "wrap" }}>
               {["#1e40af","#b91c1c","#065f46","#7c3aed","#000000","#c2410c","#0e7490"].map(c => (
                 <button key={c} onClick={() => setAccentColor(c)} style={{ width: 26, height: 26, borderRadius: "50%", background: c, border: ac === c ? "2.5px solid white" : "2.5px solid transparent", cursor: "pointer", boxSizing: "border-box", transform: ac === c ? "scale(1.2)" : "scale(1)", transition: "transform 0.15s" }} />
