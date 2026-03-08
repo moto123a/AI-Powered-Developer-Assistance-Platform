@@ -1,59 +1,75 @@
 export const MASTER_RESUME = {
   personalInfo: {
-    name: "Pavan Krishna",
-    headline: "Software Development Engineer | PostgreSQL Engine & Performance | Distributed Systems",
-    email: "kp302165@gmail.com",
-    phone: "7797070761",
-    location: "United States"
+    name: "Your Full Name",
+    headline: "Software Engineer | Full Stack Developer | Cloud & DevOps",
+    email: "your.email@example.com",
+    phone: "+1 (555) 000-0000",
+    location: "City, State",
+    linkedin: "linkedin.com/in/yourprofile",
+    github: "github.com/yourusername",
+    portfolio: "yourportfolio.com",
+    customLinks: [] as { label: string; url: string }[],
   },
-  summary: "Software Development Engineer with 3+ years of experience building high-performance, data-intensive database systems and scalable distributed architectures. Expert in C, Java, and PostgreSQL engine internals, with a proven track record of translating complex requirements into reliable, multi-threaded engine features and core-level extensions. Specialized in contributing to open-source PostgreSQL core and optimizing database performance through rigorous benchmarking, patch reviews, and kernel-level fixes.",
+  summary:
+    "Results-driven Software Engineer with 4+ years of experience designing, developing, and deploying scalable web applications and distributed systems. Proficient in modern JavaScript/TypeScript frameworks, cloud-native architectures, and agile development practices. Passionate about writing clean, maintainable code and delivering impactful user experiences.",
   skillCategories: [
-    { name: "Systems & Programming", skills: "C (Core Competency), C++, Java (Expert), SQL, Python, Perl, JavaScript, TypeScript" },
-    { name: "Database Internals", skills: "PostgreSQL Engine Internals, Query Plan Analysis, PostgreSQL Benchmarking, Workload Tuning, Indexing Strategies, Concurrency Control" },
-    { name: "Distributed Systems", skills: "Multi-threaded Development, Microservices, Scalability & Reliability Design, RESTful Web Services, Object-Oriented Design (OOD)" },
-    { name: "DevOps & Tools", skills: "Git/GitHub, Patch Review, GDB (Debugging), Docker, Jenkins, CI/CD Pipelines, Maven, Linux/Unix Systems" }
+    { name: "Languages", skills: "Java, Python, JavaScript, TypeScript, SQL, C++" },
+    { name: "Frameworks & Libraries", skills: "React, Next.js, Node.js, Spring Boot, Express, Tailwind CSS" },
+    { name: "Cloud & DevOps", skills: "AWS, Docker, Kubernetes, CI/CD Pipelines, GitHub Actions, Terraform" },
+    { name: "Databases & Tools", skills: "PostgreSQL, MongoDB, Redis, Git, Jira, Figma" },
   ],
   experience: [
     {
-      company: "Renasant Bank",
+      company: "Company Name",
       role: "Full Stack Software Engineer",
-      location: "Tupelo, MS",
-      period: "Jan 2025 - Present",
+      location: "City, State",
+      period: "Jan 2023 - Present",
       bullets: [
-        "Lead the design and development of high-performance system modules for large-scale, multi-tiered banking systems supporting high-throughput PostgreSQL transactional workloads.",
-        "Integrated complex RESTful services with PostgreSQL-backed data layers to ensure seamless data synchronization and consistency across distributed environments.",
-        "Optimized database interaction performance and query execution strategies, reducing system latency by 25% through deep-dive query plan analysis and workload tuning.",
-        "Developed scalable, multi-threaded backend components using Java and C-based logic, ensuring high availability and reliability.",
-        "Collaborated in architectural discussions focused on database engine reliability, scalability, and fault tolerance."
-      ]
+        "Architected and developed a customer-facing dashboard serving 50K+ monthly active users using React, Next.js, and PostgreSQL.",
+        "Designed RESTful APIs and microservices with Node.js and Spring Boot, reducing average response time by 40%.",
+        "Led migration from monolithic architecture to containerized microservices on AWS ECS, improving deployment frequency by 3x.",
+        "Collaborated with product and design teams to implement A/B testing frameworks that increased conversion rates by 18%.",
+      ],
     },
     {
-      company: "Wipro Limited",
+      company: "Previous Company",
       role: "Software Engineer",
-      location: "India",
-      period: "Jun 2021 - Sep 2023",
+      location: "City, State",
+      period: "Jun 2020 - Dec 2022",
       bullets: [
-        "Designed and developed high-performance distributed systems for large-scale, multi-tiered architectures, ensuring optimized interaction with PostgreSQL and MySQL.",
-        "Optimized PostgreSQL workloads through deep-dive query plan analysis, indexing strategies, and benchmarking efforts.",
-        "Built and maintained high-volume transactional systems supporting distributed backend services, focusing on data integrity.",
-        "Implemented backend performance enhancements and database-level optimizations that significantly increased system throughput.",
-        "Leveraged Git-based workflows and CI/CD pipelines to manage complex deployments and maintain release quality."
-      ]
-    }
+        "Built and maintained high-traffic web applications using React and TypeScript, serving 100K+ daily requests.",
+        "Optimized database queries and indexing strategies in PostgreSQL, reducing query execution time by 60%.",
+        "Implemented automated testing pipelines with Jest and Cypress, achieving 95% code coverage across all services.",
+        "Mentored 3 junior developers through code reviews, pair programming, and technical knowledge-sharing sessions.",
+      ],
+    },
   ],
   projects: [
     {
-      title: "AI-Powered Developer Assistance Platform",
-      tech: "Kafka, Spark, Airflow, Iceberg, Trino",
+      title: "E-Commerce Platform",
+      tech: "Next.js, Stripe, PostgreSQL, Redis, Docker",
+      period: "2024",
       bullets: [
-        "Engineered a real-time fraud detection pipeline processing high-volume transaction streams using Apache Kafka and Spark Structured Streaming.",
-        "Built streaming ETL workflows orchestrated with Apache Airflow for fraud risk computation and analytics reporting.",
-        "Integrated lakehouse architecture (Iceberg/Delta Lake) with Trino for scalable data querying."
-      ]
-    }
+        "Built a full-stack e-commerce platform with real-time inventory management, secure payment processing via Stripe, and an admin dashboard.",
+        "Implemented caching layer with Redis that reduced page load times by 55% and handled 10K+ concurrent sessions.",
+      ],
+    },
+    {
+      title: "Real-Time Chat Application",
+      tech: "React, Socket.io, Node.js, MongoDB",
+      period: "2023",
+      bullets: [
+        "Developed a real-time messaging app with WebSocket connections supporting 1,000+ simultaneous users.",
+        "Integrated end-to-end encryption and file sharing with automatic media compression.",
+      ],
+    },
   ],
   education: [
-    { school: "Roosevelt University", degree: "Master of Science - Computer Science", period: "Sep 2023 - Dec 2024" },
-    { school: "Hindustan Institute Of Technology & Science", degree: "Bachelor of Technology - Computer Science", period: "Jun 2018 - May 2022" }
-  ]
+    { school: "University Name", degree: "Master of Science - Computer Science", period: "Aug 2018 - May 2020", gpa: "3.9" },
+    { school: "University Name", degree: "Bachelor of Science - Computer Science", period: "Aug 2014 - May 2018", gpa: "3.7" },
+  ],
+  certifications: [
+    "AWS Certified Solutions Architect — Amazon Web Services (2024)",
+    "Google Professional Cloud Developer — Google Cloud (2023)",
+  ],
 };
