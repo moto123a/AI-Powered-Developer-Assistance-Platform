@@ -6,6 +6,9 @@ import { Sparkles, Download, RotateCcw, User, Palette, Save, FileText } from "lu
 const A4_W = 794;
 const A4_H = 1123;
 
+// Uses env variable when deployed, falls back to localhost for local dev
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8082";
+
 export default function ResumePage() {
   const [activeTab, setActiveTab]     = useState("edit");
   const [jd, setJd]                   = useState("");
@@ -38,6 +41,11 @@ export default function ResumePage() {
     return () => window.removeEventListener("resize", calc);
   }, []);
 
+  // Ping backend on page load to wake it up (Render free tier sleeps after inactivity)
+  useEffect(() => {
+    fetch(`${API_BASE}/api/v1/resume/status`).catch(() => {});
+  }, []);
+
   const updateInfo = (field: string, value: string) =>
     setResumeData((p: any) => ({ ...p, personalInfo: { ...p.personalInfo, [field]: value } }));
 
@@ -45,22 +53,37 @@ export default function ResumePage() {
     if (!jd) return alert("Paste a Job Description first!");
     setLoading(true);
     try {
-      const r = await fetch("https://ai-powered-developer-assistance-platform-backend.onrender.com/api/v1/resume/tailor", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120000); // 2 min timeout for cold starts
+
+      const r = await fetch(`${API_BASE}/api/v1/resume/tailor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jd, masterResume: resumeData }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       if (!r.ok) throw new Error();
       setResumeData(await r.json());
       setActiveTab("edit");
-    } catch { alert("Error: AI Tailoring failed. Check Render backend status."); }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      if (e.name === "AbortError") {
+        alert("Backend is waking up (free tier). Please wait 30 seconds and try again.");
+      } else {
+        alert("Error: AI Tailoring failed. Backend may be starting up — try again in 30 seconds.");
+      }
+    } finally { setLoading(false); }
   };
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      const r = await fetch("https://ai-powered-developer-assistance-platform-backend.onrender.com/api/v1/resume/save", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120000);
+
+      const r = await fetch(`${API_BASE}/api/v1/resume/save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: resumeData.personalInfo.name,
           headline: resumeData.personalInfo.headline,
@@ -72,16 +95,17 @@ export default function ResumePage() {
           projects:    JSON.stringify(resumeData.projects || []),
           accentColor: ac, fontSize: fs,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       if (r.ok) alert("Saved!");
-    } catch { alert("Save failed."); }
+    } catch { alert("Save failed. Backend may be starting up — try again in 30 seconds."); }
     finally { setLoading(false); }
   };
 
   // Builds the pure resume HTML string (used by both print and iframe)
   const buildResumeHTML = () => {
     const li = `font-family:${ff};font-size:${fs}px;color:#1f2937;line-height:1.6;margin-bottom:2px;list-style-type:disc;list-style-position:outside;display:list-item;`;
-    // Section heading uses a colored div for the line (not border-bottom) so it prints in color
     const sh = (title: string) => `
       <div style="margin-bottom:6px;">
         <div style="font-family:${ff};font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.07em;color:${ac};margin-bottom:3px;">${title}</div>
