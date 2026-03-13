@@ -21,7 +21,7 @@ import {
 
 // --- UPDATED DIRECT DOWNLOAD PATH ---
 // We point directly to the .msixbundle file because Microsoft blocked the ms-appinstaller protocol link
-const WINDOWS_DOWNLOAD_FILE = "/InterviewCopilotPackager_1.0.2.0_x64.msixbundle";
+const WINDOWS_DOWNLOAD_FILE = "/installer.msixbundle";
 const MAC_URL = "/InterviewCopilotMac-1.0.0.pkg";
 
 export default function Home() {
@@ -145,7 +145,7 @@ export default function Home() {
     if (os === "windows") {
       // Direct Download logic for Modern Windows Installer
       link.href = WINDOWS_DOWNLOAD_FILE;
-      link.download = "InterviewCopilot_Windows_Installer.msixbundle";
+      link.download = "installer.msixbundle";
     } else {
       // Logic for Mac (remains as file download)
       link.href = MAC_URL;
