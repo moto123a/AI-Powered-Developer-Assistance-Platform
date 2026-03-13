@@ -19,8 +19,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// --- FILE PATHS ---
-const WINDOWS_URL = "/InterviewCopilot_Windows.zip";
+// --- UPDATED MODERN FILE PATHS ---
+// This triggers the professional blue Windows Install popup
+const WINDOWS_INSTALL_LINK = "ms-appinstaller:?source=https://coopilotxai.com/InterviewCopilotPackager.appinstaller";
 const MAC_URL = "/InterviewCopilotMac-1.0.0.pkg";
 
 export default function Home() {
@@ -138,18 +139,20 @@ export default function Home() {
     router.push(`/${path}`);
   };
 
+  // --- UPDATED DOWNLOAD LOGIC ---
   const handleDownload = (os: "windows" | "mac") => {
-    const link = document.createElement("a");
     if (os === "windows") {
-      link.href = WINDOWS_URL;
-      link.download = "InterviewCopilot_Windows.zip";
+      // Logic for Modern Windows AppInstaller
+      window.location.href = WINDOWS_INSTALL_LINK;
     } else {
+      // Logic for Mac (remains as file download)
+      const link = document.createElement("a");
       link.href = MAC_URL;
       link.download = "InterviewCopilotMac-1.0.0.pkg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -614,7 +617,7 @@ export default function Home() {
               >
                 <i className="fa-brands fa-windows text-3xl" />
                 <div className="text-left">
-                  <div className="text-xs opacity-80 font-medium">Download for</div>
+                  <div className="text-xs opacity-80 font-medium">Get for</div>
                   <div className="text-lg font-bold">Windows</div>
                 </div>
               </motion.button>
@@ -635,7 +638,7 @@ export default function Home() {
             </div>
 
             <div className={`mt-6 pt-6 border-t ${theme.border} flex flex-wrap gap-4 justify-center text-xs ${theme.textSecondary}`}>
-              <div className="flex items-center gap-2"><i className="fa-solid fa-check text-green-500" /> No account required to download</div>
+              <div className="flex items-center gap-2"><i className="fa-solid fa-check text-green-500" /> One-click updates enabled</div>
               <div className="flex items-center gap-2"><i className="fa-solid fa-check text-green-500" /> Works on Zoom, Teams &amp; Google Meet</div>
               <div className="flex items-center gap-2"><i className="fa-solid fa-shield-halved text-blue-500" /> Audio never leaves your device</div>
             </div>
