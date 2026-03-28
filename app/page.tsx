@@ -1,5 +1,5 @@
 "use client";
-
+import CreditsBadge from "../components/CreditsBadge";
 import { motion, useMotionValue, useSpring, useScroll, useTransform } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -388,6 +388,7 @@ export default function Home() {
               { label: "Resume", path: "resume" },
               { label: "Mock Interview", path: "mock-interview" },
               { label: "Real-Time Interview", path: "real-interview" },
+              { label: "Pricing", path: "pricing" },
               { label: "Analytics", path: "analytics" },
               { label: "Docs", path: "docs" },
             ].map((item) => (
@@ -409,6 +410,7 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+            <CreditsBadge />
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
