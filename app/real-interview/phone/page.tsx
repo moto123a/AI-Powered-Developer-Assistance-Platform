@@ -183,9 +183,14 @@ export default function MobilePhonePage() {
         }),
       });
       const data = await response.json();
-      if (data.answer) {
-        hiddenDraftRef.current = data.answer;
-      }
+if (response.status === 402 || data.error === "insufficient_credits") {
+  alert("You've used all your free credits! Go to Pricing to upgrade.");
+  window.location.href = "/pricing";
+  return;
+}
+if (data.answer) {
+  hiddenDraftRef.current = data.answer;
+}
     } catch (err) {
       console.error("Fetch error", err);
     }
@@ -247,6 +252,11 @@ export default function MobilePhonePage() {
             }),
           });
           const data = await response.json();
+          if (response.status === 402 || data.error === "insufficient_credits") {
+  alert("You've used all your free credits! Go to Pricing to upgrade.");
+  window.location.href = "/pricing";
+  return;
+}
           if (data.answer) {
             setFinalAnswer(data.answer);
             setConversationHistory([...finalHistory, { role: "candidate", text: data.answer }]);

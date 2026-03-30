@@ -91,6 +91,56 @@ function cleanJson(text: string) {
 }
 
 // ============================================================================
+// 3.5) CREDIT CHECK SYSTEM — NEW ADDITION
+// ============================================================================
+const CREDIT_COSTS: Record<string, number> = {
+  verify_resume: 0,
+  generate_script: 5,
+  generate_feedback: 5,
+  generate_questions: 5,
+  realtime: 2,
+};
+
+async function checkAndDeductCredits(email: string, mode: string): Promise<{ allowed: boolean; remaining: number }> {
+  if (!db) return { allowed: true, remaining: -1 };
+
+  const cost = CREDIT_COSTS[mode] ?? 2;
+  if (cost === 0) return { allowed: true, remaining: -1 };
+
+  try {
+    const userQuery = await db.collection("users").where("email", "==", email).limit(1).get();
+    if (userQuery.empty) return { allowed: true, remaining: -1 };
+
+    const userDoc = userQuery.docs[0];
+    const userData = userDoc.data();
+    const plan = userData.plan || "free";
+    const credits = userData.credits || 0;
+
+    // Pro = unlimited (still track usage)
+    if (plan === "pro") {
+      await userDoc.ref.update({ creditsUsed: admin.firestore.FieldValue.increment(cost) });
+      return { allowed: true, remaining: -1 };
+    }
+
+    // Check balance
+    if (credits < cost) {
+      return { allowed: false, remaining: credits };
+    }
+
+    // Deduct
+    await userDoc.ref.update({
+      credits: admin.firestore.FieldValue.increment(-cost),
+      creditsUsed: admin.firestore.FieldValue.increment(cost),
+    });
+
+    return { allowed: true, remaining: credits - cost };
+  } catch (err) {
+    console.error("Credit check error:", err);
+    return { allowed: true, remaining: -1 };
+  }
+}
+
+// ============================================================================
 // 4) DETERMINISTIC RESUME EXPERIENCE PARSER (REPLACES GROQ verify_resume)
 // ============================================================================
 const NOW_YEAR = 2026;
@@ -407,7 +457,26 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { transcript, resume, jd, userEmail, duration, mode, question, answer } = body;
 
-    // MODE A: VERIFY RESUME
+    // ══════════════════════════════════════════════════════════════
+    // TOKEN INTERCEPTOR — FIXES "Critical: No Speechmatics token"
+    // ══════════════════════════════════════════════════════════════
+    if (!transcript && !resume && !mode && !question && !answer) {
+      const apiKey = process.env.SPEECHMATICS_API_KEY;
+      if (apiKey) {
+        const smRes = await fetch("https://mp.speechmatics.com/v1/api_keys?type=rt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({ ttl: 60 }),
+        });
+        if (smRes.ok) {
+          const smData = await smRes.json();
+          return NextResponse.json({ token: smData.key_value });
+        }
+      }
+    }
+    // ══════════════════════════════════════════════════════════════
+
+    // MODE A: VERIFY RESUME (FREE — no credits needed)
     if (mode === "verify_resume") {
       const result = verifyResumeDeterministic(resume);
 
@@ -422,6 +491,19 @@ export async function POST(req: Request) {
         summary: result.summary,
       });
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // CREDIT CHECK — NEW ADDITION (blocks if out of credits)
+    // ══════════════════════════════════════════════════════════════
+    const creditResult = await checkAndDeductCredits(userEmail || "", mode || "realtime");
+    if (!creditResult.allowed) {
+      return NextResponse.json({
+        error: "insufficient_credits",
+        message: "You've used all your credits. Upgrade your plan to continue.",
+        remaining: creditResult.remaining,
+      }, { status: 402 });
+    }
+    // ══════════════════════════════════════════════════════════════
 
     const groqApiKey = process.env.GROQ_API_KEY;
 
@@ -633,7 +715,6 @@ export async function POST(req: Request) {
     let systemInstruction = "";
 
     if (isGreeting && !isSmallTalk && !isGreetingPlusSmallTalk) {
-      // ---> SIMPLE GREETING ONLY
       systemInstruction = `The interviewer just said a simple greeting like "Hello" or "Hi" with nothing else.
 
 YOUR RESPONSE (ONE WORD):
@@ -645,7 +726,6 @@ Just greet them back.
 DO NOT add anything else. Just the greeting.`;
 
     } else if (isSmallTalk || isGreetingPlusSmallTalk) {
-      // ---> SMALL TALK (Professional Interview Setting)
       systemInstruction = `This is a PROFESSIONAL JOB INTERVIEW. The interviewer is making polite small talk.
 
 YOUR RESPONSE (ONE SHORT PROFESSIONAL SENTENCE):
@@ -666,7 +746,6 @@ CRITICAL RULES:
 Remember: Professional, brief, courteous. This is an interview setting.`;
 
     } else if (isCompanyPitch || wordCount > 80) {
-      // ---> COMPANY INTRO / LONG PITCH RESPONSE
       systemInstruction = `The interviewer just gave you a long introduction. They're NOT asking a question yet.
 
 YOUR RESPONSE (10-15 WORDS MAX):
@@ -682,7 +761,6 @@ Examples:
 DO NOT start explaining your background. Just acknowledge.`;
 
     } else if (isIntroduction) {
-      // ---> "TELL ME ABOUT YOURSELF" RESPONSE
       systemInstruction = `They asked you to introduce yourself.
 
 YOUR RESPONSE (20-30 SECONDS, 4-6 SENTENCES):
@@ -698,7 +776,6 @@ CRITICAL:
 - Keep it conversational, like meeting someone at a conference`;
 
     } else if (isLogistical) {
-      // ---> HR/LOGISTICAL QUESTIONS (SUPER SHORT)
       systemInstruction = `Simple HR question.
 
 YOUR RESPONSE: 1 SENTENCE ONLY
@@ -710,7 +787,6 @@ Examples:
 "Salary?" → "I'm looking for around 70-75K."`;
 
     } else if (isBehavioral) {
-      // ---> BEHAVIORAL/STORY QUESTIONS (SHORT + SPECIFIC)
       systemInstruction = `They want a real example from your experience.
 
 YOUR RESPONSE (3-5 SENTENCES MAX, 20-30 SECONDS):
@@ -735,7 +811,6 @@ Example (Challenge - prioritize current role):
 **REMEMBER: Use CURRENT job examples first. Only go to previous jobs if current role doesn't have relevant experience. Keep it SHORT + SPECIFIC + REAL.**`;
 
     } else {
-      // ---> TECHNICAL QUESTIONS (ADAPTIVE LENGTH)
       systemInstruction = `Answer based on what they're actually asking.
 
 STEP 1: ANALYZE THE QUESTION
@@ -779,8 +854,8 @@ REMEMBER: Be conversational, specific, and brief. Think "coffee chat with collea
             content: `RESUME (use REAL facts from here):\n${sanitizeText(resume)}\n\nINTERVIEWER: "${transcript}"\n\nGive a natural, SHORT answer using real details from the resume. Don't make up generic theory.`
           },
         ],
-        temperature: 0.3, // ✅ Lower for more consistent, faster responses
-        max_tokens: 200, // ✅ REDUCED for speed (was 300)
+        temperature: 0.3,
+        max_tokens: 200,
       }),
     });
 

@@ -1,3 +1,5 @@
+// components/AuthModal.tsx
+// ONLY CHANGE: imports initializeUserCredits and calls it on login/signup
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,8 +9,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth, db } from "../app/firebaseConfig"; 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"; 
+import { auth } from "../app/firebaseConfig";
+import { initializeUserCredits } from "../app/lib/credits";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -21,17 +23,14 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // --- HELPER: Save user to Firestore to track "Who" and "When signed in" ---
+  // Save user to Firestore WITH credits
   const saveUserToDb = async (user: any) => {
     try {
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || "User",
-        lastLogin: serverTimestamp(),
-        // Only set created at if it doesn't exist (merge: true handles this)
-        createdAt: serverTimestamp(), 
-      }, { merge: true });
+      await initializeUserCredits(
+        user.uid,
+        user.email || "",
+        user.displayName || "User"
+      );
     } catch (err) {
       console.error("Error saving user:", err);
     }
@@ -47,7 +46,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       } else {
         result = await signInWithEmailAndPassword(auth, email, password);
       }
-      
       if (result.user) await saveUserToDb(result.user);
       onClose();
     } catch (err: any) {
@@ -63,7 +61,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      
       if (result.user) await saveUserToDb(result.user);
       onClose();
     } catch (err: any) {
@@ -77,155 +74,77 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 backdrop-blur-md px-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
           className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50 backdrop-blur-xl overflow-hidden"
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Animated Background Gradient */}
-          <motion.div
-            className="absolute inset-0 opacity-30"
-            animate={{
-              background: [
-                "radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)",
-                "radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.3) 0%, transparent 50%)",
-                "radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)",
-              ],
-            }}
+          <motion.div className="absolute inset-0 opacity-30"
+            animate={{ background: ["radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)", "radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.3) 0%, transparent 50%)", "radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)"] }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
           />
 
-          <motion.button
-            onClick={onClose}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 transition-colors z-10"
-          >
-            <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800/50 hover:bg-slate-700/70 border border-slate-600/50 transition-colors z-10">
+            <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </motion.button>
 
           <div className="relative z-10">
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="text-center mb-8"
-            >
-              <motion.div
-              className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-
-                {/* ONLY CHANGE: Replace C with your logo */}
-                <img
-                  src="/logo.jpeg"
-                  alt="CoopilotX Logo"
-                  className="w-15 h-15 object-cover rounded-xl"
-                />
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="text-center mb-8">
+              <motion.div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl" whileHover={{ scale: 1.1, rotate: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <img src="/logo.jpeg" alt="CoopilotX Logo" className="w-15 h-15 object-cover rounded-xl" />
               </motion.div>
-              
               <h2 className="text-3xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   {isSignUp ? "Create Account" : "Welcome Back"}
                 </span>
               </h2>
               <p className="text-slate-400 text-sm">
-                {isSignUp ? "Sign up to get started with CoopilotX" : "Sign in to continue your journey"}
+                {isSignUp ? "Sign up — get 100 free AI credits" : "Sign in to continue your journey"}
               </p>
             </motion.div>
 
             <AnimatePresence>
               {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: -10, height: 0 }}
-                  className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg"
-                >
+                <motion.div initial={{ opacity: 0, y: -10, height: 0 }} animate={{ opacity: 1, y: 0, height: "auto" }} exit={{ opacity: 0, y: -10, height: 0 }}
+                  className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <p className="text-red-400 text-sm text-center">{error}</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-4"
-            >
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-4">
               <div className="relative group">
-                <input
-                  type="email"
-                  placeholder="Email address"
+                <input type="email" placeholder="Email address"
                   className="w-full px-4 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAuth()}
-                />
-                <motion.div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 -z-10 blur transition-opacity"
-                />
+                  value={email} onChange={(e) => setEmail(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleAuth()} />
+              </div>
+              <div className="relative group">
+                <input type="password" placeholder="Password"
+                  className="w-full px-4 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  value={password} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleAuth()} />
               </div>
 
-              <div className="relative group">
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full px-4 py-3.5 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleAuth()}
-                />
-                <motion.div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 -z-10 blur transition-opacity"
-                />
-              </div>
-
-              <motion.button
-                onClick={handleAuth}
-                disabled={loading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-              >
+              <motion.button onClick={handleAuth} disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group">
                 {loading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                  />
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
                 ) : (
                   <span>{isSignUp ? "Create Account" : "Sign In"}</span>
                 )}
               </motion.button>
 
               <div className="relative flex items-center justify-center my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-700"></div>
-                </div>
-                <div className="relative bg-slate-900 px-4">
-                  <span className="text-slate-500 text-sm">or continue with</span>
-                </div>
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700"></div></div>
+                <div className="relative bg-slate-900 px-4"><span className="text-slate-500 text-sm">or continue with</span></div>
               </div>
 
-              <motion.button
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 rounded-xl bg-white hover:bg-gray-100 text-slate-900 font-semibold transition-all flex items-center justify-center gap-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
-              >
+              <motion.button onClick={handleGoogleLogin} disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                className="w-full py-3.5 rounded-xl bg-white hover:bg-gray-100 text-slate-900 font-semibold transition-all flex items-center justify-center gap-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -239,12 +158,8 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 text-center">
               <p className="text-slate-400 text-sm">
                 {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                <motion.button
-                  onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
-                >
+                <motion.button onClick={() => { setIsSignUp(!isSignUp); setError(""); }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
                   {isSignUp ? "Sign In" : "Sign Up"}
                 </motion.button>
               </p>
