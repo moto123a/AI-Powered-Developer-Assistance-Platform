@@ -1,7 +1,12 @@
 "use client";
+<<<<<<< HEAD
 
 import { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
+=======
+import CreditsBadge from "../components/CreditsBadge";
+import { motion, useMotionValue, useSpring, useScroll, useTransform } from "framer-motion";
+>>>>>>> 8f1600a66dbe270767f051802c369779e3e1bb2f
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebaseConfig";
@@ -298,6 +303,7 @@ export default function Home() {
       ════════════════════════════════════════════════════════ */}
       <div className="relative z-10">
 
+<<<<<<< HEAD
         {/* ═══ HEADER ═══ */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-[#06060f]/80 backdrop-blur-2xl border-b border-white/[0.04]">
           <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
@@ -305,6 +311,204 @@ export default function Home() {
               <img src="/logo.jpeg" alt="CoopilotX" className="w-7 h-7 rounded-md" />
               <span className="text-[15px] font-bold tracking-tight">
                 CoopilotX <span className="text-indigo-400">AI</span>
+=======
+      {/* ── HEADER ── */}
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className={`fixed top-0 left-0 right-0 z-50 ${theme.border} border-b ${theme.headerBg} backdrop-blur-xl will-change-transform`}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-0 flex items-center h-16">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ scale: 1.04 }}
+            className="flex items-center gap-2.5 cursor-pointer mr-8 flex-shrink-0"
+          >
+            <motion.div whileHover={{ rotate: 360 }} transition={{ duration: 0.6 }} className="w-8 h-8 relative">
+              <img src="/logo.jpeg" alt="CoopilotX Logo" className="w-full h-full object-contain rounded-md" />
+            </motion.div>
+            <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${theme.text}`}>
+              CoopilotX <span className="text-blue-400">AI</span>
+            </span>
+          </motion.div>
+
+          <div className={`hidden md:block w-px h-5 ${isDark ? "bg-slate-700" : "bg-slate-300"} mr-6`} />
+
+          <nav className="hidden md:flex items-center gap-1 flex-1">
+            {[
+              { label: "Resume", path: "resume" },
+              { label: "Mock Interview", path: "mock-interview" },
+              { label: "Real-Time Interview", path: "real-interview" },
+              { label: "Pricing", path: "pricing" },
+              { label: "Analytics", path: "analytics" },
+              { label: "Docs", path: "docs" },
+            ].map((item) => (
+              <motion.button
+                key={item.path}
+                onClick={() => handleClick(item.path)}
+                className={`
+                  relative px-3.5 py-1.5 text-[13.5px] font-medium rounded-md transition-all duration-150
+                  ${theme.navLink}
+                  ${isDark ? "hover:bg-slate-800/80" : "hover:bg-slate-100"}
+                  group
+                `}
+                style={{ letterSpacing: "0.01em" }}
+              >
+                {item.label}
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-blue-500 rounded-full transition-all duration-200 group-hover:w-3/4" />
+              </motion.button>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+            <CreditsBadge />
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setIsDark(!isDark)}
+              className={`p-2 rounded-md transition-colors ${isDark ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"}`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <i className="fa-solid fa-sun text-[14px]" /> : <i className="fa-solid fa-moon text-[14px]" />}
+            </motion.button>
+
+            <div className={`w-px h-5 ${isDark ? "bg-slate-700" : "bg-slate-300"}`} />
+
+            {!user ? (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96, y: 2 }}
+                  onClick={() => setShowAuthModal(true)}
+                  className={`px-4 py-[7px] text-[13px] font-semibold rounded-md border transition-all duration-150 ${
+                    isDark
+                      ? "border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white hover:bg-slate-800"
+                      : "border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                  }`}
+                  style={{
+                    boxShadow: isDark
+                      ? "0 1px 0 rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.03)"
+                      : "0 1px 0 rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8)",
+                  }}
+                >
+                  Log in
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03, boxShadow: "0 4px 20px rgba(59,130,246,0.45)" }}
+                  whileTap={{ scale: 0.96, y: 2 }}
+                  onClick={() => setShowAuthModal(true)}
+                  className="px-4 py-[7px] bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-semibold rounded-md transition-all duration-150"
+                  style={{ boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 2px 8px rgba(59,130,246,0.35)" }}
+                >
+                  Get started
+                </motion.button>
+              </>
+            ) : (
+              <div className="relative" ref={menuRef}>
+                <motion.button
+                  whileHover={{ scale: 1.07 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="focus:outline-none"
+                >
+                  <img
+                    src={user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full border-2 border-blue-500/50 hover:border-blue-500 transition-colors"
+                  />
+                </motion.button>
+                {showMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`absolute right-0 mt-3 w-64 ${isDark ? "bg-slate-900/95" : "bg-white/95"} backdrop-blur-xl border ${theme.border} rounded-xl shadow-2xl overflow-hidden`}
+                  >
+                    <div className={`p-4 border-b ${theme.border} bg-gradient-to-br from-blue-500/10 to-purple-500/10`}>
+                      <p className={`text-sm font-semibold truncate ${theme.text}`}>{user.displayName || user.email}</p>
+                      <p className={`text-xs ${theme.textSecondary} mt-1 truncate`}>{user.email}</p>
+                    </div>
+                    <motion.button
+                      whileHover={{ backgroundColor: isDark ? "rgba(30,41,59,1)" : "rgba(241,245,249,1)" }}
+                      onClick={handleLogout}
+                      className={`w-full text-left px-4 py-3 text-sm ${theme.textSecondary}`}
+                    >
+                      Sign Out
+                    </motion.button>
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.header>
+
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+
+      {/* ── HERO ── */}
+      <section className="relative flex flex-col items-center justify-center min-h-screen text-center px-6 pt-32 pb-20">
+        <div className="max-w-6xl w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full backdrop-blur-sm"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <span className="text-sm font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              AI-Powered Interview Copilot — Now Available
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight leading-none"
+          >
+            <span className={theme.text}>Ace Every</span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Interview
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className={`text-lg md:text-xl max-w-3xl mx-auto mb-6 leading-relaxed ${theme.textSecondary}`}
+          >
+            CoopilotX listens to your live interview, understands each question in the context of your resume, and
+            streams a{" "}
+            <span className="text-blue-400 font-semibold">tailored answer in under 2 seconds</span> — invisibly, on your screen only.
+          </motion.p>
+
+          {/* Capability badges — honest features only */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="flex flex-wrap justify-center gap-2 mb-10"
+          >
+            {[
+              { icon: "fa-microphone", label: "Speechmatics STT" },
+              { icon: "fa-file-lines", label: "Resume-Aware Context" },
+              { icon: "fa-bolt", label: "Groq LLaMA Streaming" },
+              { icon: "fa-eye-slash", label: "Stealth Overlay" },
+              { icon: "fa-shield-halved", label: "Zero Data Storage" },
+            ].map((badge, i) => (
+              <span
+                key={i}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full border ${
+                  isDark ? "border-slate-700 bg-slate-900/60 text-slate-300" : "border-slate-200 bg-white text-slate-600"
+                }`}
+              >
+                <i className={`fa-solid ${badge.icon} text-blue-400 text-[10px]`} />
+                {badge.label}
+>>>>>>> 8f1600a66dbe270767f051802c369779e3e1bb2f
               </span>
             </div>
 
