@@ -835,8 +835,8 @@ export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
     : "";
 
   const pageCSS = paperSize === "letter"
-    ? "size: letter portrait; margin: 0;"
-    : "size: A4 portrait; margin: 0;";
+  ? `size: letter portrait; margin: ${padV} ${padH};`
+  : `size: A4 portrait; margin: ${padV} ${padH};`;
 
   const paperPx = paperSize === "letter" ? 816 : 794;
 
