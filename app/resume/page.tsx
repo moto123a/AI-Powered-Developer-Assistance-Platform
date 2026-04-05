@@ -543,7 +543,7 @@ function PaywallModal({ action, cost, remaining, onClose }: {
 ════════════════════════════════════════════════════════════════ */
 function ShortcutsModal({ onClose }: { onClose: () => void }) {
   const shortcuts = [
-    { keys:"⌘+S", desc:"Save resume" }, { keys:"⌘+P", desc:"Export / Print" },
+    { keys:"⌘+S", desc:"Save resume" }, { keys:"⌘+P", desc:"Export PDF" },
     { keys:"⌘+Z", desc:"Undo last AI change" }, { keys:"⌘+1", desc:"Edit tab" },
     { keys:"⌘+2", desc:"AI tab" }, { keys:"⌘+3", desc:"Style tab" },
     { keys:"⌘+4", desc:"ATS Scanner" }, { keys:"⌘+B", desc:"Toggle sidebar" },
@@ -606,15 +606,16 @@ export default function ResumePage() {
   const [fontFilter,   setFontFilter]   = useState<"all"|"Serif"|"Sans"|"Mono">("all");
   const [templateId,   setTemplateId]   = useState<TemplateId>("cornerstone");
 
-  const [loading,          setLoading]          = useState(false);
-  const [aiAction,         setAiAction]         = useState("");
-  const [showDiff,         setShowDiff]         = useState(false);
-  const [atsResult,        setAtsResult]        = useState<any>(null);
-  const [rewritingBullet,  setRewritingBullet]  = useState<string|null>(null);
-  const [saveStatus,       setSaveStatus]       = useState<"idle"|"saving"|"saved"|"error">("idle");
-  const [isPrinting,       setIsPrinting]       = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showShortcuts,    setShowShortcuts]    = useState(false);
+  const [loading,           setLoading]           = useState(false);
+  const [aiAction,          setAiAction]          = useState("");
+  const [showDiff,          setShowDiff]          = useState(false);
+  const [atsResult,         setAtsResult]         = useState<any>(null);
+  const [rewritingBullet,   setRewritingBullet]   = useState<string|null>(null);
+  const [saveStatus,        setSaveStatus]        = useState<"idle"|"saving"|"saved"|"error">("idle");
+  const [isPrinting,        setIsPrinting]        = useState(false);
+  const [isExportingWord,   setIsExportingWord]   = useState(false);
+  const [sidebarCollapsed,  setSidebarCollapsed]  = useState(false);
+  const [showShortcuts,     setShowShortcuts]     = useState(false);
 
   const { credits, plan, isUnlimited, checkAndDeduct, showPaywall, setShowPaywall, paywallAction, paywallCost } = useCredits();
 
@@ -703,7 +704,7 @@ export default function ResumePage() {
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
         if (e.key==="s") { e.preventDefault(); handleSave(); }
-        if (e.key==="p") { e.preventDefault(); handlePrint(); }
+        if (e.key==="p") { e.preventDefault(); handleExportPDF(); }
         if (e.key==="z" && prevResume) { e.preventDefault(); setResumeData(prevResume); setShowDiff(false); }
         if (e.key==="1") { e.preventDefault(); setActiveTab("edit"); }
         if (e.key==="2") { e.preventDefault(); setActiveTab("ai"); }
@@ -858,30 +859,75 @@ export default function ResumePage() {
     finally { setTimeout(() => setSaveStatus("idle"), 2500); }
   };
 
-  /* ── Print ── */
-  const handlePrint = () => {
+  /* ════════════════════════════════════════════════════════════════
+     EXPORT PDF — uses Puppeteer via Spring Boot → pdf-service
+     No browser print dialog, no headers/footers, perfect margins
+  ════════════════════════════════════════════════════════════════ */
+  const handleExportPDF = async () => {
     if (isPrinting) return;
     setIsPrinting(true);
-    const html = buildPrintHTML(templateId, { ff, ac, fs, lh:lineHeight, sg:sectionGap, pagePad, data:resumeData, sectionOrder, fontUrl:fontObj.url, paperSize });
-    const existing = document.getElementById("resume-print-frame");
-    if (existing) existing.remove();
-    const paperPx = paperSize==="letter" ? 816 : 794;
-    const iframe = document.createElement("iframe");
-    iframe.id = "resume-print-frame";
-    iframe.style.cssText = `position:fixed;top:-9999px;left:0;width:${paperPx}px;height:1px;border:none;opacity:0;pointer-events:none`;
-    document.body.appendChild(iframe);
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!iframeDoc) { setIsPrinting(false); return; }
-    iframeDoc.open(); iframeDoc.write(html); iframeDoc.close();
-    const iframeWin = iframe.contentWindow;
-    if (!iframeWin) { setIsPrinting(false); return; }
-    const cleanup = () => setTimeout(() => { iframe.remove(); setIsPrinting(false); }, 1000);
-    const triggerPrint = () => { iframeDoc.body?.getBoundingClientRect(); iframeWin.focus(); iframeWin.print(); cleanup(); };
-    if (iframeDoc.fonts?.ready) {
-      iframeDoc.fonts.ready.then(() => setTimeout(triggerPrint, 400)).catch(() => setTimeout(triggerPrint, 600));
-    } else {
-      iframe.addEventListener("load", () => setTimeout(triggerPrint, 500));
-      setTimeout(triggerPrint, 3000);
+    try {
+      const html = buildPrintHTML(templateId, {
+        ff, ac, fs, lh: lineHeight, sg: sectionGap,
+        pagePad, data: resumeData, sectionOrder,
+        fontUrl: fontObj.url, paperSize,
+      });
+
+      const res = await fetch(`${API_BASE}/api/v1/resume/export-pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html, paperSize }),
+      });
+
+      if (!res.ok) throw new Error("PDF generation failed");
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      const name = resumeData.personalInfo?.name?.replace(/\s+/g, "_") || "Resume";
+      a.href     = url;
+      a.download = `${name}_Resume.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("PDF export failed. Please try again.");
+      console.error(err);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  /* ════════════════════════════════════════════════════════════════
+     EXPORT WORD — uses docx library via Spring Boot → pdf-service
+  ════════════════════════════════════════════════════════════════ */
+  const handleExportWord = async () => {
+    if (isExportingWord) return;
+    setIsExportingWord(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/resume/export-word`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: resumeData,
+          styles: { ac, fs, lh: lineHeight },
+        }),
+      });
+
+      if (!res.ok) throw new Error("Word generation failed");
+
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      const name = resumeData.personalInfo?.name?.replace(/\s+/g, "_") || "Resume";
+      a.href     = url;
+      a.download = `${name}_Resume.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Word export failed. Please try again.");
+      console.error(err);
+    } finally {
+      setIsExportingWord(false);
     }
   };
 
@@ -958,14 +1004,30 @@ export default function ResumePage() {
               <span>{saveStatus==="saved"?"Saved!":saveStatus==="error"?"Error":"Save"}</span>
             </button>
           </Tooltip>
+
+          {/* ══ EXPORT PDF BUTTON ══ */}
           <Tooltip tip="Export PDF (⌘P)" side="bottom">
-            <button onClick={handlePrint} disabled={isPrinting}
+            <button onClick={handleExportPDF} disabled={isPrinting}
               style={{ display:"flex", alignItems:"center", gap:6, padding:"0 14px", height:32, borderRadius:T.radius,
                 border:"none", cursor:isPrinting?"wait":"pointer", fontSize:12, fontWeight:700, transition:"all 0.15s",
                 background:isPrinting?T.accentLight:T.accent, color:isPrinting?T.accent:"#fff",
                 boxShadow:isPrinting?"none":"0 2px 8px rgba(45,91,227,0.3)", opacity:isPrinting?0.7:1 }}>
               {isPrinting ? <Loader2 size={13} style={{ animation:"spin 1s linear infinite" }} /> : <Download size={13} />}
               <span>{isPrinting?"Exporting…":"Export PDF"}</span>
+            </button>
+          </Tooltip>
+
+          {/* ══ EXPORT WORD BUTTON ══ */}
+          <Tooltip tip="Export Word (.docx)" side="bottom">
+            <button onClick={handleExportWord} disabled={isExportingWord}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"0 14px", height:32, borderRadius:T.radius,
+                border:`1.5px solid ${T.border}`, cursor:isExportingWord?"wait":"pointer",
+                fontSize:12, fontWeight:700, transition:"all 0.15s",
+                background:isExportingWord?T.bg:T.bgPanel,
+                color:isExportingWord?T.textTertiary:T.textSecondary,
+                opacity:isExportingWord?0.7:1 }}>
+              {isExportingWord ? <Loader2 size={13} style={{ animation:"spin 1s linear infinite" }} /> : <FileText size={13} />}
+              <span>{isExportingWord?"Exporting…":"Word"}</span>
             </button>
           </Tooltip>
         </div>
@@ -1657,7 +1719,7 @@ export default function ResumePage() {
           </div>
         )}
 
-        {/* ══ PREVIEW PANEL — delegated to ResumePreview ══ */}
+        {/* ══ PREVIEW PANEL ══ */}
         <ResumePreview
           paper={paper}
           paperSize={paperSize}
@@ -1666,7 +1728,6 @@ export default function ResumePage() {
           fontObj={fontObj}
           onShowShortcuts={() => setShowShortcuts(true)}
         />
-
       </div>
 
       {/* ══ MODALS ══ */}
