@@ -14,7 +14,8 @@ if (!admin.apps.length) {
       if (!formattedKey.startsWith("---")) {
         formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");
       }
-      formattedKey = formattedKey.replace(/\\n/g, "\n").replace(/^"|"$/g, "");
+      // Strip surrounding quotes AFTER base64 decode, then fix newlines
+      formattedKey = formattedKey.replace(/^"|"$/g, "").replace(/\\n/g, "\n").trim();
       admin.initializeApp({
         credential: admin.credential.cert({ projectId, clientEmail, privateKey: formattedKey }),
       });
