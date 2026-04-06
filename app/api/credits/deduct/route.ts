@@ -16,14 +16,26 @@ function getDb() {
   }
 
   try {
-    let formattedKey = privateKeyInput;
+    // Try to parse as full JSON service account (new format)
+    try {
+      const decoded = Buffer.from(privateKeyInput, "base64").toString("utf8");
+      const parsed = JSON.parse(decoded);
+      if (parsed.private_key) {
+        admin.initializeApp({
+          credential: admin.credential.cert(parsed),
+        });
+        return admin.firestore();
+      }
+    } catch (e) {
+      // Not JSON, fall through to raw key handling
+    }
 
+    // Old format — raw private key string
+    let formattedKey = privateKeyInput;
     if (!formattedKey.includes("-----BEGIN")) {
       formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");
     }
-
-    formattedKey = formattedKey.replace(/^"/, "").replace(/"$/, "");
-    formattedKey = formattedKey.replace(/\\n/g, "\n").trim();
+    formattedKey = formattedKey.replace(/^"/, "").replace(/"$/, "").replace(/\\n/g, "\n").trim();
 
     admin.initializeApp({
       credential: admin.credential.cert({
