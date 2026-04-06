@@ -3,39 +3,60 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 
-if (!admin.apps.length) {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+function initFirebase() {
+  if (admin.apps.length) return admin.apps[0];
+
+  const projectId       = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail     = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKeyInput = process.env.FIREBASE_PRIVATE_KEY;
 
-  if (projectId && clientEmail && privateKeyInput) {
-    try {
-      let formattedKey = privateKeyInput;
-      if (!formattedKey.startsWith("---")) {
-        formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");
-      }
-      // Strip surrounding quotes AFTER base64 decode, then fix newlines
-      formattedKey = formattedKey.replace(/^"|"$/g, "").replace(/\\n/g, "\n").trim();
-      admin.initializeApp({
-        credential: admin.credential.cert({ projectId, clientEmail, privateKey: formattedKey }),
-      });
-    } catch (e) {
-      console.error("Firebase Admin init error:", e);
+  if (!projectId || !clientEmail || !privateKeyInput) {
+    console.error("Firebase env vars missing:", { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKeyInput });
+    return null;
+  }
+
+  try {
+    let formattedKey = privateKeyInput;
+
+    // Step 1: base64 decode if needed
+    if (!formattedKey.includes("-----BEGIN")) {
+      formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");
     }
+
+    // Step 2: strip surrounding quotes
+    formattedKey = formattedKey.replace(/^"/, "").replace(/"$/, "");
+
+    // Step 3: replace literal \n with real newlines
+    formattedKey = formattedKey.replace(/\\n/g, "\n").trim();
+
+    console.log("Firebase key starts with:", formattedKey.substring(0, 30));
+    console.log("Firebase key ends with:", formattedKey.substring(formattedKey.length - 30));
+
+    return admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: formattedKey,
+      }),
+    });
+  } catch (e) {
+    console.error("Firebase Admin init error:", e);
+    return null;
   }
 }
 
-const db = admin.apps.length ? admin.firestore() : null;
+const app = initFirebase();
+const db  = app ? admin.firestore() : null;
 
 const CREDIT_COSTS: Record<string, number> = {
-  resume_analysis: 10,
-  resume_tailor: 20,
+  resume_analysis:        10,
+  resume_tailor:          20,
   mock_interview_session: 15,
-  mock_feedback: 5,
-  mock_script: 5,
-  realtime_per_minute: 2,
-  question_generation: 5,
-  verify_resume: 0,
+  mock_feedback:           5,
+  mock_script:             5,
+  realtime_per_minute:     2,
+  question_generation:     5,
+  verify_resume:           0,
 };
 
 export async function POST(req: Request) {
@@ -47,6 +68,7 @@ export async function POST(req: Request) {
     }
 
     if (!db) {
+      console.error("Firestore not initialized");
       return NextResponse.json({ success: false, error: "Database not initialized" }, { status: 500 });
     }
 
@@ -67,7 +89,7 @@ export async function POST(req: Request) {
     }
 
     const userData = userDoc.data()!;
-    const plan = userData.plan || "free";
+    const plan    = userData.plan    || "free";
     const credits = userData.credits || 0;
 
     if (plan === "pro") {
@@ -80,7 +102,7 @@ export async function POST(req: Request) {
     }
 
     await userRef.update({
-      credits: admin.firestore.FieldValue.increment(-cost),
+      credits:     admin.firestore.FieldValue.increment(-cost),
       creditsUsed: admin.firestore.FieldValue.increment(cost),
     });
 
