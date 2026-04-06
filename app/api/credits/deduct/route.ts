@@ -3,50 +3,42 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 
-function initFirebase() {
-  if (admin.apps.length) return admin.apps[0];
+function getDb() {
+  if (admin.apps.length) return admin.firestore();
 
   const projectId       = process.env.FIREBASE_PROJECT_ID;
   const clientEmail     = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKeyInput = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKeyInput) {
-    console.error("Firebase env vars missing:", { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKeyInput });
+    console.error("Firebase env vars missing");
     return null;
   }
 
   try {
     let formattedKey = privateKeyInput;
 
-    // Step 1: base64 decode if needed
     if (!formattedKey.includes("-----BEGIN")) {
       formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");
     }
 
-    // Step 2: strip surrounding quotes
     formattedKey = formattedKey.replace(/^"/, "").replace(/"$/, "");
-
-    // Step 3: replace literal \n with real newlines
     formattedKey = formattedKey.replace(/\\n/g, "\n").trim();
 
-    console.log("Firebase key starts with:", formattedKey.substring(0, 30));
-    console.log("Firebase key ends with:", formattedKey.substring(formattedKey.length - 30));
-
-    return admin.initializeApp({
+    admin.initializeApp({
       credential: admin.credential.cert({
         projectId,
         clientEmail,
         privateKey: formattedKey,
       }),
     });
+
+    return admin.firestore();
   } catch (e) {
     console.error("Firebase Admin init error:", e);
     return null;
   }
 }
-
-const app = initFirebase();
-const db  = app ? admin.firestore() : null;
 
 const CREDIT_COSTS: Record<string, number> = {
   resume_analysis:        10,
@@ -67,8 +59,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Missing uid or action" }, { status: 400 });
     }
 
+    const db = getDb();
+
     if (!db) {
-      console.error("Firestore not initialized");
       return NextResponse.json({ success: false, error: "Database not initialized" }, { status: 500 });
     }
 
