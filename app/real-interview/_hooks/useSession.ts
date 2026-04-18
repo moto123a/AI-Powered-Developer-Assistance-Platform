@@ -1,0 +1,123 @@
+// app/real-interview/_hooks/useSession.ts
+// Handles all Firestore session save / load logic
+
+import { useState, useCallback } from "react";
+import {
+  collection, addDoc, getDocs,
+  query, where, orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+
+// ─────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────
+export type Turn = {
+  role: "interviewer" | "candidate";
+  text: string;
+};
+
+export type Session = {
+  id:            string;
+  createdAt:     any;
+  companyName:   string;
+  role:          string;
+  resumeSnippet: string;
+  turns:         Turn[];
+  questionCount: number;
+  durationSecs:  number;
+};
+
+// ─────────────────────────────────────────────
+// HOOK
+// ─────────────────────────────────────────────
+export function useSession(userEmail: string) {
+  const [sessions,  setSessions]  = useState<Session[]>([]);
+  const [loading,   setLoading]   = useState(false);
+  const [saving,    setSaving]    = useState(false);
+
+  // ── SAVE SESSION ──
+  const saveSession = useCallback(async (payload: {
+    companyName:   string;
+    role:          string;
+    resume:        string;
+    turns:         Turn[];
+    durationSecs:  number;
+  }) => {
+    if (!userEmail || payload.turns.length === 0) return;
+    setSaving(true);
+    try {
+      await addDoc(collection(db, "interview_sessions"), {
+        userEmail:     userEmail,
+        companyName:   payload.companyName  || "Unknown",
+        role:          payload.role         || "Unknown",
+        resumeSnippet: payload.resume.slice(0, 300),
+        turns:         payload.turns,
+        questionCount: payload.turns.filter(t => t.role === "interviewer").length,
+        durationSecs:  payload.durationSecs,
+        createdAt:     serverTimestamp(),
+      });
+    } catch (err) {
+      console.error("Session save error:", err);
+    }
+    setSaving(false);
+  }, [userEmail]);
+
+  // ── LOAD SESSIONS ──
+  const loadSessions = useCallback(async () => {
+    if (!userEmail) return;
+    setLoading(true);
+    try {
+      const q = query(
+        collection(db, "interview_sessions"),
+        where("userEmail", "==", userEmail),
+        orderBy("createdAt", "desc")
+      );
+      const snap = await getDocs(q);
+      const docs = snap.docs.map(d => ({
+        id:            d.id,
+        createdAt:     d.data().createdAt,
+        companyName:   d.data().companyName   || "Unknown",
+        role:          d.data().role          || "Unknown",
+        resumeSnippet: d.data().resumeSnippet || "",
+        turns:         d.data().turns         || [],
+        questionCount: d.data().questionCount || 0,
+        durationSecs:  d.data().durationSecs  || 0,
+      })) as Session[];
+      setSessions(docs);
+    } catch (err) {
+      console.error("Session load error:", err);
+    }
+    setLoading(false);
+  }, [userEmail]);
+
+  // ── FORMAT DATE ──
+  const formatDate = (ts: any): string => {
+    if (!ts) return "—";
+    try {
+      const date = ts.toDate ? ts.toDate() : new Date(ts);
+      return date.toLocaleDateString("en-US", {
+        month: "short", day: "numeric", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+    } catch { return "—"; }
+  };
+
+  // ── FORMAT DURATION ──
+  const formatDuration = (secs: number): string => {
+    if (!secs) return "0:00";
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  return {
+    sessions,
+    loading,
+    saving,
+    saveSession,
+    loadSessions,
+    formatDate,
+    formatDuration,
+  };
+}

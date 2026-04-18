@@ -1,443 +1,434 @@
-// app/real-interview/page.tsx
 "use client";
 
-import Link from "next/link";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowLeft, Laptop, Mic, Sparkles, Zap, Loader2 } from "lucide-react"; // Added Loader2
-import React, { useState, useEffect } from "react"; // Added useState, useEffect
-import { onAuthStateChanged } from "firebase/auth"; // Added for security
-import { auth } from "../firebaseConfig"; // Added for security
-import AuthModal from "../../components/AuthModal"; // Added for security
+// app/real-interview/page.tsx
 
-// Enhanced Animated Starfield with Multiple Layers
-const Starfield = () => {
-  return (
-    <div className="absolute inset-0 -z-20 overflow-hidden">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-      <div id="stars1" className="absolute inset-0"></div>
-      <div id="stars2" className="absolute inset-0"></div>
-      <div id="stars3" className="absolute inset-0"></div>
-      <div id="stars4" className="absolute inset-0"></div>
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Loader2, Zap, BarChart2, Shield, Sparkles,
+  ArrowRight, TrendingUp, Clock, Star,
+  BrainCircuit, Coins, Flame,
+} from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
+import AuthModal from "../../components/AuthModal";
+import SetupForm from "./_components/SetupForm";
 
-      {/* Animated gradient orbs */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.4, 0.2],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
-      />
+export type InterviewConfig = {
+  resume:         string;
+  jobDescription: string;
+  companyName:    string;
+  role:           string;
+};
+
+// ─────────────────────────────────────────────
+// SANITIZE
+// ─────────────────────────────────────────────
+function sanitizeText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2022/g, "•")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\x20-\x7E\n\r\t•]/g, " ")
+    .replace(/  +/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// ─────────────────────────────────────────────
+// CREDITS DISPLAY
+// ─────────────────────────────────────────────
+function CreditsDisplay({
+  credits, plan, loading, onUpgrade,
+}: {
+  credits: number; plan: string;
+  loading: boolean; onUpgrade: () => void;
+}) {
+  const isPro   = plan === "pro";
+  const isLow   = !isPro && credits <= 10;
+  const isEmpty = !isPro && credits <= 0;
+
+  if (loading) return (
+    <div className="h-7 w-28 rounded-lg bg-white/[0.04] animate-pulse border border-white/[0.06]" />
+  );
+
+  if (isPro) return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border"
+      style={{ background: "rgba(251,191,36,0.07)", borderColor: "rgba(251,191,36,0.2)" }}>
+      <Sparkles size={11} className="text-amber-400" />
+      <span className="text-[11px] font-black text-amber-400 uppercase tracking-[0.15em]">
+        Pro · Unlimited
+      </span>
     </div>
   );
-};
-
-// Super Magnetic Button with Ripple Effect
-const MagneticButton = ({ children }) => {
-  const ref = React.useRef(null);
-  const [position, setPosition] = React.useState({ x: 0, y: 0 });
-  const [ripples, setRipples] = React.useState([]);
-
-  const handleMouse = (e) => {
-    const { clientX, clientY } = e;
-    const { height, width, left, top } = ref.current.getBoundingClientRect();
-    const x = clientX - (left + width / 2);
-    const y = clientY - (top + height / 2);
-    setPosition({ x: x * 0.3, y: y * 0.3 });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const handleClick = (e) => {
-    const { left, top } = ref.current.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    const newRipple = { x, y, id: Date.now() };
-    setRipples([...ripples, newRipple]);
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 600);
-  };
-
-  const { x, y } = position;
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouse}
-      onMouseLeave={handleMouseLeave}
-      onClick={handleClick}
-      animate={{ x, y }}
-      transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.3 }}
-      className="w-full relative overflow-hidden"
-    >
-      {ripples.map((ripple) => (
-        <motion.span
-          key={ripple.id}
-          initial={{ scale: 0, opacity: 1 }}
-          animate={{ scale: 4, opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="absolute rounded-full bg-blue-400/30"
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            width: 20,
-            height: 20,
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-      ))}
-      {children}
-    </motion.div>
-  );
-};
-
-// Ultra Advanced Choice Card with Particles
-const ChoiceCard = ({ href, icon: Icon, title, description, buttonText, color }) => {
-  const ref = React.useRef(null);
-  const [isHovered, setIsHovered] = React.useState(false);
-
-  // 3D Tilt Effect
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseX = useSpring(x, { stiffness: 400, damping: 35, restDelta: 0.001 });
-  const mouseY = useSpring(y, { stiffness: 400, damping: 35, restDelta: 0.001 });
-
-  const rotateX = useTransform(mouseY, [-200, 200], [15, -15]);
-  const rotateY = useTransform(mouseX, [-200, 200], [-15, 15]);
-  const scale = useTransform(mouseX, [-200, 200], [1, 1.03]);
-
-  const handleMouseMove = (e) => {
-    if (!ref.current) return;
-    const { left, top, width, height } = ref.current.getBoundingClientRect();
-    x.set(e.clientX - (left + width / 2));
-    y.set(e.clientY - (top + height / 2));
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-    setIsHovered(false);
-  };
-
-  // Floating particles
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    size: Math.random() * 4 + 2,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    delay: Math.random() * 2,
-  }));
 
   return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={() => setIsHovered(true)}
-      style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
-      className="relative h-full w-full rounded-3xl border border-white/20 bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-slate-900/80 p-8 shadow-2xl shadow-black/80 backdrop-blur-xl"
-    >
-      {/* Animated border glow */}
-      <motion.div
-        className={`absolute inset-0 rounded-3xl opacity-0 ${color === "blue" ? "bg-blue-500/20" : "bg-purple-500/20"} blur-xl`}
-        animate={{ opacity: isHovered ? [0.3, 0.6, 0.3] : 0 }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-
-      {/* Floating particles */}
-      {isHovered &&
-        particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className={`absolute rounded-full ${color === "blue" ? "bg-blue-400" : "bg-purple-400"}`}
-            initial={{ x: `${particle.x}%`, y: `${particle.y}%`, opacity: 0 }}
-            animate={{
-              y: [null, `${particle.y - 50}%`],
-              opacity: [0, 0.8, 0],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              delay: particle.delay,
-              ease: "easeOut",
-            }}
-            style={{ width: particle.size, height: particle.size }}
-          />
-        ))}
-
-      {/* Shimmer effect */}
-      <motion.div
-        className="absolute inset-0 rounded-3xl"
-        style={{
-          background: `linear-gradient(135deg, transparent 0%, ${
-            color === "blue" ? "rgba(59, 130, 246, 0.1)" : "rgba(168, 85, 247, 0.1)"
-          } 50%, transparent 100%)`,
-        }}
-        animate={{ x: isHovered ? ["0%", "100%"] : "0%" }}
-        transition={{ duration: 1.5, ease: "easeInOut" }}
-      />
-
-      <div style={{ transform: "translateZ(75px)", transformStyle: "preserve-3d" }} className="relative z-10 text-center">
-        {/* Animated icon container */}
-        <motion.div
-          animate={{
-            rotate: isHovered ? [0, 5, -5, 0] : 0,
-            scale: isHovered ? [1, 1.1, 1] : 1,
-          }}
-          transition={{ duration: 0.5 }}
-          className={`mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl border-2 ${
-            color === "blue"
-              ? "bg-blue-500/10 border-blue-400/30 text-blue-400"
-              : "bg-purple-500/10 border-purple-400/30 text-purple-400"
-          } shadow-lg relative overflow-hidden`}
-        >
-          <motion.div
-            className={`absolute inset-0 ${color === "blue" ? "bg-blue-400/20" : "bg-purple-400/20"}`}
-            animate={{ scale: isHovered ? [1, 1.5] : 1, opacity: isHovered ? [0.5, 0] : 0 }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
-          <Icon size={36} className="relative z-10" />
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute inset-0">
-            <Sparkles size={16} className="absolute top-1 right-1 opacity-50" />
-          </motion.div>
-        </motion.div>
-
-        <motion.h2
-          className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent"
-          animate={{ scale: isHovered ? 1.05 : 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {title}
-        </motion.h2>
-
-        <p className="text-slate-400 mb-10 max-w-xs mx-auto text-base leading-relaxed">{description}</p>
-
-        <Link href={href} passHref className="block">
-          <MagneticButton>
-            <motion.div
-              className={`w-full text-center px-6 py-4 rounded-xl border font-bold text-white transition-all duration-300 relative overflow-hidden group ${
-                color === "blue"
-                  ? "border-blue-500/30 bg-gradient-to-r from-blue-600/20 to-blue-500/20 hover:from-blue-600/40 hover:to-blue-500/40"
-                  : "border-purple-500/30 bg-gradient-to-r from-purple-600/20 to-purple-500/20 hover:from-purple-600/40 hover:to-purple-500/40"
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <motion.div
-                className={`absolute inset-0 ${color === "blue" ? "bg-blue-500/20" : "bg-purple-500/20"}`}
-                initial={{ x: "-100%" }}
-                whileHover={{ x: "100%" }}
-                transition={{ duration: 0.5 }}
-              />
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                {buttonText}
-                <Zap size={18} className="group-hover:animate-bounce" />
-              </span>
-            </motion.div>
-          </MagneticButton>
-        </Link>
-      </div>
-    </motion.div>
-  );
-};
-
-export default function RealInterviewChooserPage() {
-  // --- NEW PROTECTION LOGIC ---
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setAuthLoading(false);
-      if (!currentUser) {
-        setShowAuthModal(true); // Pop up if not logged in
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Show a dark loader while checking if they are logged in
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-[#000005] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <style jsx global>{`
-        @keyframes twinkle {
-          0%, 100% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.2); opacity: 1; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        #stars1, #stars2, #stars3, #stars4 {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-        #stars1 {
-          background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="100" cy="100" r="1" fill="white"/></svg>') repeat;
-          animation: twinkle 12s ease-in-out infinite;
-        }
-        #stars2 {
-          background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="400" cy="400" r="0.7" fill="white"/></svg>') repeat;
-          animation: twinkle 18s ease-in-out infinite;
-        }
-        #stars3 {
-          background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="800" cy="800" r="1.5" fill="white"/></svg>') repeat;
-          animation: twinkle 8s ease-in-out infinite;
-        }
-        #stars4 {
-          background: transparent url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><circle cx="200" cy="600" r="0.5" fill="cyan"/></svg>') repeat;
-          animation: twinkle 15s ease-in-out infinite;
-        }
-      `}</style>
-
-      <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-[#000005] via-[#0a0a1a] to-[#000005] text-slate-200 antialiased">
-        <Starfield />
-
-        {/* Added: Show Auth Modal if user is not logged in */}
-        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
-
-        {/* Multiple gradient overlays */}
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent"></div>
-
-        {/* Only show content if user exists */}
-        {!user ? (
-          <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
-            <p className="text-slate-500 font-mono">Redirecting to login...</p>
-          </div>
-        ) : (
-          <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4" style={{ perspective: "2000px" }}>
-            <div className="w-full max-w-6xl">
-              {/* Ultra Animated Header */}
-              <motion.div
-                initial={{ y: -50, opacity: 0, scale: 0.9 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.1 }}
-                className="text-center mb-8"
-              >
-                <motion.div
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                  className="inline-block mb-4"
-                >
-                  <Sparkles size={48} className="text-blue-400 mx-auto" />
-                </motion.div>
-
-                <motion.h1
-                  className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-4"
-                  animate={{
-                    backgroundPosition: ["0%", "100%"],
-                  }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                  style={{
-                    backgroundImage: "linear-gradient(90deg, #fff, #60a5fa, #a78bfa, #fff)",
-                    backgroundSize: "200% auto",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  Copilot Mode Select
-                </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="mx-auto max-w-2xl text-xl text-slate-300"
-                >
-                  Choose the mode that best fits your interview scenario.
-                </motion.p>
-              </motion.div>
-
-              {/* Cards with Stagger Animation */}
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  visible: { transition: { staggerChildren: 0.2, delayChildren: 0.3 } },
-                }}
-                className="grid grid-cols-1 gap-10 md:grid-cols-2 mb-16"
-              >
-                <motion.div
-                  variants={{
-                    hidden: { y: 100, opacity: 0, rotateX: -20 },
-                    visible: { y: 0, opacity: 1, rotateX: 0 },
-                  }}
-                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
-                >
-                  <ChoiceCard
-                    href="/real-interview/laptop"
-                    icon={Laptop}
-                    title="Laptop Mode"
-                    description="Use this mode for computer-based interviews. Optimized for your laptop/desktop setup."
-                    buttonText="Open Laptop Mode"
-                    color="blue"
-                  />
-                </motion.div>
-
-                <motion.div
-                  variants={{
-                    hidden: { y: 100, opacity: 0, rotateX: -20 },
-                    visible: { y: 0, opacity: 1, rotateX: 0 },
-                  }}
-                  transition={{ type: "spring", stiffness: 80, damping: 15 }}
-                >
-                  <ChoiceCard
-                    href="/real-interview/phone"
-                    icon={Mic}
-                    title="Phone Mode"
-                    description="Use this mode for phone calls and microphone-based interviews. Listens through your mic."
-                    buttonText="Open Phone Mode"
-                    color="purple"
-                  />
-                </motion.div>
-              </motion.div>
-
-              {/* Animated Back Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-                className="text-center"
-              >
-                <Link href="/">
-                  <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="inline-flex items-center gap-3 rounded-xl bg-white/5 px-8 py-4 text-base font-semibold text-slate-300 ring-1 ring-inset ring-white/20 transition-all backdrop-blur-sm"
-                  >
-                    <ArrowLeft size={20} />
-                    <span>Back to Home</span>
-                  </motion.button>
-                </Link>
-              </motion.div>
-            </div>
+    <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+        isEmpty ? "border-red-500/20"    :
+        isLow   ? "border-orange-500/20" :
+                  "border-white/[0.07]"
+      }`} style={{
+        background: isEmpty ? "rgba(239,68,68,0.06)"    :
+                    isLow   ? "rgba(249,115,22,0.06)"   :
+                              "rgba(255,255,255,0.02)",
+      }}>
+        <Coins size={10} className={isEmpty ? "text-red-400" : isLow ? "text-orange-400" : "text-white/25"} />
+        <span className={`text-[11px] font-black ${
+          isEmpty ? "text-red-400" : isLow ? "text-orange-400" : "text-white/45"
+        }`}>
+          {credits.toLocaleString()}
+          <span className="font-normal text-[10px] ml-1 opacity-60">credits</span>
+        </span>
+        {isLow && (
+          <div className="flex items-center gap-1">
+            <Flame size={9} className={isEmpty ? "text-red-400" : "text-orange-400"} />
+            <span className={`text-[9px] font-black ${isEmpty ? "text-red-400" : "text-orange-400"}`}>
+              {isEmpty ? "Empty" : "Low"}
+            </span>
           </div>
         )}
       </div>
-    </>
+      {(isLow || isEmpty) && (
+        <button onClick={onUpgrade}
+          className="px-3 py-1.5 rounded-lg text-[11px] font-black text-white transition-all"
+          style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
+          Upgrade
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────
+export default function RealInterviewPage() {
+  const router                              = useRouter();
+  const [user, setUser]                     = useState<any>(null);
+  const [authLoading, setLoading]           = useState(true);
+  const [showAuth, setShowAuth]             = useState(false);
+  const [credits, setCredits]               = useState<number>(0);
+  const [plan, setPlan]                     = useState<string>("free");
+  const [creditsLoading, setCreditsLoading] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      setLoading(false);
+      if (!u) { setShowAuth(true); return; }
+      setCreditsLoading(true);
+      try {
+        const q    = query(collection(db, "users"), where("email", "==", u.email));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const data = snap.docs[0].data();
+          setCredits(data.credits ?? 0);
+          setPlan(data.plan ?? "free");
+        }
+      } catch (err) { console.error("Credits load error:", err); }
+      setCreditsLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  const handleStart = (cfg: InterviewConfig) => {
+    sessionStorage.setItem("interviewConfig", JSON.stringify({
+      ...cfg,
+      resume:         sanitizeText(cfg.resume),
+      jobDescription: sanitizeText(cfg.jobDescription),
+    }));
+    router.push("/real-interview/interview");
+  };
+
+  const handleStealth = (cfg: InterviewConfig) => {
+    const cleanResume = sanitizeText(cfg.resume);
+    const cleanJd     = sanitizeText(cfg.jobDescription);
+    sessionStorage.setItem("interviewConfig", JSON.stringify({
+      ...cfg, resume: cleanResume, jobDescription: cleanJd,
+    }));
+    const params = new URLSearchParams({
+      resume:  cleanResume.slice(0, 8000),
+      jd:      cleanJd.slice(0, 2000),
+      company: cfg.companyName,
+      role:    cfg.role,
+    });
+    window.open(
+      `/real-interview/popup?${params}`,
+      "InterviewCopilot",
+      [
+        "width=560", "height=580", "top=8",
+        `left=${Math.round((window.screen.width - 560) / 2)}`,
+        "toolbar=no", "menubar=no", "scrollbars=no",
+        "resizable=no", "status=no",
+      ].join(",")
+    );
+  };
+
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center"
+      style={{ background: "linear-gradient(135deg, #030308 0%, #07070f 50%, #030308 100%)" }}>
+      <Loader2 className="w-8 h-8 text-indigo-500/50 animate-spin" />
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen text-white overflow-x-hidden"
+      style={{
+        background: "linear-gradient(135deg, #030308 0%, #07070f 50%, #030308 100%)",
+        fontFamily: "'DM Sans', 'Inter', system-ui, sans-serif",
+      }}>
+
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-[0.03]"
+          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
+        <div className="absolute top-1/2 -right-60 w-[500px] h-[500px] rounded-full opacity-[0.025]"
+          style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }} />
+        <div className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }} />
+      </div>
+
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+      {!user ? (
+        /* ── NOT SIGNED IN ── */
+        <div className="relative flex flex-col items-center justify-center min-h-screen gap-8 p-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border"
+              style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)" }}>
+              <Shield size={26} className="text-indigo-400" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Sign in to continue</h1>
+              <p className="text-white/30 text-sm max-w-xs mx-auto">
+                Access Interview Copilot and start your session.
+              </p>
+            </div>
+            <button onClick={() => setShowAuth(true)}
+              className="px-8 py-3 rounded-xl font-bold text-white transition-all text-sm"
+              style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
+              Sign In
+            </button>
+          </motion.div>
+        </div>
+
+      ) : (
+        <div className="relative">
+
+          {/* ════════════════ NAVBAR ════════════════ */}
+          <nav className="sticky top-0 z-50 border-b border-white/[0.04]"
+            style={{ background: "rgba(3,3,8,0.85)", backdropFilter: "blur(24px)" }}>
+            <div className="max-w-[1400px] mx-auto px-6 h-[60px] flex items-center justify-between">
+
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
+                    <BrainCircuit size={18} className="text-white" />
+                  </div>
+                  <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2"
+                    style={{ borderColor: "#030308" }} />
+                </div>
+                <div className="flex flex-col leading-none">
+                  <span className="text-[15px] font-bold tracking-tight text-white/95">InterviewOS</span>
+                  <span className="text-[10px] text-white/30 font-medium tracking-widest uppercase">Real Interview Suite</span>
+                </div>
+              </div>
+
+              {/* Right */}
+              <div className="flex items-center gap-3">
+                <CreditsDisplay
+                  credits={credits} plan={plan}
+                  loading={creditsLoading}
+                  onUpgrade={() => router.push("/pricing")}
+                />
+                <div className="w-px h-4 bg-white/[0.08]" />
+                <button onClick={() => router.push("/real-interview/dashboard")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-white/30 hover:text-white/60 transition-all border border-white/[0.06] hover:border-white/10"
+                  style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <BarChart2 size={12} /> Sessions
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          {/* ════════════════ CONTENT ════════════════ */}
+          <div className="max-w-[1400px] mx-auto px-6 py-8">
+            <div className="grid lg:grid-cols-[1fr_400px] gap-8 max-w-5xl mx-auto">
+
+              {/* ── LEFT ── */}
+              <div className="space-y-5">
+
+                {/* Header */}
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="mb-6"
+                >
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-4 border"
+                    style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.2)", color: "#a5b4fc" }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                    Real-Time AI Interview Copilot
+                  </div>
+                  <h1 className="text-[2.2rem] font-black tracking-tight leading-none mb-3 text-white/95">
+                    Configure Your<br />
+                    <span style={{ background: "linear-gradient(135deg, #818cf8, #c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                      Interview Session
+                    </span>
+                  </h1>
+                  <p className="text-white/35 text-sm leading-relaxed max-w-md">
+                    Upload your resume, paste the job description, and get AI-generated
+                    answers tailored to your exact experience — in real time.
+                  </p>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-6 mt-6">
+                    {[
+                      { icon: TrendingUp, label: "Real-time",   value: "< 2s"         },
+                      { icon: Star,       label: "Accuracy",    value: "Resume-based"  },
+                      { icon: Clock,      label: "Duration",    value: "Unlimited"     },
+                    ].map(({ icon: Icon, label, value }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <Icon size={11} className="text-white/15" />
+                        <span className="text-[11px] text-white/25">{label}:</span>
+                        <span className="text-[11px] font-semibold text-white/45">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Setup form */}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                >
+                  <SetupForm
+                    onStart={handleStart}
+                    onDashboard={() => router.push("/real-interview/dashboard")}
+                    onStealth={handleStealth}
+                  />
+                </motion.div>
+              </div>
+
+              {/* ── RIGHT SIDEBAR ── */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="space-y-4 lg:pt-[120px]"
+              >
+
+                {/* How it works */}
+                <div className="rounded-2xl border border-white/[0.06] overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.015)" }}>
+                  <div className="px-5 py-4 border-b border-white/[0.05]">
+                    <p className="text-xs font-bold text-white/30 uppercase tracking-widest">How it works</p>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    {[
+                      {
+                        step: "01", title: "Upload Resume",
+                        desc: "Paste or upload your resume. AI reads your real experience.",
+                        color: "text-indigo-400", bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.2)",
+                      },
+                      {
+                        step: "02", title: "Start Session",
+                        desc: "Press SPACE to listen. AI captures what the interviewer says.",
+                        color: "text-violet-400", bg: "rgba(139,92,246,0.1)", border: "rgba(139,92,246,0.2)",
+                      },
+                      {
+                        step: "03", title: "Get Answer",
+                        desc: "Press SPACE again. AI generates a perfect answer instantly.",
+                        color: "text-emerald-400", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.2)",
+                      },
+                    ].map(({ step, title, desc, color, bg, border }) => (
+                      <div key={step} className="flex gap-3">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border"
+                          style={{ background: bg, borderColor: border }}>
+                          <span className={`text-[10px] font-black font-mono ${color}`}>{step}</span>
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-white/80 mb-0.5">{title}</p>
+                          <p className="text-[11px] text-white/30 leading-relaxed">{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Credits breakdown */}
+                <div className="rounded-2xl border border-white/[0.06] p-5"
+                  style={{ background: "rgba(255,255,255,0.015)" }}>
+                  <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3">Credits</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { label: "Real interview session", cost: "2 credits",  color: "text-indigo-400"  },
+                      { label: "Resume verification",    cost: "Free",       color: "text-emerald-400" },
+                      { label: "Stealth popup mode",     cost: "2 credits",  color: "text-violet-400"  },
+                    ].map(({ label, cost, color }) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-[12px] text-white/35">{label}</span>
+                        <span className={`text-[11px] font-black font-mono ${color}`}>{cost}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {plan !== "pro" && (
+                    <button onClick={() => router.push("/pricing")}
+                      className="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 border transition-all"
+                      style={{ background: "rgba(99,102,241,0.06)", borderColor: "rgba(99,102,241,0.2)", color: "#a5b4fc" }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.12)"}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(99,102,241,0.06)"}
+                    >
+                      Upgrade to Pro — Unlimited <ArrowRight size={13} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Shortcuts */}
+                <div className="rounded-2xl border border-white/[0.06] p-5"
+                  style={{ background: "rgba(255,255,255,0.015)" }}>
+                  <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3">Shortcuts</p>
+                  <div className="space-y-2">
+                    {[
+                      { key: "SPACE", desc: "Listen / Generate answer" },
+                      { key: "ESC",   desc: "Clear current question"   },
+                    ].map(({ key, desc }) => (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className="text-[11px] text-white/30">{desc}</span>
+                        <kbd className="text-[10px] font-mono font-bold text-white/30 px-2 py-1 rounded-lg border border-white/[0.08]"
+                          style={{ background: "rgba(255,255,255,0.03)" }}>
+                          {key}
+                        </kbd>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="text-center text-[10px] text-white/[0.12]">
+                  Enterprise-grade · Data not stored
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap');
+        * { -webkit-font-smoothing: antialiased; }
+      `}} />
+    </div>
   );
 }

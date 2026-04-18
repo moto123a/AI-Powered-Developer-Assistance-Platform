@@ -31,7 +31,6 @@ export const TEMPLATE_LIST: { id: TemplateId; name: string; desc: string; ats: b
 
 /* ─────────────────────────────────────────────────────────────────
    THUMBNAIL SVG GENERATOR
-   Returns raw SVG string for each template (used in picker UI)
 ───────────────────────────────────────────────────────────────── */
 export function getTemplateThumbnail(id: TemplateId, accent = "#2563eb"): string {
   const W = 100, H = 141;
@@ -304,7 +303,6 @@ export function TemplatePicker({ selected, accentColor = "#2563eb", onSelect }: 
                 boxShadow: isSelected ? `0 4px 14px ${accentColor}30` : "0 1px 3px rgba(0,0,0,0.06)",
               }}
             >
-              {/* Thumbnail */}
               <div style={{
                 width: "100%",
                 aspectRatio: "0.707",
@@ -314,7 +312,6 @@ export function TemplatePicker({ selected, accentColor = "#2563eb", onSelect }: 
               }}
                 dangerouslySetInnerHTML={{ __html: getTemplateThumbnail(t.id, accentColor) }}
               />
-              {/* Label */}
               <div style={{
                 padding: "7px 9px 8px",
                 borderTop: "0.5px solid #f1f5f9",
@@ -381,12 +378,19 @@ const linkLine = (d: any): string[] => {
 const contactLine = (d: any): string =>
   [d.email, d.phone, d.location].filter(Boolean).join("  ·  ");
 
+/* Parse "48px 52px" → [48, 52] */
+export function parsePagePad(pagePad: string): [number, number] {
+  const parts = pagePad.split(" ").map(p => parseInt(p, 10));
+  const v = isNaN(parts[0]) ? 48 : parts[0];
+  const h = isNaN(parts[1]) ? v : parts[1];
+  return [v, h];
+}
+
 /* ================================================================
-   REACT PREVIEW RENDERERS
+   SHARED SECTION BUILDERS
 ================================================================ */
-export function renderPreview(templateId: TemplateId, ctx: StyleCtx): React.ReactNode {
-  const { ff, ac, fs, lh, sg, pagePad, data, sectionOrder } = ctx;
-  const pi = data.personalInfo || {};
+function buildSectionBuilders(ctx: StyleCtx) {
+  const { ff, ac, fs, lh, sg, data } = ctx;
 
   const tx = (
     size = fs,
@@ -409,14 +413,6 @@ export function renderPreview(templateId: TemplateId, ctx: StyleCtx): React.Reac
     (Array.isArray(arr) ? arr : [arr])
       .filter(Boolean)
       .map((b, j) => <li key={j} style={liSt}>{String(b)}</li>);
-
-  const links = linkLine(pi);
-  const contact = contactLine(pi);
-
-  const LinksRow = ({ color = "#6b7280", size = 8.5 }: { color?: string; size?: number }) =>
-    links.length > 0 ? (
-      <div style={tx(size, color, { marginTop: 3 })}>{links.join("  ·  ")}</div>
-    ) : null;
 
   /* Section heading variants */
   const SH = ({ title, acOverride }: { title: string; acOverride?: string }) => {
@@ -461,115 +457,196 @@ export function renderPreview(templateId: TemplateId, ctx: StyleCtx): React.Reac
     </div>
   );
 
-  /* Section content renderers */
-  const renderSummary = (SHComp: any = SH) =>
-    data.summary ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Professional Summary" />
-        <div style={tx(fs, "#1f2937", { textAlign: "justify", lineHeight: lh })}>{data.summary}</div>
-      </div>
-    ) : null;
+  return { tx, bul, liSt, SH, SH_LINE, SH_FLUSH, SH_PLAIN, SH_MINIMAL, SH_TECH };
+}
 
-  const renderSkills = (SHComp: any = SH) =>
-    (data.skillCategories?.length ?? 0) > 0 ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Technical Skills" />
-        {data.skillCategories.map((cat: any, i: number) => (
-          <div key={i} style={{ marginTop: i === 0 ? 0 : 3 }}>
-            <span style={tx(fs, "#111827", { fontWeight: 700 })}>{cat.name}:</span>{" "}
-            <span style={tx(fs, "#374151")}>{cat.skills}</span>
+/* ================================================================
+   TEMPLATE SECTIONS INTERFACE
+================================================================ */
+export interface TemplateSections {
+  header: React.ReactNode;
+  sections: { key: string; node: React.ReactNode }[];
+  pageWrap: (children: React.ReactNode, pageIndex: number, totalPages: number) => React.ReactNode;
+}
+
+/* ================================================================
+   GRANULAR SECTION BUILDER
+   
+   Instead of one big React node per section (e.g. all of "Work Experience"),
+   we emit granular sub-units that the packer can place individually:
+   
+     "experience:heading"  → the "WORK EXPERIENCE" title + rule
+     "experience:0"        → first job entry (with marginTop for gap)
+     "experience:1"        → second job entry
+     "projects:heading"
+     "projects:0"
+     ...
+   
+   This lets the packer break mid-section — e.g. put job 0 on page 1
+   and job 1 on page 2 — instead of moving the entire section when
+   even one entry overflows, which caused the huge gaps.
+================================================================ */
+function buildGranularSections(
+  ctx: StyleCtx,
+  SHComp: any,
+  sectionOrder: string[],
+  data: any,
+  expRenderer?: (exp: any, i: number, isFirst: boolean) => React.ReactNode
+): { key: string; node: React.ReactNode }[] {
+  const { ff, ac, fs, lh, sg } = ctx;
+  const b = buildSectionBuilders(ctx);
+  const { tx, bul, liSt } = b;
+
+  const out: { key: string; node: React.ReactNode }[] = [];
+
+  for (const secId of sectionOrder) {
+    if (secId === "summary" && data.summary) {
+      out.push({
+        key: "summary",
+        node: (
+          <div style={{ marginBottom: sg }}>
+            <SHComp title="Professional Summary" />
+            <div style={tx(fs, "#1f2937", { textAlign: "justify", lineHeight: lh })}>{data.summary}</div>
           </div>
-        ))}
-      </div>
-    ) : null;
+        ),
+      });
+    }
 
-  const renderExperience = (SHComp: any = SH) =>
-    (data.experience?.length ?? 0) > 0 ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Work Experience" />
-        {data.experience.map((exp: any, i: number) => (
-          <div key={i} style={{ marginTop: i === 0 ? 0 : 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}{exp.role ? ` — ${exp.role}` : ""}</span>
-              <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{exp.period}</span>
+    else if (secId === "skills" && (data.skillCategories?.length ?? 0) > 0) {
+      out.push({
+        key: "skills",
+        node: (
+          <div style={{ marginBottom: sg }}>
+            <SHComp title="Technical Skills" />
+            {data.skillCategories.map((cat: any, i: number) => (
+              <div key={i} style={{ marginTop: i === 0 ? 0 : 3 }}>
+                <span style={tx(fs, "#111827", { fontWeight: 700 })}>{cat.name}:</span>{" "}
+                <span style={tx(fs, "#374151")}>{cat.skills}</span>
+              </div>
+            ))}
+          </div>
+        ),
+      });
+    }
+
+    else if (secId === "experience" && (data.experience?.length ?? 0) > 0) {
+      // Heading as its own packer unit
+      out.push({
+        key: "experience:heading",
+        node: <div style={{ marginBottom: 0 }}><SHComp title="Work Experience" /></div>,
+      });
+      // Each job entry as its own packer unit
+      data.experience.forEach((exp: any, i: number) => {
+        const isFirst = i === 0;
+        const node = expRenderer
+          ? expRenderer(exp, i, isFirst)
+          : (
+            <div style={{ marginTop: isFirst ? 0 : 12, marginBottom: i === data.experience.length - 1 ? sg : 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}{exp.role ? ` — ${exp.role}` : ""}</span>
+                <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{exp.period}</span>
+              </div>
+              {exp.location && <div style={tx(8.5, "#9ca3af", { fontStyle: "italic", marginTop: 1, marginBottom: 3 })}>{exp.location}</div>}
+              <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(exp.bullets)}</ul>
             </div>
-            {exp.location && <div style={tx(8.5, "#9ca3af", { fontStyle: "italic", marginTop: 1, marginBottom: 3 })}>{exp.location}</div>}
-            <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(exp.bullets)}</ul>
-          </div>
-        ))}
-      </div>
-    ) : null;
+          );
+        out.push({ key: `experience:${i}`, node });
+      });
+    }
 
-  const renderProjects = (SHComp: any = SH) =>
-    (data.projects?.length ?? 0) > 0 ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Projects" />
-        {data.projects.map((proj: any, i: number) => (
-          <div key={i} style={{ marginTop: i === 0 ? 0 : 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <span style={tx(fs, ac, { fontWeight: 700 })}>{proj.title || proj.name}</span>
-              {proj.period && <span style={tx(8.5, "#6b7280")}>{proj.period}</span>}
+    else if (secId === "projects" && (data.projects?.length ?? 0) > 0) {
+      out.push({
+        key: "projects:heading",
+        node: <div style={{ marginBottom: 0 }}><SHComp title="Projects" /></div>,
+      });
+      data.projects.forEach((proj: any, i: number) => {
+        const isFirst = i === 0;
+        out.push({
+          key: `projects:${i}`,
+          node: (
+            <div style={{ marginTop: isFirst ? 0 : 10, marginBottom: i === data.projects.length - 1 ? sg : 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={tx(fs, ac, { fontWeight: 700 })}>{proj.title || proj.name}</span>
+                {proj.period && <span style={tx(8.5, "#6b7280")}>{proj.period}</span>}
+              </div>
+              {proj.tech && <div style={tx(8.5, "#6b7280", { fontStyle: "italic", marginTop: 1, marginBottom: 3 })}>{proj.tech}</div>}
+              {(proj.bullets?.length ?? 0) > 0 && <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(proj.bullets)}</ul>}
             </div>
-            {proj.tech && <div style={tx(8.5, "#6b7280", { fontStyle: "italic", marginTop: 1, marginBottom: 3 })}>{proj.tech}</div>}
-            {(proj.bullets?.length ?? 0) > 0 && <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(proj.bullets)}</ul>}
-          </div>
-        ))}
-      </div>
-    ) : null;
+          ),
+        });
+      });
+    }
 
-  const renderEducation = (SHComp: any = SH) =>
-    (data.education?.length ?? 0) > 0 ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Education" />
-        {data.education.map((edu: any, i: number) => (
-          <div key={i} style={{ marginTop: i === 0 ? 0 : 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={tx(fs, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution}</div>
-              <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}</div>
+    else if (secId === "education" && (data.education?.length ?? 0) > 0) {
+      out.push({
+        key: "education:heading",
+        node: <div style={{ marginBottom: 0 }}><SHComp title="Education" /></div>,
+      });
+      data.education.forEach((edu: any, i: number) => {
+        const isFirst = i === 0;
+        out.push({
+          key: `education:${i}`,
+          node: (
+            <div style={{ marginTop: isFirst ? 0 : 10, marginBottom: i === data.education.length - 1 ? sg : 0, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <div style={tx(fs, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution}</div>
+                <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}</div>
+              </div>
+              <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year}</span>
             </div>
-            <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year}</span>
-          </div>
-        ))}
-      </div>
+          ),
+        });
+      });
+    }
+
+    else if (secId === "certifications") {
+      const valid = (data.certifications || []).filter((c: any) =>
+        typeof c === "string" ? c.trim() : c?.name?.trim()
+      );
+      if (valid.length > 0) {
+        out.push({
+          key: "certifications",
+          node: (
+            <div style={{ marginBottom: sg }}>
+              <SHComp title="Certifications" />
+              <ul style={{ margin: "5px 0 0", paddingLeft: 16, listStyle: "disc" }}>
+                {valid.map((cert: any, i: number) => (
+                  <li key={i} style={liSt}>
+                    {typeof cert === "string" ? cert : `${cert.name ?? ""}${cert.issuer ? ` — ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ),
+        });
+      }
+    }
+  }
+
+  return out;
+}
+
+/* ================================================================
+   renderPreviewSections — main export used by ResumePreview
+================================================================ */
+export function renderPreviewSections(templateId: TemplateId, ctx: StyleCtx): TemplateSections {
+  const { ff, ac, fs, lh, sg, pagePad, data, sectionOrder } = ctx;
+  const pi = data.personalInfo || {};
+  const b = buildSectionBuilders(ctx);
+  const { tx, bul, SH, SH_LINE, SH_FLUSH, SH_PLAIN, SH_MINIMAL, SH_TECH } = b;
+
+  const links   = linkLine(pi);
+  const contact = contactLine(pi);
+
+  const LinksRow = ({ color = "#6b7280", size = 8.5 }: { color?: string; size?: number }) =>
+    links.length > 0 ? (
+      <div style={tx(size, color, { marginTop: 3 })}>{links.join("  ·  ")}</div>
     ) : null;
 
-  const renderCertifications = (SHComp: any = SH) => {
-    const valid = (data.certifications || []).filter((c: any) =>
-      typeof c === "string" ? c.trim() : c?.name?.trim()
-    );
-    return valid.length > 0 ? (
-      <div style={{ marginBottom: sg }}>
-        <SHComp title="Certifications" />
-        <ul style={{ margin: "5px 0 0", paddingLeft: 16, listStyle: "disc" }}>
-          {valid.map((cert: any, i: number) => (
-            <li key={i} style={liSt}>
-              {typeof cert === "string" ? cert : `${cert.name ?? ""}${cert.issuer ? ` — ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ) : null;
-  };
-
-  const makeSectionMap = (SHComp: any = SH) => ({
-    summary:        () => renderSummary(SHComp),
-    skills:         () => renderSkills(SHComp),
-    experience:     () => renderExperience(SHComp),
-    projects:       () => renderProjects(SHComp),
-    education:      () => renderEducation(SHComp),
-    certifications: () => renderCertifications(SHComp),
-  } as Record<string, () => React.ReactNode>);
-
-  const renderSections = (SHComp: any = SH) => {
-    const map = makeSectionMap(SHComp);
-    return sectionOrder.map(id => <React.Fragment key={id}>{map[id]?.()}</React.Fragment>);
-  };
-
-  /* ── TEMPLATE RENDERS ── */
-
+  /* ── CORNERSTONE ── */
   if (templateId === "cornerstone") {
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any }}>
+    const header = (
+      <>
         <div style={{ textAlign: "center", paddingBottom: 12, marginBottom: 4 }}>
           <div style={tx(26, "#0f172a", { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
           <div style={tx(9, "#64748b", { marginTop: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em" })}>{pi.headline || "Your Headline"}</div>
@@ -580,245 +657,323 @@ export function renderPreview(templateId: TemplateId, ctx: StyleCtx): React.Reac
           <div style={{ height: 2, backgroundColor: ac }} />
           <div style={{ height: 1, backgroundColor: ac, marginTop: 2 }} />
         </div>
-        {renderSections()}
-      </div>
+      </>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── MERIDIAN ── */
   if (templateId === "meridian") {
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ marginBottom: 18 }}>
-          <div style={tx(30, "#0f172a", { fontWeight: 200, letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-          <div style={tx(9.5, ac, { marginTop: 5, fontWeight: 600, letterSpacing: "0.06em" })}>{pi.headline || "Your Headline"}</div>
-          <div style={{ height: 1, backgroundColor: "#e2e8f0", margin: "10px 0" }} />
-          <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
-            <div style={tx(8.5, "#6b7280")}>{contact}</div>
-            <LinksRow size={8.5} />
-          </div>
+    const header = (
+      <div style={{ marginBottom: 18 }}>
+        <div style={tx(30, "#0f172a", { fontWeight: 200, letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(9.5, ac, { marginTop: 5, fontWeight: 600, letterSpacing: "0.06em" })}>{pi.headline || "Your Headline"}</div>
+        <div style={{ height: 1, backgroundColor: "#e2e8f0", margin: "10px 0" }} />
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
+          <div style={tx(8.5, "#6b7280")}>{contact}</div>
+          <LinksRow size={8.5} />
         </div>
-        {renderSections(SH_LINE)}
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_LINE, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── DUALAXIS ── */
   if (templateId === "dualaxis") {
-    const leftIds = ["skills", "education", "certifications"];
-    const rightIds = sectionOrder.filter(s => !leftIds.includes(s));
-    const leftMap  = makeSectionMap(SH_FLUSH);
-    const rightMap = makeSectionMap(SH);
-    return (
-      <div style={{ backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ padding: "26px 34px 22px", backgroundColor: ac }}>
-          <div style={tx(26, "#ffffff", { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-          <div style={tx(9, "#ffffff", { marginTop: 5, opacity: 0.85, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
-          <div style={tx(8.5, "#ffffff", { marginTop: 6, opacity: 0.75 })}>{contact}</div>
-          {links.length > 0 && <div style={tx(8, "#ffffff", { marginTop: 3, opacity: 0.65 })}>{links.join("  ·  ")}</div>}
-        </div>
-        <div style={{ display: "flex" }}>
-          <div style={{ width: "34%", padding: "20px 16px 20px 24px", backgroundColor: "#f8fafc", borderRight: "1px solid #e2e8f0" }}>
-            {leftIds.map(id => <React.Fragment key={id}>{leftMap[id]?.()}</React.Fragment>)}
-          </div>
-          <div style={{ width: "66%", padding: "20px 24px 20px 20px" }}>
-            {rightIds.map(id => <React.Fragment key={id}>{rightMap[id]?.()}</React.Fragment>)}
-          </div>
-        </div>
+    const header = (
+      <div style={{ padding: "26px 34px 22px", backgroundColor: ac, marginLeft: `-${parsePagePad(pagePad)[1]}px`, marginRight: `-${parsePagePad(pagePad)[1]}px`, marginTop: `-${parsePagePad(pagePad)[0]}px`, marginBottom: 18 }}>
+        <div style={tx(26, "#ffffff", { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(9, "#ffffff", { marginTop: 5, opacity: 0.85, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
+        <div style={tx(8.5, "#ffffff", { marginTop: 6, opacity: 0.75 })}>{contact}</div>
+        {links.length > 0 && <div style={tx(8, "#ffffff", { marginTop: 3, opacity: 0.65 })}>{links.join("  ·  ")}</div>}
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── APEX ── */
   if (templateId === "apex") {
-    return (
-      <div style={{ backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ backgroundColor: ac, padding: "34px 46px 30px", textAlign: "center" }}>
-          <div style={tx(28, "#ffffff", { fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-          <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.3)", width: "60px", margin: "10px auto 0" }} />
-          <div style={tx(9.5, "#ffffff", { marginTop: 8, opacity: 0.9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
-          <div style={tx(8.5, "#ffffff", { marginTop: 6, opacity: 0.75 })}>{contact}</div>
-          {links.length > 0 && <div style={tx(8, "#ffffff", { marginTop: 3, opacity: 0.6 })}>{links.join("  |  ")}</div>}
-        </div>
-        <div style={{ padding: "22px 46px" }}>{renderSections()}</div>
+    const [padVa, padH] = parsePagePad(pagePad);
+    const header = (
+      <div style={{
+        backgroundColor: ac, padding: "34px 46px 30px", textAlign: "center",
+        marginLeft: `-${padH}px`, marginRight: `-${padH}px`,
+        marginTop: `-${padVa}px`, marginBottom: 22,
+      }}>
+        <div style={tx(28, "#ffffff", { fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.3)", width: "60px", margin: "10px auto 0" }} />
+        <div style={tx(9.5, "#ffffff", { marginTop: 8, opacity: 0.9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
+        <div style={tx(8.5, "#ffffff", { marginTop: 6, opacity: 0.75 })}>{contact}</div>
+        {links.length > 0 && <div style={tx(8, "#ffffff", { marginTop: 3, opacity: 0.6 })}>{links.join("  |  ")}</div>}
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── DENSITY ── */
   if (templateId === "density") {
-    return (
-      <div style={{ padding: "24px 34px", backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderBottom: `1.5px solid ${ac}`, paddingBottom: 8, marginBottom: 10 }}>
-          <div>
-            <div style={tx(22, "#0f172a", { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.02em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-            <div style={tx(8.5, ac, { fontWeight: 600, marginTop: 3 })}>{pi.headline || "Headline"}</div>
-          </div>
-          <div style={{ textAlign: "right" as const }}>
-            <div style={tx(8, "#4b5563")}>{pi.email}</div>
-            <div style={tx(8, "#4b5563")}>{pi.phone}{pi.location ? `  ·  ${pi.location}` : ""}</div>
-            {links.length > 0 && <div style={tx(7.5, "#9ca3af")}>{links[0]}</div>}
-          </div>
+    const header = (
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderBottom: `1.5px solid ${ac}`, paddingBottom: 8, marginBottom: 10 }}>
+        <div>
+          <div style={tx(22, "#0f172a", { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.02em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+          <div style={tx(8.5, ac, { fontWeight: 600, marginTop: 3 })}>{pi.headline || "Headline"}</div>
         </div>
-        {renderSections(SH_FLUSH)}
+        <div style={{ textAlign: "right" as const }}>
+          <div style={tx(8, "#4b5563")}>{pi.email}</div>
+          <div style={tx(8, "#4b5563")}>{pi.phone}{pi.location ? `  ·  ${pi.location}` : ""}</div>
+          {links.length > 0 && <div style={tx(7.5, "#9ca3af")}>{links[0]}</div>}
+        </div>
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_FLUSH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: "24px 34px", backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── PILLAR ── */
   if (templateId === "pillar") {
-    return (
-      <div style={{ display: "flex", minHeight: "100%", backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ width: 5, backgroundColor: ac, flexShrink: 0 }} />
-        <div style={{ flex: 1, padding: pagePad }}>
-          <div style={{ marginBottom: 16, paddingLeft: 4 }}>
-            <div style={tx(26, ac, { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-            <div style={tx(9.5, "#475569", { marginTop: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
-            <div style={{ height: 1, backgroundColor: "#cbd5e1", margin: "10px 0" }} />
-            <div style={tx(8.5, "#6b7280")}>{contact}</div>
-            <LinksRow size={8} color="#94a3b8" />
-          </div>
-          {renderSections()}
-        </div>
+    const header = (
+      <div style={{ marginBottom: 16, paddingLeft: 4 }}>
+        <div style={tx(26, ac, { fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(9.5, "#475569", { marginTop: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
+        <div style={{ height: 1, backgroundColor: "#cbd5e1", margin: "10px 0" }} />
+        <div style={tx(8.5, "#6b7280")}>{contact}</div>
+        <LinksRow size={8} color="#94a3b8" />
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ display: "flex", height: "100%", backgroundColor: "#ffffff", colorScheme: "light" as any, boxSizing: "border-box" }}>
+          <div style={{ width: 5, backgroundColor: ac, flexShrink: 0 }} />
+          <div style={{ flex: 1, padding: pagePad, boxSizing: "border-box" }}>
+            {children}
+          </div>
+        </div>
+      ),
+    };
   }
 
+  /* ── EXECUTIVE ── */
   if (templateId === "executive") {
-    return (
-      <div style={{ backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ backgroundColor: "#1e293b", padding: "30px 46px" }}>
-          <div style={tx(26, "#f8fafc", { fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-          <div style={tx(9, "#94a3b8", { marginTop: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
-          <div style={{ height: 1.5, backgroundColor: ac, width: 40, marginTop: 10, marginBottom: 8 }} />
-          <div style={tx(8.5, "#94a3b8")}>{contact}</div>
-          {links.length > 0 && <div style={tx(8, "#64748b", { marginTop: 3 })}>{links.join("  ·  ")}</div>}
-        </div>
-        <div style={{ padding: "22px 46px" }}>{renderSections()}</div>
+    const [padVe, padH] = parsePagePad(pagePad);
+    const header = (
+      <div style={{
+        backgroundColor: "#1e293b", padding: "30px 46px",
+        marginLeft: `-${padH}px`, marginRight: `-${padH}px`,
+        marginTop: `-${padVe}px`, marginBottom: 22,
+      }}>
+        <div style={tx(26, "#f8fafc", { fontWeight: 800, letterSpacing: "0.02em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(9, "#94a3b8", { marginTop: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" })}>{pi.headline || "Your Headline"}</div>
+        <div style={{ height: 1.5, backgroundColor: ac, width: 40, marginTop: 10, marginBottom: 8 }} />
+        <div style={tx(8.5, "#94a3b8")}>{contact}</div>
+        {links.length > 0 && <div style={tx(8, "#64748b", { marginTop: 3 })}>{links.join("  ·  ")}</div>}
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box", overflow: "hidden" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
+  /* ── PRESTIGE ── */
   if (templateId === "prestige") {
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ textAlign: "center", marginBottom: 18 }}>
-          <div style={tx(24, "#111827", { fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", lineHeight: 1.2 })}>{pi.name || "Your Name"}</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "8px 0" }}>
-            <div style={{ height: 1, backgroundColor: "#d1d5db", width: 60 }} />
-            <div style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: ac }} />
-            <div style={{ height: 1, backgroundColor: "#d1d5db", width: 60 }} />
-          </div>
-          <div style={tx(9, "#4b5563", { fontWeight: 500, fontStyle: "italic" })}>{pi.headline || "Your Headline"}</div>
-          <div style={tx(8.5, "#6b7280", { marginTop: 5 })}>{contact}</div>
-          <LinksRow size={8} color="#9ca3af" />
+    const header = (
+      <div style={{ textAlign: "center", marginBottom: 18 }}>
+        <div style={tx(24, "#111827", { fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", lineHeight: 1.2 })}>{pi.name || "Your Name"}</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, margin: "8px 0" }}>
+          <div style={{ height: 1, backgroundColor: "#d1d5db", width: 60 }} />
+          <div style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: ac }} />
+          <div style={{ height: 1, backgroundColor: "#d1d5db", width: 60 }} />
         </div>
-        {renderSections(SH_LINE)}
+        <div style={tx(9, "#4b5563", { fontWeight: 500, fontStyle: "italic" })}>{pi.headline || "Your Headline"}</div>
+        <div style={tx(8.5, "#6b7280", { marginTop: 5 })}>{contact}</div>
+        <LinksRow size={8} color="#9ca3af" />
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_LINE, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
   /* ── ATS CLEAN ── */
   if (templateId === "ats_clean") {
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: "Arial, sans-serif" }}>
-        <div style={{ marginBottom: 12, borderBottom: "1px solid #111827", paddingBottom: 10 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", fontFamily: "Arial, sans-serif", textTransform: "uppercase", letterSpacing: "0.02em" }}>{pi.name || "Your Name"}</div>
-          <div style={{ fontSize: 10, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 4 }}>{pi.headline}</div>
-          <div style={{ fontSize: 9, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 4 }}>{contact}</div>
-          {links.length > 0 && <div style={{ fontSize: 9, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 2 }}>{links.join("  |  ")}</div>}
-        </div>
-        {renderSections(SH_PLAIN)}
+    const header = (
+      <div style={{ marginBottom: 12, borderBottom: "1px solid #111827", paddingBottom: 10 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: "#111827", fontFamily: "Arial, sans-serif", textTransform: "uppercase", letterSpacing: "0.02em" }}>{pi.name || "Your Name"}</div>
+        <div style={{ fontSize: 10, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 4 }}>{pi.headline}</div>
+        <div style={{ fontSize: 9, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 4 }}>{contact}</div>
+        {links.length > 0 && <div style={{ fontSize: 9, color: "#374151", fontFamily: "Arial, sans-serif", marginTop: 2 }}>{links.join("  |  ")}</div>}
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_PLAIN, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: "Arial, sans-serif", height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
   /* ── ATS MINIMAL ── */
   if (templateId === "ats_minimal") {
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: "Calibri, Arial, sans-serif" }}>
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#111827", fontFamily: "Calibri, Arial, sans-serif" }}>{pi.name || "Your Name"}</div>
-          <div style={{ fontSize: 10, color: "#374151", fontFamily: "Calibri, Arial, sans-serif", marginTop: 3 }}>{pi.headline}</div>
-          <div style={{ fontSize: 9.5, color: "#6b7280", fontFamily: "Calibri, Arial, sans-serif", marginTop: 4 }}>{contact}{links.length > 0 ? "  |  " + links.join("  |  ") : ""}</div>
-        </div>
-        {renderSections(SH_MINIMAL)}
+    const header = (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: "#111827", fontFamily: "Calibri, Arial, sans-serif" }}>{pi.name || "Your Name"}</div>
+        <div style={{ fontSize: 10, color: "#374151", fontFamily: "Calibri, Arial, sans-serif", marginTop: 3 }}>{pi.headline}</div>
+        <div style={{ fontSize: 9.5, color: "#6b7280", fontFamily: "Calibri, Arial, sans-serif", marginTop: 4 }}>{contact}{links.length > 0 ? "  |  " + links.join("  |  ") : ""}</div>
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_MINIMAL, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: "Calibri, Arial, sans-serif", height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
   /* ── TECHPRO ── */
   if (templateId === "techpro") {
-    return (
-      <div style={{ backgroundColor: "#ffffff", colorScheme: "light" as any }}>
-        <div style={{ borderTop: `3px solid ${ac}`, padding: pagePad, paddingTop: "28px" }}>
-          <div style={{ marginBottom: 14 }}>
-            <div style={tx(24, "#0f172a", { fontWeight: 800, letterSpacing: "0.01em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
-            <div style={tx(10, ac, { marginTop: 4, fontWeight: 600 })}>{pi.headline || "Software Engineer"}</div>
-            <div style={{ height: 1, backgroundColor: "#e2e8f0", margin: "8px 0" }} />
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
-              <span style={tx(8.5, "#64748b")}>{contact}</span>
-              {links.map((l, i) => <span key={i} style={tx(8.5, ac)}>{l}</span>)}
-            </div>
-          </div>
-          {renderSections(SH_TECH)}
+    const header = (
+      <div style={{ marginBottom: 14 }}>
+        <div style={tx(24, "#0f172a", { fontWeight: 800, letterSpacing: "0.01em", lineHeight: 1.1 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(10, ac, { marginTop: 4, fontWeight: 600 })}>{pi.headline || "Software Engineer"}</div>
+        <div style={{ height: 1, backgroundColor: "#e2e8f0", margin: "8px 0" }} />
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
+          <span style={tx(8.5, "#64748b")}>{contact}</span>
+          {links.map((l, i) => <span key={i} style={tx(8.5, ac)}>{l}</span>)}
         </div>
       </div>
     );
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_TECH, sectionOrder, data),
+      pageWrap: (children) => (
+        <div style={{ backgroundColor: "#ffffff", colorScheme: "light" as any, height: "100%", boxSizing: "border-box", borderTop: `3px solid ${ac}`, padding: pagePad, paddingTop: "28px" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
   /* ── FAANG ELITE ── */
   if (templateId === "faang") {
-    const renderExpFaang = () =>
-      (data.experience?.length ?? 0) > 0 ? (
-        <div style={{ marginBottom: sg }}>
-          <SH_PLAIN title="Experience" />
-          {data.experience.map((exp: any, i: number) => (
-            <div key={i} style={{ marginTop: i === 0 ? 0 : 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}</span>
-                <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap" })}>{exp.period}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={tx(fs - 0.5, "#374151", { fontStyle: "italic" })}>{exp.role}</span>
-                {exp.location && <span style={tx(8.5, "#9ca3af")}>{exp.location}</span>}
-              </div>
-              <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(exp.bullets)}</ul>
-            </div>
-          ))}
+    const faangExpRenderer = (exp: any, i: number, isFirst: boolean) => (
+      <div style={{ marginTop: isFirst ? 0 : 14, marginBottom: i === (data.experience?.length ?? 1) - 1 ? sg : 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}</span>
+          <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap" })}>{exp.period}</span>
         </div>
-      ) : null;
-
-    const renderSkillsFaang = () =>
-      (data.skillCategories?.length ?? 0) > 0 ? (
-        <div style={{ marginBottom: sg }}>
-          <SH_PLAIN title="Technical Skills" />
-          {data.skillCategories.map((cat: any, i: number) => (
-            <div key={i} style={{ marginTop: i === 0 ? 0 : 3 }}>
-              <span style={tx(fs, "#111827", { fontWeight: 700 })}>{cat.name}:</span>{" "}
-              <span style={tx(fs, "#374151")}>{cat.skills}</span>
-            </div>
-          ))}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={tx(fs - 0.5, "#374151", { fontStyle: "italic" })}>{exp.role}</span>
+          {exp.location && <span style={tx(8.5, "#9ca3af")}>{exp.location}</span>}
         </div>
-      ) : null;
-
-    return (
-      <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: ff }}>
-        <div style={{ marginBottom: 14, borderBottom: "1.5px solid #111827", paddingBottom: 10 }}>
-          <div style={tx(22, "#111827", { fontWeight: 700, lineHeight: 1.15 })}>{pi.name || "Your Name"}</div>
-          <div style={tx(9.5, "#374151", { marginTop: 3 })}>{pi.headline}</div>
-          <div style={tx(8.5, "#6b7280", { marginTop: 4 })}>{contact}{links.length > 0 ? "  |  " + links.join("  |  ") : ""}</div>
-        </div>
-        {sectionOrder.map(id => {
-          if (id === "experience") return <React.Fragment key={id}>{renderExpFaang()}</React.Fragment>;
-          if (id === "skills") return <React.Fragment key={id}>{renderSkillsFaang()}</React.Fragment>;
-          const map = makeSectionMap(SH_PLAIN);
-          return <React.Fragment key={id}>{map[id]?.()}</React.Fragment>;
-        })}
+        <ul style={{ margin: "4px 0 0", paddingLeft: 16, listStyle: "disc" }}>{bul(exp.bullets)}</ul>
       </div>
     );
+
+    const header = (
+      <div style={{ marginBottom: 14, borderBottom: "1.5px solid #111827", paddingBottom: 10 }}>
+        <div style={tx(22, "#111827", { fontWeight: 700, lineHeight: 1.15 })}>{pi.name || "Your Name"}</div>
+        <div style={tx(9.5, "#374151", { marginTop: 3 })}>{pi.headline}</div>
+        <div style={tx(8.5, "#6b7280", { marginTop: 4 })}>{contact}{links.length > 0 ? "  |  " + links.join("  |  ") : ""}</div>
+      </div>
+    );
+
+    return {
+      header,
+      sections: buildGranularSections(ctx, SH_PLAIN, sectionOrder, data, faangExpRenderer),
+      pageWrap: (children) => (
+        <div style={{ padding: pagePad, backgroundColor: "#ffffff", colorScheme: "light" as any, fontFamily: ff, height: "100%", boxSizing: "border-box" }}>
+          {children}
+        </div>
+      ),
+    };
   }
 
-  return <div style={{ padding: pagePad, backgroundColor: "#ffffff" }}>{renderSections()}</div>;
+  /* Fallback */
+  return {
+    header: null,
+    sections: buildGranularSections(ctx, SH, sectionOrder, data),
+    pageWrap: (children) => (
+      <div style={{ padding: pagePad, backgroundColor: "#ffffff", height: "100%", boxSizing: "border-box" }}>
+        {children}
+      </div>
+    ),
+  };
 }
 
 /* ================================================================
-   PRINT HTML BUILDER
+   LEGACY renderPreview (kept for backward-compat)
+================================================================ */
+export function renderPreview(templateId: TemplateId, ctx: StyleCtx): React.ReactNode {
+  const sections = renderPreviewSections(templateId, ctx);
+  return sections.pageWrap(
+    <>
+      {sections.header}
+      {sections.sections.map(s => <React.Fragment key={s.key}>{s.node}</React.Fragment>)}
+    </>,
+    0, 1
+  );
+}
+
+/* ================================================================
+   PRINT HTML BUILDER (unchanged)
 ================================================================ */
 export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
   const { ff, ac, fs, lh, sg, pagePad, data, sectionOrder, fontUrl, paperSize } = ctx;
@@ -844,8 +999,6 @@ export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
   const contact = contactLine(pi);
   const linksHtml = links.length > 0
     ? `<div class="r-links">${links.join("  ·  ")}</div>` : "";
-  const linksBar = links.length > 0
-    ? `<div class="r-links-bar">${links.join("  |  ")}</div>` : "";
 
   const bul = (arr: any): string =>
     (Array.isArray(arr) ? arr : [arr])
