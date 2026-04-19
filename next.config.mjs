@@ -2,7 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   // Add this line below to fix the Google Fonts build error
-  optimizeFonts: false, 
+  optimizeFonts: false,
+
+  // Fix pdfjs worker webpack error
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /pdf\.worker\.(min\.)?mjs$/,
+      type: "asset/resource",
+    });
+    return config;
+  },
 
   // --- ADDED THIS SECTION TO ALLOW DOWNLOADS ---
   async headers() {
