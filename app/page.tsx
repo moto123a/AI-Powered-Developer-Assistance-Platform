@@ -4,7 +4,8 @@ import { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { auth, db } from "./firebaseConfig";
+import { doc, updateDoc, arrayUnion, collection, addDoc } from "firebase/firestore";
 import CreditsBadge from "../components/CreditsBadge";
 import Footer from "../components/Footer";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -235,11 +236,27 @@ export default function Home() {
     setUser(null); setShowMenu(false); router.push("/login");
   };
 
-  const download = (os: "win" | "mac") => {
+  const download = async (os: "win" | "mac") => {
+    // Trigger the actual file download
     const a = document.createElement("a");
     a.href     = os === "win" ? WINDOWS_DOWNLOAD : MAC_DOWNLOAD;
     a.download = os === "win" ? "app.msixbundle" : "InterviewCopilotMac-1.0.0.pkg";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+    // Track the download event
+    const entry = { os, at: new Date().toISOString(), email: user?.email || "anonymous" };
+    try {
+      // Always log to global downloads collection (visible in admin even for anon)
+      await addDoc(collection(db, "app_downloads"), entry);
+      // If logged in, also stamp the user's doc
+      if (user?.uid) {
+        await updateDoc(doc(db, "users", user.uid), {
+          appDownloads: arrayUnion(entry),
+        });
+      }
+    } catch (e) {
+      console.error("Download tracking error:", e);
+    }
   };
 
   const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -80]);
