@@ -380,9 +380,14 @@ const contactLine = (d: any): string =>
 
 /* Parse "48px 52px" → [48, 52] */
 export function parsePagePad(pagePad: string): [number, number] {
+  if (!pagePad || !pagePad.trim()) {
+    console.warn("parsePagePad: empty value, using defaults [48, 48]");
+    return [48, 48];
+  }
   const parts = pagePad.split(" ").map(p => parseInt(p, 10));
   const v = isNaN(parts[0]) ? 48 : parts[0];
   const h = isNaN(parts[1]) ? v : parts[1];
+  if (isNaN(parts[0])) console.warn(`parsePagePad: invalid value "${pagePad}", using defaults`);
   return [v, h];
 }
 
@@ -498,8 +503,12 @@ function buildGranularSections(
   const { tx, bul, liSt } = b;
 
   const out: { key: string; node: React.ReactNode }[] = [];
+  const knownSections = ["summary", "skills", "experience", "projects", "education", "certifications"];
 
   for (const secId of sectionOrder) {
+    if (!knownSections.includes(secId)) {
+      console.warn(`buildGranularSections: unknown section "${secId}" in sectionOrder, skipping`);
+    }
     if (secId === "summary" && data.summary) {
       out.push({
         key: "summary",
@@ -589,10 +598,10 @@ function buildGranularSections(
           node: (
             <div style={{ marginTop: isFirst ? 0 : 10, marginBottom: i === data.education.length - 1 ? sg : 0, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={tx(fs, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution}</div>
-                <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}</div>
+                <div style={tx(fs, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution || "Unknown School"}</div>
+                <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree || ""}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}</div>
               </div>
-              <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year}</span>
+              <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year || ""}</span>
             </div>
           ),
         });

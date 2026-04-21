@@ -25,7 +25,9 @@ import {
 // SETTINGS DRAWER
 // ─────────────────────────────────────────────
 function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [s, setS]         = useState<AppSettings>(loadSettings);
+  const [s, setS]         = useState<AppSettings>(() => {
+    try { return loadSettings(); } catch { return DEFAULT_SETTINGS; }
+  });
   const [saved, setSaved] = useState(false);
   const set = <K extends keyof AppSettings>(k: K, v: AppSettings[K]) =>
     setS(p => ({ ...p, [k]: v }));
@@ -111,7 +113,7 @@ function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void 
                     <span className="text-[12px] font-black text-indigo-400 font-mono">{s.maxDelay}s</span>
                   </div>
                   <input type="range" min={0.7} max={2.0} step={0.1}
-                    value={s.maxDelay} onChange={e => set("maxDelay", parseFloat(e.target.value))}
+                    value={s.maxDelay} onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) set("maxDelay", v); }}
                     className="w-full accent-indigo-500 cursor-pointer h-1" />
                   <div className="flex justify-between mt-1.5">
                     <span className="text-[9px] text-white/15">Faster (0.7s)</span>
@@ -144,7 +146,7 @@ function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void 
                   <span className="text-[12px] font-black text-purple-400 font-mono">{s.temperature}</span>
                 </div>
                 <input type="range" min={0.0} max={1.0} step={0.1}
-                  value={s.temperature} onChange={e => set("temperature", parseFloat(e.target.value))}
+                  value={s.temperature} onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) set("temperature", v); }}
                   className="w-full accent-purple-500 cursor-pointer h-1" />
                 <div className="flex justify-between mt-1.5">
                   <span className="text-[9px] text-white/15">Precise (0.0)</span>

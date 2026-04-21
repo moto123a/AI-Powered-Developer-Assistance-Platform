@@ -141,6 +141,7 @@ async function fetchAi(payload: any) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...payload, userEmail: getEmail() }),
+    signal: AbortSignal.timeout(35000),
   });
   const text = await res.text();
   try {
@@ -500,7 +501,12 @@ export default function MockInterviewPage() {
                 ws.send(await ev.data.arrayBuffer());
             };
             recorder.start(250);
-          } catch { stopRecording(); }
+          } catch (mediaErr) {
+            console.error("getUserMedia failed:", mediaErr);
+            // Close WebSocket to prevent resource leak
+            if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+            isRecordingRef.current = false; setIsRecording(false); smStartedRef.current = false;
+          }
         }
         if (msg.message === "AddTranscript" && msg.metadata?.transcript) {
           answerRef.current = (answerRef.current + " " + msg.metadata.transcript).trim();

@@ -138,7 +138,7 @@ export default function ResumeTemplate({ data, styles }: any) {
           {data.projects.map((proj: any, i: number) => (
             <div key={i} style={{ marginTop: i === 0 ? 5 : 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={t(fs + 0.5, ac, { fontWeight: 700 })}>{proj.title || proj.name}</span>
+                <span style={t(fs + 0.5, ac, { fontWeight: 700 })}>{proj.title || proj.name || "Untitled Project"}</span>
                 {proj.period && <span style={t(9, "#6b7280")}>{proj.period}</span>}
               </div>
               {proj.tech && (
@@ -157,12 +157,12 @@ export default function ResumeTemplate({ data, styles }: any) {
           {data.education.map((edu: any, i: number) => (
             <div key={i} style={{ marginTop: i === 0 ? 5 : 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={t(fs + 0.5, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution}</div>
+                <div style={t(fs + 0.5, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution || "Unknown School"}</div>
                 <div style={t(fs, "#374151", { marginTop: 2 })}>
-                  {edu.degree}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}
+                  {edu.degree || ""}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}
                 </div>
               </div>
-              <span style={t(9, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year}</span>
+              <span style={t(9, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year || ""}</span>
             </div>
           ))}
         </Sec>

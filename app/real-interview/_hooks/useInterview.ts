@@ -55,12 +55,13 @@ export function useInterview(config: {
   const [sessionSecs,  setSessionSecs]  = useState(0);
   const [micStatus,    setMicStatus]    = useState("Ready");
 
-  const sttClient     = useRef<SpeechmaticsClient | null>(null);
-  const transcriptRef = useRef("");
-  const partialRef    = useRef("");
-  const historyRef    = useRef<Turn[]>([]);
-  const timerRef      = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef  = useRef<number>(0);
+  const sttClient       = useRef<SpeechmaticsClient | null>(null);
+  const transcriptRef   = useRef("");
+  const partialRef      = useRef("");
+  const historyRef      = useRef<Turn[]>([]);
+  const timerRef        = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef    = useRef<number>(0);
+  const isGeneratingRef = useRef(false); // Race-condition guard
 
   // Keep historyRef in sync
   useEffect(() => { historyRef.current = history; }, [history]);
@@ -81,7 +82,7 @@ export function useInterview(config: {
   // ── GENERATE ANSWER ──
   const generateAnswer = useCallback(async () => {
     const fullText = (transcriptRef.current + " " + partialRef.current).trim();
-    if (!fullText || isGenerating) return;
+    if (!fullText || isGeneratingRef.current) return;
 
     // Stop mic first
     if (sttClient.current) {
@@ -132,6 +133,7 @@ export function useInterview(config: {
     }
 
     // ── NORMAL AI ANSWER ──
+    isGeneratingRef.current = true;
     setIsGenerating(true);
     setAnswer("");
 
@@ -166,6 +168,7 @@ export function useInterview(config: {
           model:      config.model || "llama-3.1-8b",
           context:    `Role: ${config.role} | Company: ${config.companyName}`,
         }),
+        signal: AbortSignal.timeout(35000),
       });
 
       const data = await res.json();
@@ -176,7 +179,7 @@ export function useInterview(config: {
         return;
       }
 
-      const cleaned = formatForReading(cleanAnswer(data.answer || "No response."));
+      const cleaned = formatForReading(cleanAnswer(data?.answer || "No response."));
       setAnswer(cleaned);
 
       const withAnswer: Turn[] = [
@@ -191,8 +194,9 @@ export function useInterview(config: {
       setAnswer("Error generating answer. Please try again.");
     }
 
+    isGeneratingRef.current = false;
     setIsGenerating(false);
-  }, [isGenerating, config]);
+  }, [config]);
 
   // ── START MIC ──
   const startMic = useCallback(() => {

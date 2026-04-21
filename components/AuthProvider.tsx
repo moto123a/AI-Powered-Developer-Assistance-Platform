@@ -35,7 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (pathname === "/login" || pathname === "/signup") {
           const params = new URLSearchParams(window.location.search);
           const redirect = params.get("redirect") || "/";
-          router.replace(redirect);
+          // Prevent redirect loops — never redirect back to login/signup
+          const safeDest = PUBLIC_ROUTES.includes(redirect) ? "/" : redirect;
+          router.replace(safeDest);
         }
       } else {
         // Clear session cookie on logout

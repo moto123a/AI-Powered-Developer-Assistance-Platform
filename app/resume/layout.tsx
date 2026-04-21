@@ -13,7 +13,7 @@ export default function ResumeLayout({ children }: { children: React.ReactNode }
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="flex flex-col min-h-[80vh]">{children}</div>;
 
   const hideLayout = pathname.startsWith("/resume/editor");
 

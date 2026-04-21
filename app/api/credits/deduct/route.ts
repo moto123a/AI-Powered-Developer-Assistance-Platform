@@ -87,33 +87,42 @@ export async function POST(req: Request) {
     }
 
     const userRef = db.collection("users").doc(uid);
-    const userDoc = await userRef.get();
 
-    if (!userDoc.exists) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-    }
+    const result = await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
 
-    const userData = userDoc.data()!;
-    const plan    = userData.plan    || "free";
-    const credits = userData.credits || 0;
+      if (!userDoc.exists) {
+        throw Object.assign(new Error("User not found"), { status: 404 });
+      }
 
-    if (plan === "pro") {
-      await userRef.update({ creditsUsed: admin.firestore.FieldValue.increment(cost) });
-      return NextResponse.json({ success: true, remaining: -1, plan: "pro" });
-    }
+      const userData = userDoc.data()!;
+      const plan    = userData.plan    || "free";
+      const credits = userData.credits || 0;
 
-    if (credits < cost) {
-      return NextResponse.json({ success: false, error: "Insufficient credits", remaining: credits, needed: cost, plan });
-    }
+      if (plan === "pro") {
+        transaction.update(userRef, { creditsUsed: admin.firestore.FieldValue.increment(cost) });
+        return { success: true, remaining: -1, plan: "pro" };
+      }
 
-    await userRef.update({
-      credits:     admin.firestore.FieldValue.increment(-cost),
-      creditsUsed: admin.firestore.FieldValue.increment(cost),
+      if (credits < cost) {
+        throw Object.assign(new Error("Insufficient credits"), { status: 402, remaining: credits, needed: cost, plan });
+      }
+
+      transaction.update(userRef, {
+        credits:     admin.firestore.FieldValue.increment(-cost),
+        creditsUsed: admin.firestore.FieldValue.increment(cost),
+      });
+
+      return { success: true, remaining: credits - cost, deducted: cost, plan };
     });
 
-    return NextResponse.json({ success: true, remaining: credits - cost, deducted: cost, plan });
+    return NextResponse.json(result);
   } catch (err: any) {
     console.error("Credit deduction error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const status = err.status || 500;
+    return NextResponse.json(
+      { success: false, error: err.message, ...(err.remaining !== undefined && { remaining: err.remaining, needed: err.needed, plan: err.plan }) },
+      { status }
+    );
   }
 }

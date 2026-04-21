@@ -35,6 +35,7 @@ export function useSession(userEmail: string) {
   const [sessions,  setSessions]  = useState<Session[]>([]);
   const [loading,   setLoading]   = useState(false);
   const [saving,    setSaving]    = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // ── SAVE SESSION ──
   const saveSession = useCallback(async (payload: {
@@ -85,8 +86,9 @@ export function useSession(userEmail: string) {
         durationSecs:  d.data().durationSecs  || 0,
       })) as Session[];
       setSessions(docs);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Session load error:", err);
+      setLoadError("Failed to load sessions. Please refresh and try again.");
     }
     setLoading(false);
   }, [userEmail]);
@@ -105,9 +107,10 @@ export function useSession(userEmail: string) {
 
   // ── FORMAT DURATION ──
   const formatDuration = (secs: number): string => {
-    if (!secs) return "0:00";
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
+    const safe = Math.floor(secs ?? 0);
+    if (!safe || Number.isNaN(safe)) return "0:00";
+    const m = Math.floor(safe / 60);
+    const s = safe % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
@@ -115,6 +118,7 @@ export function useSession(userEmail: string) {
     sessions,
     loading,
     saving,
+    loadError,
     saveSession,
     loadSessions,
     formatDate,

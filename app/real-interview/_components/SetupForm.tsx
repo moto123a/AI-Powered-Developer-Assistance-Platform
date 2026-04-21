@@ -162,6 +162,7 @@ export default function SetupForm({ onStart, onDashboard, onStealth }: Props) {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ mode: "verify_resume", resume: cfg.resume }),
+        signal:  AbortSignal.timeout(30000),
       });
       const data = await res.json();
       setVerifyResult(data.summary || "Verified.");

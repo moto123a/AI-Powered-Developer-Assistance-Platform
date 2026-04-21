@@ -160,6 +160,7 @@ async function fetchAi(payload: any) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...payload, userEmail: getEmail() }),
+    signal: AbortSignal.timeout(35000),
   });
   const data = await res.json();
   if (res.status === 402 || data.error === "insufficient_credits") {
@@ -1146,7 +1147,7 @@ export default function ResumePage() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-              <div style={{ flex:1, padding:14, overflowY:"auto" }}>
+              <div id="editor-sidebar" style={{ flex:1, padding:14, overflowY:"auto" }}>
                 <AnimatePresence mode="wait">
                   <motion.div key={activeTab} initial={{ opacity:0, x:-8 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:8 }} transition={{ duration:0.16 }}>
 
@@ -1198,7 +1199,7 @@ export default function ResumePage() {
                           <EntSectionContent title="Personal Info" icon={<User size={14} style={{ color:T.accent }} />}>
                             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                               {[{l:"Full Name",f:"name",p:"John Doe"},{l:"Headline",f:"headline",p:"Software Engineer"},{l:"Email",f:"email",p:"john@example.com"},{l:"Phone",f:"phone",p:"+1 (555) 000-0000"},{l:"Location",f:"location",p:"New York, NY"}].map(({l,f,p})=>(
-                                <div key={f}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
+                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
                               ))}
                             </div>
                             <Divider />
@@ -1207,7 +1208,7 @@ export default function ResumePage() {
                             </div>
                             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                               {[{l:"LinkedIn",f:"linkedin",p:"linkedin.com/in/you"},{l:"GitHub",f:"github",p:"github.com/you"},{l:"Portfolio",f:"portfolio",p:"yoursite.com"}].map(({l,f,p})=>(
-                                <div key={f}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
+                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
                               ))}
                             </div>
                             <div style={{ marginTop:12 }}>
@@ -1245,7 +1246,7 @@ export default function ResumePage() {
                                 </button>
                               </div>
                             }>
-                            <Textarea value={resumeData.summary||""} onChange={(e:any)=>set(d=>({...d,summary:e.target.value}))} rows={10} placeholder="Professional summary..." />
+                            <div id="field-summary"><Textarea value={resumeData.summary||""} onChange={(e:any)=>set(d=>({...d,summary:e.target.value}))} rows={10} placeholder="Professional summary..." /></div>
                             <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
                               <Coins size={10} style={{ color:T.textTertiary }} />
                               <p style={{ fontSize:10, color:T.textTertiary, margin:0 }}>AI Generate uses <strong>5 credits</strong></p>
@@ -1257,7 +1258,7 @@ export default function ResumePage() {
                           <EntSectionContent title="Experience" icon={<Briefcase size={14} style={{ color:"#2563eb" }} />}>
                             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                               {(resumeData.experience||[]).map((exp:any,i:number)=>(
-                                <SectionCard key={i}>
+                                <div key={i} id={`editor-experience-${i}`}><SectionCard>
                                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
                                     <span style={{ fontSize:12, fontWeight:700, color:"#2563eb" }}>{exp.company||`Experience #${i+1}`}</span>
                                     <button onClick={()=>removeExperience(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
@@ -1298,7 +1299,7 @@ export default function ResumePage() {
                                     ))}
                                   </div>
                                   <AddButton onClick={()=>addBullet("experience",i)} label="Add Bullet" color="#2563eb" small />
-                                </SectionCard>
+                                </SectionCard></div>
                               ))}
                             </div>
                             <AddButton onClick={addExperience} label="Add Experience" color="#2563eb" />
@@ -1309,7 +1310,7 @@ export default function ResumePage() {
                           <EntSectionContent title="Projects" icon={<Code size={14} style={{ color:T.purple }} />}>
                             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                               {(resumeData.projects||[]).map((p:any,i:number)=>(
-                                <SectionCard key={i}>
+                                <div key={i} id={`editor-projects-${i}`}><SectionCard>
                                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
                                     <span style={{ fontSize:12, fontWeight:700, color:T.purple }}>{p.title||`Project #${i+1}`}</span>
                                     <button onClick={()=>removeProject(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
@@ -1347,7 +1348,7 @@ export default function ResumePage() {
                                     ))}
                                   </div>
                                   <AddButton onClick={()=>addBullet("projects",i)} label="Add Bullet" color={T.purple} small />
-                                </SectionCard>
+                                </SectionCard></div>
                               ))}
                             </div>
                             <AddButton onClick={addProject} label="Add Project" color={T.purple} />
@@ -1358,7 +1359,7 @@ export default function ResumePage() {
                           <EntSectionContent title="Education" icon={<GraduationCap size={14} style={{ color:T.success }} />}>
                             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                               {(resumeData.education||[]).map((e:any,i:number)=>(
-                                <SectionCard key={i}>
+                                <div key={i} id={`editor-education-${i}`}><SectionCard>
                                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
                                     <span style={{ fontSize:12, fontWeight:700, color:T.success }}>{e.school||`Education #${i+1}`}</span>
                                     <button onClick={()=>removeEducation(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
@@ -1372,7 +1373,7 @@ export default function ResumePage() {
                                     <div><Label>Period</Label><Inp value={e.period||e.year||""} onChange={(ev:any)=>updateEducation(i,"period",ev.target.value)} /></div>
                                   </div>
                                   <div><Label>GPA</Label><Inp value={e.gpa||""} onChange={(ev:any)=>updateEducation(i,"gpa",ev.target.value)} /></div>
-                                </SectionCard>
+                                </SectionCard></div>
                               ))}
                             </div>
                             <AddButton onClick={addEducation} label="Add Education" color={T.success} />
@@ -1383,7 +1384,7 @@ export default function ResumePage() {
                           <EntSectionContent title="Skills" icon={<Wrench size={14} style={{ color:T.warning }} />}>
                             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                               {(resumeData.skillCategories||[]).map((c:any,i:number)=>(
-                                <SectionCard key={i}>
+                                <div key={i} id={`editor-skills-${i}`}><SectionCard>
                                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
                                     <span style={{ fontSize:12, fontWeight:700, color:T.warning }}>{c.name||`Category #${i+1}`}</span>
                                     <button onClick={()=>removeSkillCategory(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
@@ -1393,7 +1394,7 @@ export default function ResumePage() {
                                   </div>
                                   <div style={{ marginBottom:7 }}><Label>Category Name</Label><Inp value={c.name||""} onChange={(e:any)=>updateSkillCategory(i,"name",e.target.value)} /></div>
                                   <div><Label>Skills (comma separated)</Label><Textarea value={c.skills||""} onChange={(e:any)=>updateSkillCategory(i,"skills",e.target.value)} rows={2} /></div>
-                                </SectionCard>
+                                </SectionCard></div>
                               ))}
                             </div>
                             <AddButton onClick={addSkillCategory} label="Add Category" color={T.warning} />
@@ -1750,6 +1751,56 @@ export default function ResumePage() {
           styleCtx={styleCtx}
           fontObj={fontObj}
           onShowShortcuts={() => setShowShortcuts(true)}
+          onSectionClick={(key) => {
+            const [base, idx] = key.split(":");
+            const sectionMap: Record<string, "personal"|"summary"|"experience"|"projects"|"education"|"skills"|"certifications"> = {
+              personal:"personal", summary:"summary", experience:"experience",
+              projects:"projects", education:"education", skills:"skills", certifications:"certifications",
+            };
+            const target = sectionMap[base];
+            if (!target) return;
+
+            // Determine the precise field ID to scroll to
+            let fieldId: string | null = null;
+            if (target === "personal") fieldId = "field-personal-name";
+            else if (target === "summary") fieldId = "field-summary";
+            else if (idx !== undefined && idx !== "heading") {
+              fieldId = `editor-${base}-${idx}`;
+            }
+
+            setActiveTab("edit");
+            setEditSection(target);
+
+            // Wait for React to render the section, then scroll + highlight
+            setTimeout(() => {
+              const el = fieldId ? document.getElementById(fieldId) : null;
+              const sidebar = document.getElementById("editor-sidebar");
+              if (el && sidebar) {
+                // Scroll the sidebar to the element
+                const elTop = el.getBoundingClientRect().top;
+                const sidebarTop = sidebar.getBoundingClientRect().top;
+                const offset = elTop - sidebarTop + sidebar.scrollTop - 80;
+                sidebar.scrollTo({ top: offset, behavior: "smooth" });
+                // Flash highlight animation
+                el.style.transition = "box-shadow 0.2s ease, outline 0.2s ease";
+                el.style.outline = "2px solid #6366f1";
+                el.style.boxShadow = "0 0 0 4px rgba(99,102,241,0.18)";
+                el.style.borderRadius = "6px";
+                // Focus first input inside the element
+                setTimeout(() => {
+                  const input = el.querySelector("input, textarea") as HTMLElement | null;
+                  input?.focus();
+                }, 100);
+                // Remove highlight after 1.8s
+                setTimeout(() => {
+                  el.style.outline = "";
+                  el.style.boxShadow = "";
+                }, 1800);
+              } else if (sidebar) {
+                sidebar.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }, 160);
+          }}
         />
       </div>
 

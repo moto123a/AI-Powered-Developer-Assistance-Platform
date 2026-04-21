@@ -28,9 +28,14 @@ export function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem("icSettings");
     return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
-  } catch { return DEFAULT_SETTINGS; }
+  } catch (e) {
+    console.warn("Failed to load settings from localStorage, using defaults:", e);
+    return DEFAULT_SETTINGS;
+  }
 }
 
 export function saveSettings(s: AppSettings) {
-  try { localStorage.setItem("icSettings", JSON.stringify(s)); } catch {}
+  try { localStorage.setItem("icSettings", JSON.stringify(s)); } catch (e) {
+    console.warn("Failed to save settings to localStorage:", e);
+  }
 }

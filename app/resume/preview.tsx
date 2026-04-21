@@ -3,7 +3,7 @@ import React, {
   useRef, useEffect, useState, useMemo, useLayoutEffect,
 } from "react";
 import { createPortal } from "react-dom";
-import { Keyboard } from "lucide-react";
+import { Keyboard, Pencil } from "lucide-react";
 import {
   TEMPLATE_LIST,
   renderPreviewSections,
@@ -60,6 +60,7 @@ interface ResumePreviewProps {
   };
   fontObj: { key: string; label: string; family: string; cat: string; url?: string };
   onShowShortcuts: () => void;
+  onSectionClick?: (sectionKey: string) => void;
 }
 
 const PAGE_GAP = 24;
@@ -70,9 +71,26 @@ interface PagePlan {
   sectionKeys: string[]; // may include granular keys like "experience:0"
 }
 
+function getSectionLabel(key: string): string {
+  if (key === "personal") return "Edit Personal Info";
+  if (key === "summary")  return "Edit Summary";
+  if (key === "skills")   return "Edit Skills";
+  if (key === "certifications") return "Edit Certifications";
+  const [base, idx] = key.split(":");
+  const names: Record<string, string> = {
+    experience: "Experience", projects: "Project",
+    education: "Education", skills: "Skills",
+  };
+  const label = names[base] || base;
+  if (idx === "heading") return `Edit ${label}`;
+  if (idx !== undefined) return `Edit ${label} #${parseInt(idx) + 1}`;
+  return `Edit ${label}`;
+}
+
 export default function ResumePreview({
-  paper, paperSize, templateId, styleCtx, fontObj, onShowShortcuts,
+  paper, paperSize, templateId, styleCtx, fontObj, onShowShortcuts, onSectionClick,
 }: ResumePreviewProps) {
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const wrapperRef       = useRef<HTMLDivElement>(null);
   const portalHostRef    = useRef<HTMLDivElement | null>(null);
   const measureRef       = useRef<HTMLDivElement>(null);
@@ -391,9 +409,26 @@ export default function ResumePreview({
               <PageWindow key={page.pageIndex} pageWidth={paper.w} pageHeight={paper.h}>
                 {tmpl.pageWrap(
                   <>
-                    {page.showHeader && tmpl.header}
+                    {page.showHeader && (
+                      <EditableZone
+                        sectionKey="personal"
+                        hoveredKey={hoveredKey}
+                        setHoveredKey={setHoveredKey}
+                        onSectionClick={onSectionClick}
+                      >
+                        {tmpl.header}
+                      </EditableZone>
+                    )}
                     {page.sectionKeys.map(key => (
-                      <React.Fragment key={key}>{sectionByKey.get(key)}</React.Fragment>
+                      <EditableZone
+                        key={key}
+                        sectionKey={key}
+                        hoveredKey={hoveredKey}
+                        setHoveredKey={setHoveredKey}
+                        onSectionClick={onSectionClick}
+                      >
+                        {sectionByKey.get(key)}
+                      </EditableZone>
                     ))}
                   </>,
                   page.pageIndex,
@@ -437,6 +472,49 @@ export default function ResumePreview({
           </Tooltip>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Enterprise editable zone with professional hover overlay ── */
+interface EditableZoneProps {
+  sectionKey: string;
+  hoveredKey: string | null;
+  setHoveredKey: (k: string | null) => void;
+  onSectionClick?: (key: string) => void;
+  children: React.ReactNode;
+}
+function EditableZone({ sectionKey, hoveredKey, setHoveredKey, onSectionClick, children }: EditableZoneProps) {
+  const isHovered = hoveredKey === sectionKey && !!onSectionClick;
+  return (
+    <div
+      onClick={() => onSectionClick?.(sectionKey)}
+      onMouseEnter={() => onSectionClick && setHoveredKey(sectionKey)}
+      onMouseLeave={() => setHoveredKey(null)}
+      style={{
+        position: "relative",
+        cursor: onSectionClick ? "pointer" : "default",
+        borderRadius: 4,
+        transition: "box-shadow 0.18s",
+        boxShadow: isHovered ? "0 0 0 2px #6366f1, 0 0 0 4px rgba(99,102,241,0.15)" : "none",
+      }}
+    >
+      {children}
+      {isHovered && (
+        <div style={{
+          position: "absolute", top: 4, right: 4, zIndex: 10,
+          display: "flex", alignItems: "center", gap: 5,
+          background: "#6366f1", color: "#fff",
+          borderRadius: 6, padding: "3px 8px 3px 6px",
+          fontSize: 9.5, fontWeight: 700, letterSpacing: "0.03em",
+          boxShadow: "0 2px 8px rgba(99,102,241,0.35)",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+        }}>
+          <Pencil size={9} />
+          {getSectionLabel(sectionKey)}
+        </div>
+      )}
     </div>
   );
 }

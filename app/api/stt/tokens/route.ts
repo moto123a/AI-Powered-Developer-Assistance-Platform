@@ -68,15 +68,26 @@ function normalizeDashes(input: string) {
 
 function sanitizeText(text: string) {
   if (!text) return "";
-  return normalizeDashes(text).replace(/[^\x20-\x7E\n]/g, "").slice(0, 30000);
+  const cleaned = normalizeDashes(text).replace(/[^\x20-\x7E\n]/g, "");
+  if (cleaned.length > 30000) {
+    console.warn(`sanitizeText: input truncated from ${cleaned.length} to 30000 chars`);
+  }
+  return cleaned.slice(0, 30000);
 }
 
 function cleanJson(text: string) {
   try {
     const firstBrace = text.indexOf("{");
-    const lastBrace  = text.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1)
-      return text.substring(firstBrace, lastBrace + 1);
+    if (firstBrace === -1) return "{}";
+    // Walk forward to find the matching closing brace
+    let depth = 0;
+    for (let i = firstBrace; i < text.length; i++) {
+      if (text[i] === "{") depth++;
+      else if (text[i] === "}") {
+        depth--;
+        if (depth === 0) return text.substring(firstBrace, i + 1);
+      }
+    }
     return "{}";
   } catch { return "{}"; }
 }
@@ -178,26 +189,31 @@ async function callLLM(
   const { provider, apiModel } = resolveModel(modelId);
   console.log(`🤖 Calling ${provider} → ${apiModel}`);
 
-  if (provider === "gemini") {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("GEMINI_API_KEY missing");
-    return callGemini(apiKey, apiModel, systemPrompt, userPrompt, opts);
-  }
-  if (provider === "openai") {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("OPENAI_API_KEY missing");
-    return callOpenAICompatible("https://api.openai.com/v1", apiKey, apiModel, [
+  try {
+    if (provider === "gemini") {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("GEMINI_API_KEY missing");
+      return await callGemini(apiKey, apiModel, systemPrompt, userPrompt, opts);
+    }
+    if (provider === "openai") {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) throw new Error("OPENAI_API_KEY missing");
+      return await callOpenAICompatible("https://api.openai.com/v1", apiKey, apiModel, [
+        { role: "system", content: systemPrompt },
+        { role: "user",   content: userPrompt   },
+      ], opts);
+    }
+    // Default: Groq
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error("GROQ_API_KEY missing");
+    return await callOpenAICompatible("https://api.groq.com/openai/v1", apiKey, apiModel, [
       { role: "system", content: systemPrompt },
       { role: "user",   content: userPrompt   },
     ], opts);
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    throw new Error(`[${provider}/${apiModel}] ${msg}`);
   }
-  // Default: Groq
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("GROQ_API_KEY missing");
-  return callOpenAICompatible("https://api.groq.com/openai/v1", apiKey, apiModel, [
-    { role: "system", content: systemPrompt },
-    { role: "user",   content: userPrompt   },
-  ], opts);
 }
 
 // ── NEW: caller that accepts pre-built messages array ──
@@ -281,8 +297,8 @@ async function checkAndDeductCredits(
 // ============================================================================
 // 6) DETERMINISTIC RESUME PARSER
 // ============================================================================
-const NOW_YEAR      = 2026;
-const NOW_MONTH     = 3;
+const NOW_YEAR      = new Date().getFullYear();
+const NOW_MONTH     = new Date().getMonth() + 1;
 const MERGE_ADJACENT = false;
 
 const monthMap: Record<string, number> = {
@@ -293,7 +309,10 @@ const monthMap: Record<string, number> = {
 
 function toMonthNum(s: string)            { return monthMap[s.trim().toLowerCase()] ?? null; }
 function monthIndex(y: number, m: number) { return y * 12 + (m - 1); }
-function monthsInclusive(s: number, e: number) { return e < s ? 0 : e - s + 1; }
+function monthsInclusive(s: number, e: number) {
+  if (e < s) { console.warn(`monthsInclusive: end index ${e} is before start index ${s}, skipping range`); return 0; }
+  return e - s + 1;
+}
 function formatYearsMonths(t: number)     { return `${Math.floor(t / 12)} years ${t % 12} months`; }
 
 function sliceProfessionalExperience(resume: string) {
@@ -486,15 +505,19 @@ export async function POST(req: Request) {
         const rawContent   = await callLLM(selectedModel, systemPrompt, userPrompt, { temperature: 0.3, max_tokens: 2500, json: true });
         let parsed: any    = {};
         try { parsed = JSON.parse(rawContent); }
-        catch { try { parsed = JSON.parse(cleanJson(rawContent)); } catch { return NextResponse.json({ questions: [] }); } }
+        catch { try { parsed = JSON.parse(cleanJson(rawContent)); } catch { return NextResponse.json({ questions: [], error: "Failed to parse AI response. Please try again." }); } }
         const questions = Array.isArray(parsed?.questions)
           ? parsed.questions.map((x: any) => String(x || "").trim()).filter(Boolean)
           : [];
+        if (questions.length < 10) {
+          console.warn(`generate_questions: only ${questions.length} questions returned, expected 50`);
+          return NextResponse.json({ questions: [], error: "Not enough questions generated. Please try again." });
+        }
         await logUsageAndIncrement(userEmail || "Unknown", `Questions-${provider}`, { mode: "generate_questions", transcript: "", duration: duration || 0 });
         return NextResponse.json({ questions });
       } catch (err: any) {
         console.error("generate_questions error:", err.message);
-        return NextResponse.json({ questions: [] });
+        return NextResponse.json({ questions: [], error: "Failed to generate questions. Please try again." });
       }
     }
 
@@ -516,10 +539,14 @@ export async function POST(req: Request) {
           `- resume_proof: specific resume detail used`;
         const userPrompt = `RESUME:\n${safeResume}\n\nJD:\n${safeJd || "N/A"}\n\nQ:\n${safeQ}\n\nANSWER:\n${safeA}`;
         const rawContent = await callLLM(selectedModel, systemPrompt, userPrompt, { temperature: 0.3, max_tokens: 300, json: true });
-        const out        = JSON.parse(cleanJson(rawContent));
+        let out: any = {};
+        try { out = JSON.parse(cleanJson(rawContent)); } catch { out = {}; }
         await logUsageAndIncrement(userEmail || "Unknown", `Script-${provider}`, { mode: "generate_script", transcript: safeQ, duration: duration || 0 });
         return NextResponse.json({ betterAnswerExample: out?.betterAnswerExample || "", resume_proof: out?.resume_proof || "" });
-      } catch { return NextResponse.json({ betterAnswerExample: "", resume_proof: "" }); }
+      } catch (err: any) {
+        console.error("generate_script error:", err.message);
+        return NextResponse.json({ betterAnswerExample: "", resume_proof: "", error: "Failed to generate script" });
+      }
     }
 
     // ════════════════════════════════════════════════════
@@ -541,9 +568,16 @@ export async function POST(req: Request) {
           `- resume_proof: resume details used`;
         const userPrompt = `RESUME:\n${safeResume}\n\nJD:\n${safeJd || "N/A"}\n\nQ:\n${safeQ}\n\nANSWER:\n${safeA}`;
         const rawContent = await callLLM(selectedModel, systemPrompt, userPrompt, { temperature: 0.3, max_tokens: 400, json: true });
-        return NextResponse.json(JSON.parse(cleanJson(rawContent)));
+        const parsed = JSON.parse(cleanJson(rawContent));
+        return NextResponse.json({
+          score:               typeof parsed.score === "number" ? Math.min(10, Math.max(0, parsed.score)) : 0,
+          strengths:           Array.isArray(parsed.strengths)    ? parsed.strengths    : [],
+          improvements:        Array.isArray(parsed.improvements) ? parsed.improvements : [],
+          betterAnswerExample: typeof parsed.betterAnswerExample === "string" ? parsed.betterAnswerExample : "",
+          resume_proof:        typeof parsed.resume_proof        === "string" ? parsed.resume_proof        : "",
+        });
       } catch {
-        return NextResponse.json({ score: 0, strengths: [], improvements: ["Error"], betterAnswerExample: "N/A" });
+        return NextResponse.json({ score: 0, strengths: [], improvements: ["Error generating feedback. Please try again."], betterAnswerExample: "", resume_proof: "" });
       }
     }
 
@@ -564,11 +598,16 @@ export async function POST(req: Request) {
       // Full conversation history + system prompt + format reminder
       // already assembled on the frontend — just pass through
       console.log(`📨 Using promptBuilder messages (${messages.length} turns)`);
-      rawAnswer = await callLLMWithMessages(
-        selectedModel,
-        messages,
-        { temperature: 0.3, max_tokens: 600 }
-      );
+      try {
+        rawAnswer = await callLLMWithMessages(
+          selectedModel,
+          messages,
+          { temperature: 0.3, max_tokens: 600 }
+        );
+      } catch (err: any) {
+        console.error("callLLMWithMessages error:", err.message);
+        return NextResponse.json({ error: "AI service unavailable. Please try again." }, { status: 503 });
+      }
 
     } else {
       // ── LEGACY PATH: old single-turn logic ──
@@ -598,13 +637,13 @@ export async function POST(req: Request) {
       } else if (isCompanyPitch) {
         systemInstruction = `Interviewer gave a long intro. Acknowledge in 10-15 words max.`;
       } else if (isIntroduction) {
-        systemInstruction = `Introduce yourself. Start with current role at Renasant Bank. 5-6 bullets using •. Never start with education.`;
+        systemInstruction = `Introduce yourself. Start with your most recent/current role from the resume. 5-6 bullets using •. Never start with education.`;
       } else if (isLogistical) {
         systemInstruction = `Simple HR question. Answer in 1 sentence only. Be direct.`;
       } else if (isBehavioral) {
         systemInstruction = `Real example from CURRENT job first. 3-5 sentences: situation, tools, result. Start: "Yeah, so..."`;
       } else {
-        systemInstruction = `Answer the question. Simple=1-2 sentences, complex=4-5 bullets using •. Use REAL resume details. Renasant Bank first.`;
+        systemInstruction = `Answer the question. Simple=1-2 sentences, complex=4-5 bullets using •. Use REAL resume details from the provided resume. Lead with the most recent experience.`;
       }
 
       rawAnswer = await callLLM(
