@@ -8,6 +8,7 @@ import {
   isGreeting, isSmallTalk, isGreetingPlusSmallTalk,
   isNoisyGreeting, isCompanyPitch,
   getGreetingResponse, getSmallTalkResponse,
+  extractAndLockFacts, clearSessionState,
 } from "../_lib/promptBuilder";
 
 // ─────────────────────────────────────────────
@@ -96,6 +97,7 @@ export function useInterview(config: {
     if (isGreeting(fullText) || isNoisyGreeting(fullText)) {
       const reply = getGreetingResponse();
       setAnswer(reply);
+      extractAndLockFacts(fullText, reply);
       const nextHistory: Turn[] = [
         ...historyRef.current,
         { role: "interviewer", text: fullText },
@@ -109,6 +111,7 @@ export function useInterview(config: {
     if (isSmallTalk(fullText) || isGreetingPlusSmallTalk(fullText)) {
       const reply = getSmallTalkResponse();
       setAnswer(reply);
+      extractAndLockFacts(fullText, reply);
       const nextHistory: Turn[] = [
         ...historyRef.current,
         { role: "interviewer", text: fullText },
@@ -122,6 +125,7 @@ export function useInterview(config: {
     if (isCompanyPitch(fullText)) {
       const reply = "That sounds like a really exciting challenge — I've been following what you're building and I have a lot of thoughts on how I can contribute.";
       setAnswer(reply);
+      extractAndLockFacts(fullText, reply);
       const nextHistory: Turn[] = [
         ...historyRef.current,
         { role: "interviewer", text: fullText },
@@ -181,6 +185,9 @@ export function useInterview(config: {
 
       const cleaned = formatForReading(cleanAnswer(data?.answer || "No response."));
       setAnswer(cleaned);
+
+      // Lock facts from this Q&A so conflict detection works on next question
+      extractAndLockFacts(fullText, cleaned);
 
       const withAnswer: Turn[] = [
         ...historyRef.current,
@@ -265,6 +272,7 @@ export function useInterview(config: {
     stopMic();
     setHistory([]); historyRef.current = [];
     setSessionSecs(0);
+    clearSessionState(); // clear locked facts for fresh session
     clear();
   }, [stopMic, clear]);
 
