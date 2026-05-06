@@ -2,15 +2,15 @@
 
 // app/real-interview/interview/page.tsx
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Copy, RotateCcw, Settings, X,
   Zap, Check, Cpu, Activity, Mic, MicOff,
-  Loader2, Clock, ChevronDown, BrainCircuit,
+  Loader2, Clock, BrainCircuit,
   PhoneOff, MessageSquare, FileText,
-  Sparkles, CheckCircle2,
+  CheckCircle2, Sparkles, User,
 } from "lucide-react";
 import { useInterview }               from "../_hooks/useInterview";
 import { useSession }                 from "../_hooks/useSession";
@@ -20,6 +20,15 @@ import type { AppSettings }           from "../_lib/settings";
 import {
   MODELS, loadSettings, saveSettings, DEFAULT_SETTINGS,
 } from "../_lib/settings";
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const C = {
+  pageBg:   "#dde3ed",
+  panelBg:  "#f2f4f8",
+  cardBg:   "#edf0f6",
+  border:   "#d4dae6",
+  borderXl: "#c9d0de",
+};
 
 // ─────────────────────────────────────────────
 // SETTINGS DRAWER
@@ -38,64 +47,62 @@ function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void 
     setTimeout(() => { setSaved(false); onClose(); }, 700);
   };
 
-  const tagColors: Record<string, string> = {
-    blue:   "text-blue-400   bg-blue-500/10   border-blue-500/20",
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-    green:  "text-green-400  bg-green-500/10  border-green-500/20",
-    yellow: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-    red:    "text-red-400    bg-red-500/10    border-red-500/20",
-  };
-
   return (
     <AnimatePresence>
       {open && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" />
+            onClick={onClose} className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40" />
           <motion.aside
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 320 }}
-            className="fixed right-0 top-0 h-full w-[320px] z-50 flex flex-col border-l border-white/[0.06]"
-            style={{ background: "rgba(4,4,10,0.98)", backdropFilter: "blur(20px)" }}
+            className="fixed right-0 top-0 h-full w-[320px] z-50 flex flex-col border-l shadow-2xl"
+            style={{ background: C.panelBg, borderColor: C.border }}
           >
-            <div className="h-14 px-5 flex items-center justify-between border-b border-white/[0.06] shrink-0">
+            <div className="h-14 px-5 flex items-center justify-between shrink-0"
+              style={{ borderBottom: `1px solid ${C.border}` }}>
               <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded-lg border flex items-center justify-center"
-                  style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)" }}>
-                  <Settings size={11} className="text-indigo-400" />
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                  <Settings size={13} className="text-indigo-500" />
                 </div>
-                <span className="text-[13px] font-bold text-white">Session Settings</span>
+                <span className="text-[14px] font-bold text-slate-700">Session Settings</span>
               </div>
               <button onClick={onClose}
-                className="w-7 h-7 rounded-lg border flex items-center justify-center text-white/30 hover:text-white transition-all border-white/[0.07]"
-                style={{ background: "rgba(255,255,255,0.03)" }}>
-                <X size={12} />
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all"
+                style={{ border: `1px solid ${C.border}`, background: C.panelBg }}>
+                <X size={13} />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6
-              [&::-webkit-scrollbar]:w-[2px] [&::-webkit-scrollbar-thumb]:bg-white/10">
+              [&::-webkit-scrollbar]:w-[2px] [&::-webkit-scrollbar-thumb]:bg-slate-300">
 
               {/* Model */}
               <section>
                 <div className="flex items-center gap-2 mb-3">
-                  <Cpu size={11} className="text-indigo-400" />
-                  <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.4em]">AI Model</p>
+                  <Cpu size={12} className="text-indigo-500" />
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">AI Model</p>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {MODELS.map(m => (
                     <button key={m.id} onClick={() => set("model", m.id)}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all ${
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
                         s.model === m.id
-                          ? "border-indigo-500/30"
-                          : "border-white/[0.05] hover:border-white/10"
+                          ? "border-indigo-200 bg-indigo-50"
+                          : "hover:border-slate-300"
                       }`}
-                      style={{ background: s.model === m.id ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.02)" }}>
+                      style={{ borderColor: s.model === m.id ? undefined : C.border, background: s.model === m.id ? undefined : C.panelBg }}>
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${s.model === m.id ? "bg-indigo-400" : "bg-white/10"}`} />
-                        <span className={`text-[13px] font-semibold ${s.model === m.id ? "text-white" : "text-white/40"}`}>{m.label}</span>
+                        <div className={`w-2 h-2 rounded-full ${s.model === m.id ? "bg-indigo-500" : "bg-slate-300"}`} />
+                        <span className={`text-[13px] font-bold ${s.model === m.id ? "text-indigo-700" : "text-slate-600"}`}>{m.label}</span>
                       </div>
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded border tracking-wider ${tagColors[m.color]}`}>{m.tag}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wide ${
+                        m.color === "blue"   ? "text-blue-600 bg-blue-50 border-blue-100"         :
+                        m.color === "purple" ? "text-purple-600 bg-purple-50 border-purple-100"   :
+                        m.color === "green"  ? "text-emerald-600 bg-emerald-50 border-emerald-100":
+                        m.color === "yellow" ? "text-amber-600 bg-amber-50 border-amber-100"      :
+                                               "text-red-600 bg-red-50 border-red-100"
+                      }`}>{m.tag}</span>
                     </button>
                   ))}
                 </div>
@@ -104,32 +111,36 @@ function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void 
               {/* STT */}
               <section>
                 <div className="flex items-center gap-2 mb-3">
-                  <Mic size={11} className="text-green-400" />
-                  <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.4em]">Speech Recognition</p>
+                  <Mic size={12} className="text-emerald-500" />
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Speech Recognition</p>
                 </div>
-                <div className="mb-4">
+                <div className="mb-4 p-4 rounded-xl border" style={{ background: C.cardBg, borderColor: C.border }}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[12px] text-white/40 font-semibold">Transcription Delay</span>
-                    <span className="text-[12px] font-black text-indigo-400 font-mono">{s.maxDelay}s</span>
+                    <span className="text-[13px] text-slate-700 font-bold">Transcription Delay</span>
+                    <span className="text-[13px] font-black text-indigo-600 font-mono">{s.maxDelay}s</span>
                   </div>
                   <input type="range" min={0.7} max={2.0} step={0.1}
                     value={s.maxDelay} onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) set("maxDelay", v); }}
-                    className="w-full accent-indigo-500 cursor-pointer h-1" />
+                    className="w-full accent-indigo-500 cursor-pointer h-1.5" />
                   <div className="flex justify-between mt-1.5">
-                    <span className="text-[9px] text-white/15">Faster (0.7s)</span>
-                    <span className="text-[9px] text-white/15">Accurate (2.0s)</span>
+                    <span className="text-[10px] text-slate-400">Faster (0.7s)</span>
+                    <span className="text-[10px] text-slate-400">Accurate (2.0s)</span>
                   </div>
                 </div>
                 <div>
-                  <span className="text-[12px] text-white/40 font-semibold block mb-2">Accuracy Mode</span>
+                  <span className="text-[13px] text-slate-700 font-bold block mb-2">Accuracy Mode</span>
                   <div className="grid grid-cols-2 gap-2">
                     {(["enhanced", "standard"] as const).map(op => (
                       <button key={op} onClick={() => set("operatingPoint", op)}
-                        className={`py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${
+                        className={`py-2.5 rounded-xl text-[12px] font-bold uppercase tracking-wider border transition-all ${
                           s.operatingPoint === op
-                            ? "bg-green-500/10 border-green-500/20 text-green-400"
-                            : "border-white/[0.06] text-white/25 hover:border-white/10"
-                        }`}>{op}</button>
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "text-slate-500 hover:border-slate-300"
+                        }`}
+                        style={{ borderColor: s.operatingPoint !== op ? C.border : undefined,
+                                 background:  s.operatingPoint !== op ? C.panelBg : undefined }}>
+                        {op}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -138,59 +149,40 @@ function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () => void 
               {/* Temperature */}
               <section>
                 <div className="flex items-center gap-2 mb-3">
-                  <Activity size={11} className="text-purple-400" />
-                  <p className="text-[9px] font-black text-white/25 uppercase tracking-[0.4em]">Response Style</p>
+                  <Activity size={12} className="text-violet-500" />
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Response Style</p>
                 </div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[12px] text-white/40 font-semibold">Temperature</span>
-                  <span className="text-[12px] font-black text-purple-400 font-mono">{s.temperature}</span>
-                </div>
-                <input type="range" min={0.0} max={1.0} step={0.1}
-                  value={s.temperature} onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) set("temperature", v); }}
-                  className="w-full accent-purple-500 cursor-pointer h-1" />
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[9px] text-white/15">Precise (0.0)</span>
-                  <span className="text-[9px] text-white/15">Creative (1.0)</span>
+                <div className="p-4 rounded-xl border" style={{ background: C.cardBg, borderColor: C.border }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[13px] text-slate-700 font-bold">Temperature</span>
+                    <span className="text-[13px] font-black text-violet-600 font-mono">{s.temperature}</span>
+                  </div>
+                  <input type="range" min={0.0} max={1.0} step={0.1}
+                    value={s.temperature} onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) set("temperature", v); }}
+                    className="w-full accent-violet-500 cursor-pointer h-1.5" />
+                  <div className="flex justify-between mt-1.5">
+                    <span className="text-[10px] text-slate-400">Precise (0.0)</span>
+                    <span className="text-[10px] text-slate-400">Creative (1.0)</span>
+                  </div>
                 </div>
               </section>
             </div>
 
-            <div className="p-4 border-t border-white/[0.06] shrink-0">
+            <div className="p-4 shrink-0" style={{ borderTop: `1px solid ${C.border}` }}>
               <button onClick={handleSave}
-                className={`w-full py-3 rounded-xl font-black text-[13px] flex items-center justify-center gap-2 transition-all ${
-                  saved
-                    ? "border border-green-500/25 text-green-400"
-                    : "text-white"
+                className={`w-full py-3 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all ${
+                  saved ? "border" : "text-white shadow-lg shadow-indigo-200"
                 }`}
                 style={saved
-                  ? { background: "rgba(34,197,94,0.1)" }
-                  : { background: "linear-gradient(135deg, #4f46e5, #7c3aed)", boxShadow: "0 0 20px rgba(79,70,229,0.3)" }
-                }>
-                {saved ? <><Check size={14} /> Saved!</> : "Apply Settings"}
+                  ? { background: "rgba(16,185,129,0.08)", borderColor: "#6ee7b7", color: "#059669" }
+                  : { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
+                {saved ? <><Check size={15} /> Saved!</> : "Apply Settings"}
               </button>
             </div>
           </motion.aside>
         </>
       )}
     </AnimatePresence>
-  );
-}
-
-// ─────────────────────────────────────────────
-// PULSE BARS
-// ─────────────────────────────────────────────
-function PulseBars({ active, color = "#818cf8" }: { active: boolean; color?: string }) {
-  return (
-    <div className="flex items-center gap-[3px] h-5">
-      {[0.4, 0.7, 1, 0.8, 0.5, 0.9, 0.6].map((h, i) => (
-        <motion.div key={i}
-          className="w-[2.5px] rounded-full"
-          style={{ height: "100%", transformOrigin: "center", backgroundColor: color }}
-          animate={active ? { scaleY: [h, 1, h * 0.3, h] } : { scaleY: 0.15 }}
-          transition={active ? { duration: 0.6, repeat: Infinity, delay: i * 0.08 } : {}}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -202,89 +194,122 @@ function AnswerRenderer({
 }: { answer: string; isGenerating: boolean; isRecording: boolean }) {
 
   if (isGenerating) return (
-    <div className="flex flex-col items-center justify-center h-full gap-5 py-20">
+    <div className="flex flex-col items-center justify-center h-full gap-6 py-16">
       <div className="relative">
-        <motion.div animate={{ scale: [1, 1.6], opacity: [0.25, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute inset-0 rounded-full"
-          style={{ background: "rgba(99,102,241,0.2)" }} />
-        <div className="w-12 h-12 rounded-full border flex items-center justify-center relative z-10"
-          style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.3)" }}>
-          <BrainCircuit size={20} className="text-indigo-400" />
+        <motion.div animate={{ scale: [1, 2.2], opacity: [0.15, 0] }}
+          transition={{ repeat: Infinity, duration: 1.8 }}
+          className="absolute inset-0 rounded-full bg-indigo-300" />
+        <motion.div animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+          className="absolute inset-[-6px] rounded-full"
+          style={{ background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, rgba(99,102,241,0.7) 80%, transparent 100%)" }}
+        />
+        <div className="w-14 h-14 rounded-full bg-indigo-50 border-2 border-indigo-200 flex items-center justify-center relative z-10">
+          <BrainCircuit size={22} className="text-indigo-500" />
         </div>
       </div>
       <div className="text-center">
-        <p className="text-[13px] font-bold text-white/50">Generating response...</p>
-        <p className="text-[11px] text-white/20 mt-1">Analyzing your resume against the question</p>
+        <p className="text-[18px] font-black text-slate-800 mb-1.5 tracking-tight">Crafting your answer...</p>
+        <p className="text-[13px] text-slate-500 font-medium">Reading your background against the question</p>
+      </div>
+      <div className="flex gap-1.5">
+        {[0, 1, 2, 3].map(i => (
+          <motion.div key={i}
+            className="w-2 h-2 rounded-full bg-indigo-300"
+            animate={{ opacity: [0.25, 1, 0.25], scale: [0.8, 1.1, 0.8] }}
+            transition={{ repeat: Infinity, duration: 1.2, delay: i * 0.2 }}
+          />
+        ))}
       </div>
     </div>
   );
 
   if (isRecording && !answer) return (
-    <div className="flex flex-col items-center justify-center h-full gap-5 py-20">
-      <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
-        <div className="w-12 h-12 rounded-full border flex items-center justify-center"
-          style={{ background: "rgba(34,197,94,0.08)", borderColor: "rgba(34,197,94,0.2)" }}>
-          <Mic size={20} className="text-emerald-400" />
-        </div>
-      </motion.div>
+    <div className="flex flex-col items-center justify-center h-full gap-6 py-16">
+      <div className="relative">
+        <motion.div animate={{ scale: [1, 1.8], opacity: [0.18, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="absolute inset-0 rounded-full bg-emerald-300" />
+        <motion.div animate={{ scale: [1, 1.7], opacity: [0.1, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }}
+          className="absolute inset-0 rounded-full bg-emerald-300" />
+        <motion.div
+          animate={{ scale: [1, 1.03, 1] }}
+          transition={{ repeat: Infinity, duration: 1.8 }}
+          className="w-14 h-14 rounded-full bg-emerald-50 border-2 border-emerald-300 flex items-center justify-center relative z-10"
+        >
+          <Mic size={22} className="text-emerald-500" />
+        </motion.div>
+      </div>
       <div className="text-center">
-        <p className="text-[13px] font-bold text-white/50">Listening to interviewer...</p>
-        <p className="text-[11px] text-white/20 mt-1">Press SPACE when ready to generate answer</p>
+        <p className="text-[18px] font-black text-slate-800 mb-1.5 tracking-tight">Listening...</p>
+        <p className="text-[13px] text-slate-500 font-medium">Press Space when they finish speaking</p>
       </div>
     </div>
   );
 
   if (!answer) return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
-      <div className="w-12 h-12 rounded-full border flex items-center justify-center"
-        style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}>
-        <Sparkles size={18} className="text-white/15" />
+    <div className="flex flex-col items-center justify-center h-full gap-5 py-16">
+      <div className="w-14 h-14 rounded-full flex items-center justify-center"
+        style={{ background: C.cardBg, border: `1.5px solid ${C.border}` }}>
+        <Sparkles size={20} className="text-slate-400" />
       </div>
       <div className="text-center">
-        <p className="text-[13px] font-bold text-white/20">Ready to assist</p>
-        <p className="text-[11px] text-white/12 mt-1">Press SPACE to start listening</p>
-      </div>
-      <div className="flex items-center gap-3 mt-2">
-        <kbd className="text-[10px] font-mono font-bold text-white/20 px-3 py-1.5 rounded-lg border border-white/[0.08]"
-          style={{ background: "rgba(255,255,255,0.03)" }}>SPACE</kbd>
-        <span className="text-[11px] text-white/15">to listen & answer</span>
+        <p className="text-[18px] font-black text-slate-700 mb-1.5 tracking-tight">Ready to help</p>
+        <p className="text-[13px] text-slate-500 font-medium mb-6">Press Space to start listening</p>
+        <div className="flex items-center justify-center gap-3">
+          <kbd className="inline-block text-[13px] font-mono font-black text-slate-700 px-6 py-3 rounded-xl shadow-sm tracking-widest"
+            style={{ border: `1.5px solid ${C.borderXl}`, background: C.panelBg }}>
+            SPACE
+          </kbd>
+          <span className="text-[12px] text-slate-400 font-medium">to listen & generate</span>
+        </div>
       </div>
     </div>
   );
 
-  // Short MICRO answer
+  // Short MICRO answer — big teleprompter style
   if (isMicroAnswer(answer)) return (
-    <motion.div key={answer} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-center min-h-[200px] px-8 py-10">
-      <p className="text-[22px] font-semibold text-white/90 leading-relaxed text-center">
-        {answer}
-      </p>
+    <motion.div key={answer}
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      className="flex items-center justify-center min-h-[220px] px-8 py-10">
+      <div className="text-center max-w-2xl">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6"
+          style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)" }}>
+          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Suggested Response</span>
+        </div>
+        <p className="text-[24px] font-black text-slate-900 leading-[1.6] tracking-tight">
+          {answer}
+        </p>
+      </div>
     </motion.div>
   );
 
-  // Bullet answer
+  // Structured bullet answer
   const lines = parseAnswer(answer);
   return (
     <motion.div key={answer.slice(0, 20)} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="space-y-5 py-4">
+      className="space-y-2.5 py-2">
       {lines.map((line, i) =>
         line.type === "bullet" ? (
           <motion.div key={i}
-            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="flex gap-4 items-start p-4 rounded-xl border"
-            style={{ background: "rgba(99,102,241,0.04)", borderColor: "rgba(99,102,241,0.1)" }}>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 border"
-              style={{ background: "rgba(99,102,241,0.15)", borderColor: "rgba(99,102,241,0.3)" }}>
-              <CheckCircle2 size={12} className="text-indigo-400" />
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06 }}
+            className="flex gap-4 items-start p-4 rounded-xl border transition-all hover:shadow-sm"
+            style={{ background: C.panelBg, borderColor: C.border }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = "#a5b4fc")}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = C.border)}
+          >
+            <div className="w-6 h-6 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 size={13} className="text-indigo-600" />
             </div>
-            <p className="text-[16px] font-medium text-white/88 leading-[1.75]">{line.text}</p>
+            <p className="text-[15px] font-bold text-slate-900 leading-[1.75]">{line.text}</p>
           </motion.div>
         ) : (
           <motion.p key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: i * 0.05 }}
-            className="text-white/40 text-[14px] leading-relaxed px-2">
+            transition={{ delay: i * 0.06 }}
+            className="text-slate-500 text-[12px] font-medium leading-relaxed px-2">
             {line.text}
           </motion.p>
         )
@@ -303,6 +328,11 @@ export default function InterviewPage() {
   const [settings, setSettings]         = useState<AppSettings>(DEFAULT_SETTINGS);
   const [activeTab, setActiveTab]       = useState<"response" | "history">("response");
 
+  // Track transcript changes for highlight effect
+  const [transcriptFlash, setTranscriptFlash] = useState(false);
+  const prevTranscript   = useRef("");
+  const prevGenerating   = useRef(false);  // detect isGenerating → false transition
+
   useEffect(() => { setSettings(loadSettings()); }, []);
 
   const raw    = typeof window !== "undefined"
@@ -317,7 +347,7 @@ export default function InterviewPage() {
     isRecording, isGenerating,
     transcript, partial,
     answer, history,
-    sessionSecs,
+    sessionSecs, micStatus,
     toggleMic, generateAnswer,
     clear, resetSession,
     handleSpacebar,
@@ -328,7 +358,38 @@ export default function InterviewPage() {
     operatingPoint: settings.operatingPoint,
   });
 
-  const { saveSession, saving, formatDuration } = useSession(userEmail);
+  const { upsertSession, saving, formatDuration } = useSession(userEmail);
+  const [autoSaved, setAutoSaved] = useState(false);
+
+  // ── AUTO-SAVE after every answer (mirrors native app: saves each Q&A immediately) ──
+  useEffect(() => {
+    const justFinished = prevGenerating.current && !isGenerating;
+    prevGenerating.current = isGenerating;
+
+    if (justFinished && history.length > 0) {
+      upsertSession({
+        companyName:  config.companyName,
+        role:         config.role,
+        resume:       config.resume,
+        turns:        history,
+        durationSecs: sessionSecs,
+      }).then(() => {
+        // Brief "Saved" flash so user knows session is persisted
+        setAutoSaved(true);
+        setTimeout(() => setAutoSaved(false), 2000);
+      });
+    }
+  }, [isGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Flash highlight when transcript finalises
+  useEffect(() => {
+    if (transcript && transcript !== prevTranscript.current) {
+      prevTranscript.current = transcript;
+      setTranscriptFlash(true);
+      const t = setTimeout(() => setTranscriptFlash(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [transcript]);
 
   const handleSettingsClose = useCallback(() => {
     setSettingsOpen(false);
@@ -355,184 +416,261 @@ export default function InterviewPage() {
     setTimeout(() => setCopied(false), 1500);
   }, [answer]);
 
+  // End session — session is already saved in real-time, just clean up
   const endSession = useCallback(async () => {
-    await saveSession({
-      companyName: config.companyName, role: config.role,
-      resume: config.resume, turns: history, durationSecs: sessionSecs,
-    });
+    // Final update to capture latest duration, then navigate
+    if (history.length > 0) {
+      await upsertSession({
+        companyName:  config.companyName,
+        role:         config.role,
+        resume:       config.resume,
+        turns:        history,
+        durationSecs: sessionSecs,
+      });
+    }
     resetSession();
     router.push("/real-interview");
-  }, [saveSession, config, history, sessionSecs, resetSession, router]);
+  }, [upsertSession, config, history, sessionSecs, resetSession, router]);
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-  // Smart resume display
-  const cleanResume = (t: string) => {
-    if (!t) return "No resume loaded";
-    const cleaned = t.replace(/[^\x20-\x7E\n]/g, " ").replace(/  +/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  // Smart resume preview
+  const getResumePreview = (t: string) => {
+    if (!t || t.trim().length < 10) return { type: "empty" as const };
+    if (
+      t.startsWith("PK") ||
+      t.includes("[Content_Types]") ||
+      t.includes("<?xml") ||
+      t.includes("w:document") ||
+      (t.includes("PK") && t.includes("word"))
+    ) return { type: "binary" as const };
+    const cleaned = t
+      .replace(/[^\x20-\x7E\n]/g, " ")
+      .replace(/  +/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
     const ratio = (cleaned.match(/[a-zA-Z]/g) || []).length / Math.max(cleaned.length, 1);
-    if (ratio < 0.3) return "Resume uploaded.\nText preview unavailable.\n\nUse Paste tab on setup screen for best display.";
-    return cleaned.slice(0, 800);
+    if (ratio < 0.35) return { type: "binary" as const };
+    return { type: "text" as const, content: cleaned.slice(0, 500) };
   };
 
-  const qCount      = history.filter(t => t.role === "interviewer").length;
-  const aCount      = history.filter(t => t.role === "candidate").length;
-  const activeModel = MODELS.find(m => m.id === settings.model) || MODELS[0];
+  const resumePreview = getResumePreview(config.resume);
+  const qCount        = history.filter(t => t.role === "interviewer").length;
+  const aCount        = history.filter(t => t.role === "candidate").length;
+  const activeModel   = MODELS.find(m => m.id === settings.model) || MODELS[0];
 
-  const isActive    = isRecording || isGenerating;
-  const stateColor  = isGenerating ? "#f97316" : isRecording ? "#22c55e" : "#334155";
-  const stateLabel  = isGenerating ? "THINKING"  : isRecording ? "LISTENING" : "READY";
-  const stateBg     = isGenerating ? "rgba(249,115,22,0.08)"  : isRecording ? "rgba(34,197,94,0.08)"  : "rgba(255,255,255,0.03)";
-  const stateBorder = isGenerating ? "rgba(249,115,22,0.2)"   : isRecording ? "rgba(34,197,94,0.2)"   : "rgba(255,255,255,0.07)";
+  // State pill config
+  const stateConfig = isGenerating
+    ? { label: "Thinking...",  bg: "rgba(99,102,241,0.09)",  border: "rgba(99,102,241,0.22)",  text: "#4338ca",  dotClass: "bg-indigo-400",  spin: true  }
+    : isRecording
+    ? { label: "Listening",    bg: "rgba(16,185,129,0.09)",  border: "rgba(16,185,129,0.25)",  text: "#059669",  dotClass: "bg-emerald-500", spin: false }
+    : { label: "Ready",        bg: "rgba(148,163,184,0.15)", border: "rgba(148,163,184,0.3)",  text: "#64748b",  dotClass: "bg-slate-400",   spin: false };
 
   return (
     <div className="h-screen flex flex-col overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #030308 0%, #07070f 50%, #030308 100%)",
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-      }}>
-
-      {/* Ambient */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-[0.025]"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
-        <div className="absolute inset-0 opacity-[0.012]"
-          style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }} />
-      </div>
+      style={{ background: C.pageBg, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
       <SettingsDrawer open={settingsOpen} onClose={handleSettingsClose} />
 
       {/* ═══════════════ TOP NAV ═══════════════ */}
-      <nav className="h-[56px] flex items-center justify-between px-5 shrink-0 z-30 border-b border-white/[0.05]"
-        style={{ background: "rgba(3,3,8,0.95)", backdropFilter: "blur(24px)" }}>
+      <nav className="h-14 flex items-center justify-between px-5 shrink-0 z-30 border-b shadow-sm"
+        style={{ background: C.panelBg, borderColor: C.border }}>
 
         <div className="flex items-center gap-3">
           <button onClick={endSession}
-            className="w-8 h-8 rounded-xl border flex items-center justify-center text-white/25 hover:text-white transition-all"
-            style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}>
-            <ArrowLeft size={14} />
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 transition-all"
+            style={{ border: `1px solid ${C.border}`, background: C.panelBg }}>
+            <ArrowLeft size={15} />
           </button>
 
-          <div className="h-4 w-px bg-white/[0.07]" />
+          <div className="h-4 w-px bg-slate-300" />
+
+          {/* Brand */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
+              <BrainCircuit size={14} className="text-white" />
+            </div>
+            <span className="text-[14px] font-black text-slate-800 tracking-tight">CoopilotX</span>
+            <span className="text-[10px] font-bold text-indigo-500 px-1.5 py-0.5 rounded-md"
+              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.18)" }}>
+              AI
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-slate-300" />
 
           {/* Status pill */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all"
-            style={{ background: stateBg, borderColor: stateBorder }}>
-            <motion.div
-              animate={{
-                backgroundColor: stateColor,
-                boxShadow: isActive ? [`0 0 0 0 ${stateColor}55`, `0 0 0 5px ${stateColor}00`] : "none",
-              }}
-              transition={{ repeat: Infinity, duration: 1.2 }}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: stateColor }}
-            />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]"
-              style={{ color: stateColor }}>
-              {stateLabel}
-            </span>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all`}
+            style={{ background: stateConfig.bg, border: `1px solid ${stateConfig.border}`, color: stateConfig.text }}>
+            {stateConfig.spin ? (
+              <Loader2 size={10} className="animate-spin" />
+            ) : (
+              <motion.div
+                animate={isRecording ? { opacity: [1, 0.2, 1] } : { opacity: 1 }}
+                transition={{ repeat: Infinity, duration: 1.2 }}
+                className={`w-1.5 h-1.5 rounded-full ${stateConfig.dotClass}`}
+              />
+            )}
+            {stateConfig.label}
           </div>
 
           {(config.role || config.companyName) && (
             <div className="hidden sm:flex items-center gap-2">
-              <div className="h-3 w-px bg-white/[0.08]" />
-              <span className="text-[12px] font-medium text-white/35 max-w-[200px] truncate">
+              <div className="h-3 w-px bg-slate-300" />
+              <span className="text-[12px] font-semibold text-slate-500 max-w-[200px] truncate">
                 {[config.role, config.companyName].filter(Boolean).join(" · ")}
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {/* Timer */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-            <Clock size={11} className="text-white/20" />
-            <span className="font-mono text-[12px] font-black text-white/50 tabular-nums">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+            style={{ border: `1px solid ${C.border}`, background: C.cardBg }}>
+            <Clock size={11} className="text-slate-400" />
+            <span className="font-mono text-[12px] font-black text-slate-700 tabular-nums">
               {formatTime(sessionSecs)}
             </span>
           </div>
 
+          {/* Auto-save indicator — flashes green after every Q&A is saved */}
+          <AnimatePresence>
+            {autoSaved && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-black"
+                style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#059669" }}
+              >
+                <Check size={10} />
+                Saved
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Model */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border"
-            style={{ background: "rgba(99,102,241,0.06)", borderColor: "rgba(99,102,241,0.15)" }}>
-            <Zap size={10} className="text-indigo-400/70" />
-            <span className="text-[10px] font-black text-indigo-400/70 uppercase tracking-wider">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+            style={{ border: "1px solid rgba(99,102,241,0.2)", background: "rgba(99,102,241,0.07)" }}>
+            <Zap size={10} className="text-indigo-500" />
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
               {activeModel.label}
             </span>
           </div>
 
           <button onClick={copyAnswer} disabled={!answer}
-            className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all ${
-              !answer ? "opacity-30 cursor-not-allowed" :
-              copied  ? "text-green-400" : "text-white/30 hover:text-white/70"
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+              !answer ? "opacity-30 cursor-not-allowed" : ""
             }`}
-            style={{
-              background: copied ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.02)",
-              borderColor: copied ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.06)",
-            }}>
-            {copied ? <Check size={12} /> : <Copy size={12} />}
+            style={{ border: `1px solid ${copied ? "#6ee7b7" : C.border}`, background: copied ? "rgba(16,185,129,0.08)" : C.panelBg, color: copied ? "#059669" : "#94a3b8" }}>
+            {copied ? <Check size={13} /> : <Copy size={13} />}
           </button>
 
           <button onClick={clear}
-            className="w-8 h-8 rounded-lg border flex items-center justify-center text-white/25 hover:text-white/60 transition-all"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-            <RotateCcw size={12} />
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all"
+            style={{ border: `1px solid ${C.border}`, background: C.panelBg }}>
+            <RotateCcw size={13} />
           </button>
 
           <button onClick={() => setSettingsOpen(true)}
-            className="w-8 h-8 rounded-lg border flex items-center justify-center text-white/25 hover:text-white/60 transition-all"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-            <Settings size={12} />
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all"
+            style={{ border: `1px solid ${C.border}`, background: C.panelBg }}>
+            <Settings size={13} />
           </button>
 
           <button onClick={endSession} disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-40"
-            style={{ background: "rgba(239,68,68,0.07)", borderColor: "rgba(239,68,68,0.2)", color: "rgba(248,113,113,0.8)" }}>
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all disabled:opacity-40"
+            style={{ border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.07)", color: "#ef4444" }}>
             <PhoneOff size={11} />
             {saving ? "Saving..." : "End"}
           </button>
         </div>
       </nav>
 
-      {/* ═══════════════ INTERVIEWER TRANSCRIPT ═══════════════ */}
-      {/* Large visible card — not a thin bar */}
-      <div className="shrink-0 border-b border-white/[0.05] px-5 py-4"
-        style={{ background: "rgba(0,0,0,0.4)" }}>
+      {/* ═══════════════ INTERVIEWER TRANSCRIPT BAR ═══════════════ */}
+      <div className="shrink-0 border-b px-5 py-3" style={{ background: C.panelBg, borderColor: C.border }}>
         <div className="max-w-5xl mx-auto">
-          <div className="flex items-start gap-4 p-4 rounded-2xl border"
-            style={{ background: "rgba(99,102,241,0.04)", borderColor: "rgba(99,102,241,0.12)" }}>
-            {/* Label */}
-            <div className="flex items-center gap-2 shrink-0 mt-0.5">
-              <PulseBars active={!!(transcript || partial)} color="#818cf8" />
-              <span className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.25em] whitespace-nowrap">
-                Interviewer
-              </span>
+          <div className={`flex items-start gap-3 px-4 py-3 rounded-2xl border transition-all`}
+            style={{
+              borderColor: isRecording ? "rgba(16,185,129,0.3)" : C.border,
+              background: isRecording ? "rgba(16,185,129,0.06)" : C.cardBg,
+              boxShadow: isRecording ? "0 0 0 3px rgba(16,185,129,0.1), 0 1px 6px rgba(16,185,129,0.08)" : "none",
+            }}>
+
+            {/* Avatar with rotating ring when mic is active */}
+            <div className="relative w-9 h-9 shrink-0">
+              {isRecording && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                  className="absolute rounded-full"
+                  style={{
+                    inset: -3,
+                    background: "conic-gradient(from 0deg, transparent 0%, transparent 50%, rgba(16,185,129,0.85) 72%, transparent 100%)",
+                  }}
+                />
+              )}
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all absolute inset-0 z-10 ${
+                isRecording ? "bg-emerald-100 border-emerald-200" : "border-slate-200"
+              }`} style={{ background: isRecording ? undefined : C.panelBg }}>
+                <User size={15} className={isRecording ? "text-emerald-600" : "text-slate-400"} />
+              </div>
             </div>
-            <div className="w-px h-5 bg-indigo-500/20 shrink-0 mt-0.5" />
-            {/* Transcript text — full size, readable */}
-            <div className="flex-1 min-h-[24px]">
-              <p className="text-[14px] text-white/70 leading-relaxed font-medium">
+
+            <div className="flex-1 min-w-0">
+              <p className={`text-[10px] font-black uppercase tracking-widest mb-1 transition-colors ${
+                isRecording ? "text-emerald-600" : "text-slate-400"
+              }`}>Interviewer</p>
+
+              <p className="text-[14px] font-semibold text-slate-900 leading-relaxed">
                 {transcript && (
-                  <span>{transcript.length > 200 ? "…" + transcript.slice(-200) : transcript}</span>
+                  <motion.span
+                    animate={transcriptFlash
+                      ? { backgroundColor: ["rgba(253,230,138,0.5)", "rgba(253,230,138,0)"] }
+                      : { backgroundColor: "rgba(253,230,138,0)" }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
+                    className="rounded-sm px-0.5 inline"
+                  >
+                    {transcript.length > 240 ? "…" + transcript.slice(-240) : transcript}
+                  </motion.span>
                 )}
                 {partial && (
-                  <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}
-                    className="text-indigo-300 font-semibold">
+                  <motion.span
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ repeat: Infinity, duration: 0.85 }}
+                    className="text-indigo-500 font-bold">
                     {transcript ? " " : ""}{partial}
                   </motion.span>
                 )}
                 {!transcript && !partial && (
-                  <span className="text-white/20 italic text-[13px]">
-                    Waiting for voice input — press SPACE to start listening...
+                  <span className="text-slate-400 text-[13px] italic font-normal">
+                    {isRecording ? "Listening… speak now" : "Press Space to start"}
                   </span>
                 )}
               </p>
             </div>
+
+            {/* Voice waveform */}
+            {isRecording && (
+              <div className="flex items-end gap-[3px] shrink-0 self-center px-3 py-1">
+                {[0.3,0.6,0.9,0.5,1,0.7,0.4,0.8,1,0.6,0.9,0.4,0.7,0.5].map((h, i) => (
+                  <motion.div key={i}
+                    className="rounded-full"
+                    style={{
+                      width: "3px",
+                      height: "28px",
+                      background: `hsl(${152 + i * 4}, 72%, ${38 + i * 2}%)`,
+                    }}
+                    animate={{ scaleY: [h, 1, h * 0.12, h * 0.65, h] }}
+                    transition={{ duration: 0.48 + i * 0.04, repeat: Infinity, delay: i * 0.055, ease: "easeInOut" }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -541,23 +679,21 @@ export default function InterviewPage() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ── LEFT SIDEBAR ── */}
-        <aside className="w-52 border-r border-white/[0.04] p-5 hidden xl:flex flex-col gap-6 shrink-0"
-          style={{ background: "rgba(0,0,0,0.25)" }}>
+        <aside className="w-52 border-r p-5 hidden xl:flex flex-col gap-5 shrink-0"
+          style={{ borderColor: C.border, background: C.panelBg }}>
 
-          {/* Session stats */}
           <div>
-            <p className="text-[9px] font-black text-white/15 uppercase tracking-[0.5em] mb-4">
-              Session Stats
-            </p>
-            <div className="space-y-4">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Session</p>
+            <div className="space-y-1">
               {[
-                { label: "Questions", value: qCount,                     color: "text-indigo-400"  },
-                { label: "Answers",   value: aCount,                     color: "text-violet-400"  },
-                { label: "Duration",  value: formatDuration(sessionSecs), color: "text-white/40"   },
+                { label: "Questions", value: qCount,                      color: "#4f46e5" },
+                { label: "Answers",   value: aCount,                      color: "#7c3aed" },
+                { label: "Duration",  value: formatDuration(sessionSecs), color: "#475569" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <p className="text-[11px] text-white/25 font-medium">{label}</p>
-                  <p className={`text-[18px] font-black font-mono ${color}`}>{value}</p>
+                <div key={label} className="flex items-center justify-between py-2.5 border-b"
+                  style={{ borderColor: C.border }}>
+                  <p className="text-[12px] font-semibold text-slate-600">{label}</p>
+                  <p className="text-[20px] font-black font-mono leading-none" style={{ color }}>{value}</p>
                 </div>
               ))}
             </div>
@@ -565,36 +701,38 @@ export default function InterviewPage() {
 
           {/* Progress */}
           <div className="p-4 rounded-xl border"
-            style={{ background: "rgba(99,102,241,0.04)", borderColor: "rgba(99,102,241,0.1)" }}>
-            <div className="flex justify-between mb-2">
-              <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">Progress</p>
-              <p className="text-[10px] font-mono text-indigo-400/60">{qCount}/10</p>
+            style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.07), rgba(124,58,237,0.07))", borderColor: "rgba(99,102,241,0.18)" }}>
+            <div className="flex justify-between mb-2.5">
+              <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">Progress</p>
+              <p className="text-[11px] font-mono text-indigo-500 font-black">{qCount}/10</p>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-              <motion.div className="h-full rounded-full"
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: C.cardBg, border: `1px solid ${C.border}` }}>
+              <motion.div
+                className="h-full rounded-full"
                 style={{ background: "linear-gradient(90deg, #4f46e5, #7c3aed)" }}
                 animate={{ width: `${Math.min((qCount / 10) * 100, 100)}%` }}
                 transition={{ duration: 0.5 }}
               />
             </div>
+            {qCount >= 10 && (
+              <p className="text-[10px] text-indigo-500 mt-2 font-bold text-center">Great session! 🎉</p>
+            )}
           </div>
 
           {/* Shortcuts */}
-          <div className="mt-auto">
-            <p className="text-[9px] font-black text-white/15 uppercase tracking-[0.5em] mb-3">
-              Shortcuts
-            </p>
+          <div className="mt-auto pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Shortcuts</p>
             <div className="space-y-2.5">
               {[
                 { key: "SPACE", desc: "Listen / Answer" },
-                { key: "ESC",   desc: "Clear screen"   },
+                { key: "ESC",   desc: "Clear screen"    },
               ].map(({ key, desc }) => (
                 <div key={key} className="flex items-center justify-between">
-                  <kbd className="text-[10px] font-mono font-bold text-white/20 px-2 py-1 rounded-lg border border-white/[0.07]"
-                    style={{ background: "rgba(255,255,255,0.03)" }}>
+                  <span className="text-[11px] font-semibold text-slate-500">{desc}</span>
+                  <kbd className="text-[10px] font-mono font-black text-slate-600 px-2.5 py-1 rounded-lg shadow-sm"
+                    style={{ border: `1px solid ${C.borderXl}`, background: C.panelBg }}>
                     {key}
                   </kbd>
-                  <span className="text-[11px] text-white/20">{desc}</span>
                 </div>
               ))}
             </div>
@@ -602,58 +740,50 @@ export default function InterviewPage() {
         </aside>
 
         {/* ── CENTER — ANSWER AREA ── */}
-        <main className="flex-1 flex flex-col overflow-hidden p-5 gap-4">
+        <main className="flex-1 flex flex-col overflow-hidden p-4 gap-3">
 
-          {/* Tabs */}
-          <div className="flex items-center gap-1 shrink-0 p-1 rounded-xl border border-white/[0.06]"
-            style={{ background: "rgba(255,255,255,0.01)" }}>
+          {/* Tab switcher */}
+          <div className="flex items-center shrink-0 p-1 rounded-xl w-fit shadow-sm"
+            style={{ border: `1px solid ${C.border}`, background: C.panelBg }}>
             {([
-              { id: "response", label: "Recommended Response", icon: BrainCircuit },
-              { id: "history",  label: "Conversation History", icon: MessageSquare },
+              { id: "response", label: "Response",   icon: BrainCircuit },
+              { id: "history",  label: "History",    icon: MessageSquare },
             ] as const).map(({ id, label, icon: Icon }) => (
               <button key={id} onClick={() => setActiveTab(id)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[12px] font-bold transition-all ${
-                  activeTab === id
-                    ? "text-white border border-white/[0.08]"
-                    : "text-white/25 hover:text-white/45"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-bold transition-all ${
+                  activeTab === id ? "text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
                 }`}
-                style={activeTab === id ? { background: "rgba(99,102,241,0.1)" } : {}}>
+                style={activeTab === id ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" } : {}}>
                 <Icon size={13} />
                 {label}
               </button>
             ))}
           </div>
 
-          {/* Answer card — takes all remaining space */}
-          <div className="flex-1 rounded-2xl border border-white/[0.07] overflow-hidden flex flex-col"
-            style={{ background: "rgba(6,6,14,0.95)" }}>
+          {/* Answer card */}
+          <div className="flex-1 rounded-2xl border shadow-sm overflow-hidden flex flex-col"
+            style={{ background: C.panelBg, borderColor: C.border }}>
 
-            {/* Card header */}
-            <div className="h-10 flex items-center justify-between px-5 border-b border-white/[0.05] shrink-0"
-              style={{ background: "rgba(0,0,0,0.3)" }}>
-              <div className="flex items-center gap-2">
-                <motion.div
-                  animate={{ opacity: isGenerating ? [1, 0.2, 1] : 0.2 }}
-                  transition={{ repeat: Infinity, duration: 0.9 }}
-                  className="w-1.5 h-1.5 rounded-full bg-indigo-500"
-                />
-                <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.35em]">
-                  {activeTab === "response" ? "AI Recommended Response" : "Full Conversation"}
-                </span>
+            {/* Minimal header — only shows copy when there's an answer */}
+            {answer && activeTab === "response" && (
+              <div className="h-10 flex items-center justify-end px-4 shrink-0"
+                style={{ borderBottom: `1px solid ${C.border}`, background: C.cardBg }}>
+                <button onClick={copyAnswer}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold border transition-all`}
+                  style={{
+                    borderColor: copied ? "#6ee7b7" : C.border,
+                    background: copied ? "rgba(16,185,129,0.08)" : C.panelBg,
+                    color: copied ? "#059669" : "#94a3b8",
+                  }}>
+                  {copied ? <><Check size={11} /> Copied</> : <><Copy size={11} /> Copy</>}
+                </button>
               </div>
-              <div className="flex items-center gap-2">
-                {answer && activeTab === "response" && (
-                  <span className="text-[9px] text-white/20 font-mono uppercase">
-                    {answer.includes("•") ? "Bullet Format" : "Direct Answer"}
-                  </span>
-                )}
-              </div>
-            </div>
+            )}
 
-            {/* Content — scrollable, large */}
-            <div className="flex-1 overflow-y-auto px-6 py-2
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4
               [&::-webkit-scrollbar]:w-[3px]
-              [&::-webkit-scrollbar-thumb]:bg-indigo-500/20
+              [&::-webkit-scrollbar-thumb]:bg-slate-300
               [&::-webkit-scrollbar-track]:bg-transparent">
 
               {activeTab === "response" ? (
@@ -663,22 +793,23 @@ export default function InterviewPage() {
                   isRecording={isRecording}
                 />
               ) : (
-                <div className="space-y-4 py-4">
+                <div className="space-y-3 py-3">
                   {history.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                      <MessageSquare size={28} className="text-white/[0.08]" />
-                      <p className="text-[12px] text-white/20">No conversation yet</p>
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                      <MessageSquare size={28} className="text-slate-300" />
+                      <p className="text-[13px] font-semibold text-slate-400">No conversation yet</p>
                     </div>
                   ) : history.map((turn, i) => (
                     <div key={i} className={`flex ${turn.role === "candidate" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] px-5 py-3 rounded-2xl text-[13px] leading-relaxed border`}
-                        style={{
-                          background: turn.role === "interviewer" ? "rgba(255,255,255,0.03)" : "rgba(99,102,241,0.08)",
-                          borderColor: turn.role === "interviewer" ? "rgba(255,255,255,0.07)" : "rgba(99,102,241,0.18)",
-                          color: turn.role === "interviewer" ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.80)",
-                        }}>
-                        <p className={`text-[9px] font-black uppercase tracking-widest mb-1.5 ${
-                          turn.role === "interviewer" ? "text-white/20" : "text-indigo-400/50"
+                      <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-[13px] font-semibold leading-relaxed ${
+                        turn.role === "interviewer" ? "rounded-tl-sm" : "text-white rounded-tr-sm"
+                      }`}
+                        style={turn.role === "candidate"
+                          ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                          : { background: C.cardBg, border: `1px solid ${C.border}`, color: "#1e293b" }
+                        }>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 ${
+                          turn.role === "interviewer" ? "text-slate-400" : "text-indigo-200"
                         }`}>
                           {turn.role === "interviewer" ? "Interviewer" : "You"}
                         </p>
@@ -693,113 +824,183 @@ export default function InterviewPage() {
         </main>
 
         {/* ── RIGHT SIDEBAR — RESUME ── */}
-        <aside className="w-56 border-l border-white/[0.04] p-5 hidden xl:flex flex-col gap-4 shrink-0"
-          style={{ background: "rgba(0,0,0,0.25)" }}>
+        <aside className="w-56 border-l p-4 hidden xl:flex flex-col gap-3 shrink-0"
+          style={{ borderColor: C.border, background: C.panelBg }}>
           <div className="flex items-center gap-2">
-            <FileText size={12} className="text-white/20" />
-            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em]">
-              Resume Context
-            </p>
+            <FileText size={13} className="text-slate-400" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resume</p>
           </div>
-          {/* Resume displayed as a styled card */}
-          <div className="flex-1 rounded-xl border border-white/[0.05] p-4 overflow-y-auto
-            [&::-webkit-scrollbar]:w-[2px]
-            [&::-webkit-scrollbar-thumb]:bg-white/[0.06]"
-            style={{ background: "rgba(255,255,255,0.015)" }}>
-            <p className="text-[10px] text-white/30 leading-relaxed font-mono whitespace-pre-wrap break-words">
-              {cleanResume(config.resume)}
-            </p>
-          </div>
-          <p className="text-[9px] text-white/[0.1] text-center">
-            AI uses full resume for context
-          </p>
+
+          {resumePreview.type === "empty" ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-4"
+              style={{ borderColor: C.borderXl }}>
+              <FileText size={22} className="text-slate-300" />
+              <p className="text-[11px] font-semibold text-slate-400 text-center leading-relaxed">
+                No resume loaded.<br />
+                <span className="text-slate-300 font-normal">Generic answers mode.</span>
+              </p>
+            </div>
+          ) : resumePreview.type === "binary" ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 rounded-xl border p-4"
+              style={{ background: "rgba(16,185,129,0.06)", borderColor: "rgba(16,185,129,0.2)" }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                <CheckCircle2 size={18} className="text-emerald-600" />
+              </div>
+              <p className="text-[12px] text-emerald-700 text-center font-black">Resume loaded ✓</p>
+              <p className="text-[10px] text-emerald-600/70 text-center leading-relaxed font-medium">
+                Full context active
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex-1 rounded-xl border p-3 overflow-y-auto
+                [&::-webkit-scrollbar]:w-[2px]
+                [&::-webkit-scrollbar-thumb]:bg-slate-300"
+                style={{ background: C.cardBg, borderColor: C.border }}>
+                <p className="text-[10px] text-slate-500 font-medium leading-relaxed whitespace-pre-wrap break-words">
+                  {resumePreview.content}
+                </p>
+              </div>
+              <p className="text-[9px] text-slate-400 text-center font-semibold">Full resume in AI context</p>
+            </>
+          )}
         </aside>
       </div>
 
-      {/* ═══════════════ FOOTER — MIC ═══════════════ */}
-      <footer className="shrink-0 border-t border-white/[0.05] px-5 py-4"
-        style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(20px)" }}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-6">
+      {/* ═══════════════ FOOTER — MIC CONTROLS ═══════════════ */}
+      <footer className="shrink-0 border-t px-5 py-4"
+        style={{ background: C.panelBg, borderColor: C.border }}>
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
 
           {/* Left hint */}
-          <div className="hidden sm:flex flex-col gap-0.5 w-40">
-            <p className="text-[11px] font-bold text-white/30">
-              {isRecording ? "Stop & generate answer" : "Start listening"}
+          <div className="hidden sm:flex flex-col gap-0.5 w-48">
+            <p className="text-[12px] font-black text-slate-700">
+              {isRecording ? "Space → get answer" : isGenerating ? "Generating..." : "Space → listen"}
             </p>
-            <p className="text-[10px] text-white/15 font-mono">
-              {isRecording ? "Press SPACE or mic button" : "Press SPACE or tap mic"}
-            </p>
+            {micStatus && micStatus !== "Ready" && micStatus !== "Listening..." && (
+              <p className={`text-[11px] font-bold ${
+                micStatus.toLowerCase().includes("error") || micStatus.toLowerCase().includes("denied")
+                  ? "text-red-500"
+                  : micStatus.toLowerCase().includes("connect") || micStatus.toLowerCase().includes("token")
+                  ? "text-amber-500"
+                  : "text-slate-400"
+              }`}>{micStatus}</p>
+            )}
+            {(!micStatus || micStatus === "Ready") && (
+              <p className="text-[10px] font-medium text-slate-400">ESC clears the screen</p>
+            )}
           </div>
 
-          {/* Center — mic button */}
-          <div className="flex items-center gap-4 mx-auto">
-            {/* Stop/clear button */}
+          {/* Center controls */}
+          <div className="flex items-center gap-3 mx-auto">
             {(transcript || answer) && (
               <button onClick={clear}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[12px] font-bold text-white/30 hover:text-white/60 transition-all"
-                style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.07)" }}>
-                <RotateCcw size={14} /> Clear
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm"
+                style={{ border: `1px solid ${C.borderXl}`, background: C.panelBg, color: "#64748b" }}>
+                <RotateCcw size={13} /> Clear
               </button>
             )}
 
-            {/* Main mic button */}
-            <motion.button
-              whileTap={{ scale: 0.92 }}
-              onClick={isRecording ? generateAnswer : toggleMic}
-              disabled={isGenerating}
-              className="relative flex items-center gap-3 px-8 py-3.5 rounded-2xl font-bold text-[14px] text-white disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden"
-              style={isRecording ? {
-                background: "rgba(239,68,68,0.12)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                boxShadow: "0 0 30px rgba(239,68,68,0.12)",
-              } : {
-                background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                boxShadow: "0 0 30px rgba(79,70,229,0.35), inset 0 1px 0 rgba(255,255,255,0.1)",
-              }}
-            >
-              {isRecording && (
-                <motion.div animate={{ opacity: [0.2, 0, 0.2] }} transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="absolute inset-0 rounded-2xl"
-                  style={{ background: "rgba(239,68,68,0.25)" }} />
-              )}
-              {isGenerating ? (
-                <><Loader2 size={18} className="animate-spin" /> Generating answer...</>
-              ) : isRecording ? (
-                <><MicOff size={18} /> <span style={{ color: "#f87171" }}>Stop & Get Answer</span></>
-              ) : (
-                <><Mic size={18} /> Start Listening</>
-              )}
-            </motion.button>
+            {/* MAIN MIC BUTTON with rotating ring */}
+            <div className="relative flex items-center justify-center">
 
-            {/* Copy button when answer ready */}
+              {/* Outer pulse rings when recording */}
+              {isRecording && (
+                <>
+                  <motion.div
+                    animate={{ scale: [1, 1.45], opacity: [0.45, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.3, ease: "easeOut" }}
+                    className="absolute inset-0 rounded-2xl"
+                    style={{ background: "rgba(239,68,68,0.18)", pointerEvents: "none" }}
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.75], opacity: [0.2, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.3, delay: 0.4, ease: "easeOut" }}
+                    className="absolute inset-0 rounded-2xl"
+                    style={{ background: "rgba(239,68,68,0.09)", pointerEvents: "none" }}
+                  />
+                </>
+              )}
+
+              {/* Rotating comet ring when recording */}
+              {isRecording && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+                  className="absolute rounded-2xl"
+                  style={{
+                    inset: -5,
+                    background: "conic-gradient(from 0deg, transparent 0%, transparent 55%, rgba(239,68,68,0.9) 78%, rgba(239,68,68,0.3) 90%, transparent 100%)",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                onClick={isRecording ? generateAnswer : toggleMic}
+                disabled={isGenerating}
+                className="relative flex items-center gap-3 px-9 py-3.5 rounded-2xl font-black text-[15px] text-white disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden z-10 tracking-tight"
+                style={isRecording ? {
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  boxShadow: "0 8px 28px rgba(239,68,68,0.4), 0 2px 8px rgba(239,68,68,0.2)",
+                } : {
+                  background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                  boxShadow: "0 8px 25px rgba(79,70,229,0.3), 0 2px 8px rgba(79,70,229,0.15)",
+                }}
+              >
+                {isRecording && (
+                  <motion.div
+                    animate={{ opacity: [0.06, 0, 0.06] }}
+                    transition={{ repeat: Infinity, duration: 1.6 }}
+                    className="absolute inset-0 rounded-2xl bg-white"
+                  />
+                )}
+                {isGenerating ? (
+                  <><Loader2 size={18} className="animate-spin" /> Generating...</>
+                ) : isRecording ? (
+                  <><MicOff size={18} /> Stop & Answer</>
+                ) : (
+                  <><Mic size={18} /> Start Listening</>
+                )}
+              </motion.button>
+            </div>
+
             {answer && !isRecording && !isGenerating && (
               <button onClick={copyAnswer}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[12px] font-bold transition-all ${
-                  copied ? "text-green-400" : "text-white/30 hover:text-white/60"
-                }`}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm"
                 style={{
-                  background: copied ? "rgba(34,197,94,0.08)" : "rgba(255,255,255,0.02)",
-                  borderColor: copied ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.07)",
+                  border: copied ? "1px solid #6ee7b7" : `1px solid ${C.borderXl}`,
+                  background: copied ? "rgba(16,185,129,0.08)" : C.panelBg,
+                  color: copied ? "#059669" : "#64748b",
                 }}>
-                {copied ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Copy</>}
+                {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy</>}
               </button>
             )}
           </div>
 
           {/* Right hint */}
-          <div className="hidden sm:flex flex-col items-end gap-0.5 w-40">
-            <p className="text-[11px] font-bold text-white/30">
-              {isGenerating ? "Generating..." : answer ? "Answer ready" : "Waiting..."}
+          <div className="hidden sm:flex flex-col items-end gap-0.5 w-48">
+            <p className="text-[12px] font-black text-slate-700">
+              {isGenerating
+                ? "Working on it..."
+                : answer
+                ? "✓ Answer ready"
+                : isRecording
+                ? "Mic is live"
+                : "Waiting for you"}
             </p>
-            <p className="text-[10px] text-white/15 font-mono">
-              ESC to clear screen
+            <p className="text-[10px] font-semibold text-slate-400">
+              {qCount} {qCount === 1 ? "question" : "questions"} this session
             </p>
           </div>
         </div>
       </footer>
 
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
         * { -webkit-font-smoothing: antialiased; }
       `}} />
     </div>

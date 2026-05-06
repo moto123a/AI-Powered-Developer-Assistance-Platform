@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Loader2, Zap, BarChart2, Sparkles,
-  ArrowRight, TrendingUp, Clock, Star,
-  BrainCircuit, Coins, Flame,
+  ArrowRight, BrainCircuit, Coins, Flame,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -29,11 +28,11 @@ export type InterviewConfig = {
 function sanitizeText(text: string): string {
   if (!text) return "";
   return text
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/[""]/g, '"')
     .replace(/[–—]/g, "-")
     .replace(/•/g, "•")
-    .replace(/ /g, " ")
+    .replace(/ /g, " ")
     .replace(/[^\x20-\x7E\n\r\t•]/g, " ")
     .replace(/  +/g, " ")
     .replace(/\n{3,}/g, "\n\n")
@@ -54,11 +53,13 @@ function CreditsDisplay({
   const isEmpty = !isPro && credits <= 0;
 
   if (loading) return (
-    <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse border border-slate-200" />
+    <div className="h-7 w-28 rounded-lg animate-pulse"
+      style={{ background: "#e4e8f2", border: "1px solid #d4dae6" }} />
   );
 
   if (isPro) return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50">
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+      style={{ border: "1px solid rgba(251,191,36,0.35)", background: "rgba(251,191,36,0.09)" }}>
       <Sparkles size={11} className="text-amber-500" />
       <span className="text-[11px] font-black text-amber-600 uppercase tracking-[0.15em]">
         Pro · Unlimited
@@ -68,22 +69,20 @@ function CreditsDisplay({
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-        isEmpty ? "border-red-200 bg-red-50"     :
-        isLow   ? "border-orange-200 bg-orange-50" :
-                  "border-slate-200 bg-slate-50"
-      }`}>
-        <Coins size={10} className={isEmpty ? "text-red-400" : isLow ? "text-orange-400" : "text-slate-400"} />
-        <span className={`text-[11px] font-black ${
-          isEmpty ? "text-red-500" : isLow ? "text-orange-500" : "text-slate-500"
-        }`}>
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+        style={{
+          border: isEmpty ? "1px solid rgba(239,68,68,0.3)" : isLow ? "1px solid rgba(249,115,22,0.3)" : "1px solid #d4dae6",
+          background: isEmpty ? "rgba(239,68,68,0.07)" : isLow ? "rgba(249,115,22,0.07)" : "#edf0f6",
+        }}>
+        <Coins size={10} style={{ color: isEmpty ? "#ef4444" : isLow ? "#f97316" : "#94a3b8" }} />
+        <span className="text-[11px] font-black" style={{ color: isEmpty ? "#ef4444" : isLow ? "#f97316" : "#475569" }}>
           {credits.toLocaleString()}
           <span className="font-normal text-[10px] ml-1 opacity-60">credits</span>
         </span>
         {isLow && (
           <div className="flex items-center gap-1">
-            <Flame size={9} className={isEmpty ? "text-red-400" : "text-orange-400"} />
-            <span className={`text-[9px] font-black ${isEmpty ? "text-red-500" : "text-orange-500"}`}>
+            <Flame size={9} style={{ color: isEmpty ? "#ef4444" : "#f97316" }} />
+            <span className="text-[9px] font-black" style={{ color: isEmpty ? "#ef4444" : "#f97316" }}>
               {isEmpty ? "Empty" : "Low"}
             </span>
           </div>
@@ -91,7 +90,7 @@ function CreditsDisplay({
       </div>
       {(isLow || isEmpty) && (
         <button onClick={onUpgrade}
-          className="px-3 py-1.5 rounded-lg text-[11px] font-black text-white transition-all"
+          className="px-3 py-1.5 rounded-lg text-[11px] font-black text-white transition-all shadow-sm"
           style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
           Upgrade
         </button>
@@ -147,17 +146,15 @@ export default function RealInterviewPage() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden"
-      style={{ fontFamily: "'DM Sans', 'Inter', system-ui, sans-serif" }}>
+  // Matte design tokens — matches interview page
+  const PG  = "#dde3ed";
+  const PNL = "#f2f4f8";
+  const CRD = "#edf0f6";
+  const BDR = "#d4dae6";
 
-      {/* Subtle ambient */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-60 -left-60 w-[700px] h-[700px] rounded-full opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }} />
-        <div className="absolute top-1/2 -right-60 w-[500px] h-[500px] rounded-full opacity-[0.03]"
-          style={{ background: "radial-gradient(circle, #8b5cf6, transparent)" }} />
-      </div>
+  return (
+    <div className="min-h-screen overflow-x-hidden"
+      style={{ background: PG, fontFamily: "'DM Sans', 'Inter', system-ui, sans-serif" }}>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
@@ -168,17 +165,18 @@ export default function RealInterviewPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-indigo-100 bg-indigo-50">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
+              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
               <BrainCircuit size={26} className="text-indigo-500" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Sign in to continue</h1>
-              <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                Access Interview Copilot and start your session.
+              <h1 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">Sign in to continue</h1>
+              <p className="text-slate-500 text-sm max-w-xs mx-auto font-medium">
+                Access CoopilotX AI and start your session.
               </p>
             </div>
             <button onClick={() => setShowAuth(true)}
-              className="px-8 py-3 rounded-xl font-bold text-white transition-all text-sm"
+              className="px-8 py-3 rounded-xl font-black text-white transition-all text-sm shadow-lg shadow-indigo-200"
               style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
               Sign In
             </button>
@@ -189,22 +187,26 @@ export default function RealInterviewPage() {
         <div className="relative">
 
           {/* ════════════════ NAVBAR ════════════════ */}
-          <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm"
-            style={{ backdropFilter: "blur(24px)" }}>
+          <nav className="sticky top-0 z-50 border-b shadow-sm"
+            style={{ background: PNL, borderColor: BDR }}>
             <div className="max-w-[1400px] mx-auto px-6 h-[60px] flex items-center justify-between">
 
-              {/* Logo */}
+              {/* Logo — CoopilotX AI */}
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                     style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
                     <BrainCircuit size={18} className="text-white" />
                   </div>
-                  <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-white" />
+                  <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full"
+                    style={{ border: `2px solid ${PNL}` }} />
                 </div>
-                <div className="flex flex-col leading-none">
-                  <span className="text-[15px] font-bold tracking-tight text-slate-800">InterviewOS</span>
-                  <span className="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Real Interview Suite</span>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[16px] font-black tracking-tight text-slate-800">CoopilotX</span>
+                  <span className="text-[10px] font-black text-indigo-500 px-1.5 py-0.5 rounded-md"
+                    style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.18)" }}>
+                    AI
+                  </span>
                 </div>
               </div>
 
@@ -215,9 +217,10 @@ export default function RealInterviewPage() {
                   loading={creditsLoading}
                   onUpgrade={() => router.push("/pricing")}
                 />
-                <div className="w-px h-4 bg-slate-200" />
+                <div className="w-px h-4 bg-slate-300" />
                 <button onClick={() => router.push("/real-interview/dashboard")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-slate-500 hover:text-slate-700 transition-all border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 hover:text-slate-800 transition-all"
+                  style={{ border: `1px solid ${BDR}`, background: CRD }}>
                   <BarChart2 size={12} /> Sessions
                 </button>
               </div>
@@ -237,43 +240,29 @@ export default function RealInterviewPage() {
                   transition={{ duration: 0.4 }}
                   className="mb-2"
                 >
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase mb-4 border border-indigo-200 bg-indigo-50 text-indigo-600">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase mb-4"
+                    style={{ border: "1px solid rgba(99,102,241,0.22)", background: "rgba(99,102,241,0.08)", color: "#4338ca" }}>
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                     Real-Time AI Interview Copilot
                   </div>
-                  <h1 className="text-[2.2rem] font-black tracking-tight leading-none mb-3 text-slate-800">
-                    Configure Your<br />
+                  <h1 className="text-[2.4rem] font-black tracking-tight leading-[1.05] mb-3 text-slate-900">
+                    Start your<br />
                     <span style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                       Interview Session
                     </span>
                   </h1>
-                  <p className="text-slate-400 text-sm leading-relaxed max-w-md">
-                    Optionally upload your resume and paste the job description to get
-                    AI-generated answers tailored to your experience — in real time.
-                    You can also start with no details at all.
+                  <p className="text-slate-500 text-[15px] font-medium leading-relaxed max-w-md">
+                    AI listens live and generates tailored answers in under 2s.
+                    No resume required to start.
                   </p>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 mt-5">
-                    {[
-                      { icon: TrendingUp, label: "Real-time",  value: "< 2s"        },
-                      { icon: Star,       label: "Accuracy",   value: "Resume-based" },
-                      { icon: Clock,      label: "Duration",   value: "Unlimited"    },
-                    ].map(({ icon: Icon, label, value }) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <Icon size={11} className="text-slate-300" />
-                        <span className="text-[11px] text-slate-400">{label}:</span>
-                        <span className="text-[11px] font-semibold text-slate-600">{value}</span>
-                      </div>
-                    ))}
-                  </div>
                 </motion.div>
 
                 {/* Setup form card */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
-                  className="bg-white rounded-3xl border border-slate-200 shadow-sm p-7"
+                  className="rounded-3xl shadow-sm p-7"
+                  style={{ background: PNL, border: `1px solid ${BDR}` }}
                 >
                   <SetupForm
                     onStart={handleStart}
@@ -290,74 +279,89 @@ export default function RealInterviewPage() {
               >
 
                 {/* How it works */}
-                <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-                  <div className="px-5 py-4 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">How it works</p>
+                <div className="rounded-2xl overflow-hidden shadow-sm" style={{ border: `1px solid ${BDR}`, background: PNL }}>
+                  <div className="px-5 py-4" style={{ borderBottom: `1px solid ${BDR}` }}>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">How it works</p>
                   </div>
                   <div className="p-5 space-y-4">
                     {[
                       {
-                        step: "01", title: "Setup (Optional)",
-                        desc: "Add your resume and job description — or skip and start right away.",
-                        color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100",
+                        step: "01", title: "Hit Start",
+                        desc: "No resume needed. Add one for answers tailored to your experience.",
+                        accentBg: "rgba(99,102,241,0.09)", accentBorder: "rgba(99,102,241,0.2)", accentText: "#4338ca",
+                        kbd: null,
                       },
                       {
-                        step: "02", title: "Listen",
-                        desc: "Press SPACE to start listening. AI captures what the interviewer says.",
-                        color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-100",
+                        step: "02", title: "SPACE — Start listening",
+                        desc: "Mic turns on. Speak the question aloud or let the interviewer speak.",
+                        accentBg: "rgba(124,58,237,0.09)", accentBorder: "rgba(124,58,237,0.2)", accentText: "#6d28d9",
+                        kbd: "SPACE",
                       },
                       {
-                        step: "03", title: "Get Answer",
-                        desc: "Press SPACE again. AI generates a tailored answer instantly.",
-                        color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100",
+                        step: "03", title: "SPACE — Get your answer",
+                        desc: "AI generates a perfect, resume-backed response in under 2 seconds.",
+                        accentBg: "rgba(16,185,129,0.09)", accentBorder: "rgba(16,185,129,0.2)", accentText: "#059669",
+                        kbd: "SPACE",
                       },
-                    ].map(({ step, title, desc, color, bg, border }) => (
+                    ].map(({ step, title, desc, accentBg, accentBorder, accentText, kbd }) => (
                       <div key={step} className="flex gap-3">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${bg} ${border}`}>
-                          <span className={`text-[10px] font-black font-mono ${color}`}>{step}</span>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ background: accentBg, border: `1px solid ${accentBorder}` }}>
+                          <span className="text-[10px] font-black font-mono" style={{ color: accentText }}>{step}</span>
                         </div>
-                        <div>
-                          <p className="text-[13px] font-bold text-slate-700 mb-0.5">{title}</p>
-                          <p className="text-[11px] text-slate-400 leading-relaxed">{desc}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-[13px] font-bold text-slate-800">{title}</p>
+                            {kbd && (
+                              <kbd className="text-[9px] font-mono font-black text-slate-500 px-1.5 py-0.5 rounded"
+                                style={{ border: `1px solid ${BDR}`, background: CRD }}>
+                                {kbd}
+                              </kbd>
+                            )}
+                          </div>
+                          <p className="text-[11px] font-medium text-slate-500 leading-relaxed">{desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Credits breakdown */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Credits</p>
+                {/* Credits */}
+                <div className="rounded-2xl p-5 shadow-sm" style={{ border: `1px solid ${BDR}`, background: PNL }}>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Credits</p>
                   <div className="space-y-2.5">
                     {[
-                      { label: "Real interview session", cost: "2 credits",  color: "text-indigo-600"  },
-                      { label: "Resume verification",    cost: "Free",       color: "text-emerald-600" },
+                      { label: "Interview session", cost: "2 credits", color: "#4f46e5" },
+                      { label: "Resume verification", cost: "Free",    color: "#059669" },
                     ].map(({ label, cost, color }) => (
-                      <div key={label} className="flex items-center justify-between">
-                        <span className="text-[12px] text-slate-500">{label}</span>
-                        <span className={`text-[11px] font-black font-mono ${color}`}>{cost}</span>
+                      <div key={label} className="flex items-center justify-between py-1.5"
+                        style={{ borderBottom: `1px solid ${BDR}` }}>
+                        <span className="text-[12px] font-semibold text-slate-600">{label}</span>
+                        <span className="text-[11px] font-black font-mono" style={{ color }}>{cost}</span>
                       </div>
                     ))}
                   </div>
                   {plan !== "pro" && (
                     <button onClick={() => router.push("/pricing")}
-                      className="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 border border-indigo-200 bg-indigo-50 text-indigo-600 transition-all hover:bg-indigo-100">
+                      className="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-all"
+                      style={{ border: "1px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.07)", color: "#4338ca" }}>
                       Upgrade to Pro — Unlimited <ArrowRight size={13} />
                     </button>
                   )}
                 </div>
 
                 {/* Shortcuts */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Shortcuts</p>
-                  <div className="space-y-2">
+                <div className="rounded-2xl p-5 shadow-sm" style={{ border: `1px solid ${BDR}`, background: PNL }}>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Keyboard Shortcuts</p>
+                  <div className="space-y-2.5">
                     {[
                       { key: "SPACE", desc: "Listen / Generate answer" },
                       { key: "ESC",   desc: "Clear current question"   },
                     ].map(({ key, desc }) => (
                       <div key={key} className="flex items-center justify-between">
-                        <span className="text-[11px] text-slate-500">{desc}</span>
-                        <kbd className="text-[10px] font-mono font-bold text-slate-500 px-2 py-1 rounded-lg border border-slate-200 bg-slate-50">
+                        <span className="text-[12px] font-semibold text-slate-600">{desc}</span>
+                        <kbd className="text-[10px] font-mono font-black text-slate-700 px-2.5 py-1.5 rounded-lg shadow-sm"
+                          style={{ border: `1px solid ${BDR}`, background: CRD }}>
                           {key}
                         </kbd>
                       </div>
@@ -365,8 +369,8 @@ export default function RealInterviewPage() {
                   </div>
                 </div>
 
-                <p className="text-center text-[10px] text-slate-300">
-                  Enterprise-grade · Data not stored
+                <p className="text-center text-[10px] font-semibold text-slate-400">
+                  Enterprise-grade · Your data stays private
                 </p>
               </motion.div>
             </div>
@@ -375,7 +379,7 @@ export default function RealInterviewPage() {
       )}
 
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&display=swap');
         * { -webkit-font-smoothing: antialiased; }
       `}} />
     </div>

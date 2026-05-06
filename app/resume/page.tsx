@@ -612,11 +612,25 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
    MAIN COMPONENT
 ════════════════════════════════════════════════════════════════ */
 export default function ResumePage() {
-  const [activeTab,    setActiveTab]    = useState<TabId>("edit");
-  const [editSection,  setEditSection]  = useState<"personal"|"order"|SectionId>("personal");
-  const [resumeData,   setResumeData]   = useState<any>(MASTER_RESUME);
-  const [prevResume,   setPrevResume]   = useState<any>(null);
-  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(DEFAULT_ORDER);
+  const [activeTab,      setActiveTab]      = useState<TabId>("edit");
+  const [editSection,    setEditSection]    = useState<string>("personal");
+  const [resumeData,     setResumeData]     = useState<any>(MASTER_RESUME);
+  const [prevResume,     setPrevResume]     = useState<any>(null);
+  const [sectionOrder,   setSectionOrder]   = useState<SectionId[]>(DEFAULT_ORDER);
+  const [customSections, setCustomSections] = useState<{id:string;title:string;items:{title:string;subtitle:string;date:string;description:string}[]}[]>([]);
+
+  // Scroll sidebar to the content area whenever the active section changes
+  const scrollToContent = (sectionId: string) => {
+    setEditSection(sectionId);
+    setTimeout(() => {
+      const el = document.getElementById("section-content-area");
+      const sidebar = document.getElementById("editor-sidebar");
+      if (el && sidebar) {
+        const offset = el.getBoundingClientRect().top - sidebar.getBoundingClientRect().top + sidebar.scrollTop - 8;
+        sidebar.scrollTo({ top: offset, behavior: "smooth" });
+      }
+    }, 40);
+  };
   const [jd,           setJd]           = useState("");
   const [aiProvider,   setAiProvider]   = useState<AiProvider>("openai");
 
@@ -785,6 +799,34 @@ export default function ResumePage() {
     if (n < 0 || n >= sectionOrder.length) return;
     setSectionOrder(p => { const a=[...p]; [a[idx],a[n]]=[a[n],a[idx]]; return a; });
   };
+
+  // ── Custom section helpers ──
+  const addCustomSection = () => {
+    const id = "custom_" + Date.now();
+    setCustomSections(prev => [...prev, { id, title: "New Section", items: [] }]);
+    setTimeout(() => scrollToContent(id), 60);
+  };
+  const removeCustomSection = (id: string) => {
+    setCustomSections(prev => prev.filter(s => s.id !== id));
+    setEditSection("personal");
+  };
+  const updateCustomSectionTitle = (id: string, title: string) =>
+    setCustomSections(prev => prev.map(s => s.id === id ? { ...s, title } : s));
+  const addCustomSectionItem = (id: string) =>
+    setCustomSections(prev => prev.map(s => s.id === id
+      ? { ...s, items: [...s.items, { title:"", subtitle:"", date:"", description:"" }] }
+      : s));
+  const removeCustomSectionItem = (id: string, idx: number) =>
+    setCustomSections(prev => prev.map(s => s.id === id
+      ? { ...s, items: s.items.filter((_:any, i:number) => i !== idx) }
+      : s));
+  const updateCustomSectionItem = (id: string, idx: number, field: string, value: string) =>
+    setCustomSections(prev => prev.map(s => {
+      if (s.id !== id) return s;
+      const items = [...s.items];
+      items[idx] = { ...items[idx], [field]: value };
+      return { ...s, items };
+    }));
 
   /* ── File import ── */
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1165,293 +1207,383 @@ export default function ResumePage() {
                           </div>
                         </div>
                         <div style={{ fontSize:10, color:T.textTertiary, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8, paddingLeft:2 }}>Content Sections</div>
-                        <div style={{ display:"flex", flexDirection:"column", gap:2, marginBottom:12 }}>
+
+                        {/* ══ ACCORDION NAV ══ */}
+                        <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
                           {[
-                            { id:"personal", label:"Personal Info", Icon:User,   color:T.accent,        bg:T.accentLight },
+                            { id:"personal",       label:"Personal Info",  Icon:User,        color:T.accent,        bg:T.accentLight },
                             ...sectionOrder.map(id => ({ id, ...SECTION_META[id] })),
-                            { id:"order",    label:"Section Order", Icon:Layers, color:T.textSecondary, bg:"rgba(107,100,96,0.07)" },
+                            ...customSections.map(cs => ({ id:cs.id, label:cs.title, Icon:Plus, color:"#8b5cf6", bg:"rgba(139,92,246,0.08)" })),
+                            { id:"order",          label:"Section Order",  Icon:Layers,      color:T.textSecondary, bg:"rgba(107,100,96,0.07)" },
                           ].map(item => {
                             const active = editSection === item.id;
-                            const done   = item.id !== "order" ? sectionComplete(item.id as any) : true;
+                            const done   = (item.id !== "order" && !item.id.startsWith("custom_")) ? sectionComplete(item.id as any) : true;
                             return (
-                              <button key={item.id} onClick={() => setEditSection(item.id as any)}
-                                style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 10px",
-                                  borderRadius:T.radius, cursor:"pointer",
-                                  border:`1.5px solid ${active?item.color+"30":"transparent"}`,
-                                  background:active?item.bg:"none", color:active?item.color:T.textSecondary,
-                                  fontSize:12, fontWeight:600, transition:"all 0.13s", textAlign:"left" }}
-                                onMouseEnter={e=>{if(!active){(e.currentTarget as any).style.background=item.bg;(e.currentTarget as any).style.color=item.color;}}}
-                                onMouseLeave={e=>{if(!active){(e.currentTarget as any).style.background="none";(e.currentTarget as any).style.color=T.textSecondary;}}}>
-                                <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-                                  background:active?item.color+"20":T.bg, border:`1px solid ${active?item.color+"30":T.border}` }}>
-                                  <item.Icon size={13} style={{ color:item.color }} />
-                                </div>
-                                <span style={{ flex:1 }}>{item.label}</span>
-                                {item.id !== "order" && <CompletionDot complete={done} />}
-                                {active && <ChevronRight size={12} style={{ color:item.color, opacity:0.6 }} />}
-                              </button>
+                              <div key={item.id} style={{ marginBottom: active ? 6 : 2 }}>
+                                {/* ── Section header button ── */}
+                                <button
+                                  onClick={() => setEditSection(active ? "" : item.id)}
+                                  style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"9px 10px",
+                                    borderRadius: active ? `${T.radius} ${T.radius} 0 0` : T.radius,
+                                    cursor:"pointer",
+                                    border:`1.5px solid ${active ? item.color+"40" : "transparent"}`,
+                                    borderBottom: active ? "none" : `1.5px solid transparent`,
+                                    background:active ? item.bg : "none",
+                                    color:active ? item.color : T.textSecondary,
+                                    fontSize:12, fontWeight:600, transition:"all 0.15s", textAlign:"left" }}
+                                  onMouseEnter={e=>{if(!active){(e.currentTarget as any).style.background=item.bg;(e.currentTarget as any).style.color=item.color;}}}
+                                  onMouseLeave={e=>{if(!active){(e.currentTarget as any).style.background="none";(e.currentTarget as any).style.color=T.textSecondary;}}}>
+                                  <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
+                                    background:active ? item.color+"20" : T.bg,
+                                    border:`1px solid ${active ? item.color+"40" : T.border}` }}>
+                                    <item.Icon size={13} style={{ color:item.color }} />
+                                  </div>
+                                  <span style={{ flex:1 }}>{item.label}</span>
+                                  {item.id !== "order" && !item.id.startsWith("custom_") && <CompletionDot complete={done} />}
+                                  <ChevronDown size={12} style={{ color:item.color, opacity:0.5,
+                                    transform: active ? "rotate(180deg)" : "rotate(0deg)",
+                                    transition:"transform 0.2s" }} />
+                                </button>
+
+                                {/* ── Inline expanded content ── */}
+                                <AnimatePresence initial={false}>
+                                  {active && (
+                                    <motion.div
+                                      key={item.id + "-panel"}
+                                      initial={{ height:0, opacity:0 }}
+                                      animate={{ height:"auto", opacity:1 }}
+                                      exit={{ height:0, opacity:0 }}
+                                      transition={{ duration:0.22, ease:"easeInOut" }}
+                                      style={{ overflow:"hidden",
+                                        border:`1.5px solid ${item.color}40`,
+                                        borderTop:"none",
+                                        borderRadius:`0 0 ${T.radius} ${T.radius}`,
+                                        background:T.bgPanel }}>
+                                      <div style={{ padding:"14px 12px 12px" }}>
+
+                                        {/* PERSONAL INFO */}
+                                        {item.id === "personal" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                              {[{l:"Full Name",f:"name",p:"John Doe"},{l:"Headline",f:"headline",p:"Software Engineer"},{l:"Email",f:"email",p:"john@example.com"},{l:"Phone",f:"phone",p:"+1 (555) 000-0000"},{l:"Location",f:"location",p:"New York, NY"}].map(({l,f,p})=>(
+                                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
+                                              ))}
+                                            </div>
+                                            <Divider />
+                                            <div style={{ fontSize:12, fontWeight:700, color:T.accent, marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
+                                              <LinkIcon size={12} /> Links
+                                            </div>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                                              {[{l:"LinkedIn",f:"linkedin",p:"linkedin.com/in/you"},{l:"GitHub",f:"github",p:"github.com/you"},{l:"Portfolio",f:"portfolio",p:"yoursite.com"}].map(({l,f,p})=>(
+                                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
+                                              ))}
+                                            </div>
+                                            <div style={{ marginTop:12 }}>
+                                              <Label>Custom Links</Label>
+                                              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                                                {(resumeData.personalInfo?.customLinks||[]).map((link:any,i:number)=>(
+                                                  <div key={i} style={{ display:"flex", gap:5 }}>
+                                                    <input value={link.label||""} onChange={e=>updateCustomLink(i,"label",e.target.value)} placeholder="Label"
+                                                      style={{ width:"35%", background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radius, padding:"7px 9px", fontSize:12, color:T.textPrimary, outline:"none" }} />
+                                                    <input value={link.url||""} onChange={e=>updateCustomLink(i,"url",e.target.value)} placeholder="https://..."
+                                                      style={{ flex:1, background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radius, padding:"7px 9px", fontSize:12, color:T.textPrimary, outline:"none" }} />
+                                                    <button onClick={()=>removeCustomLink(i)} style={{ padding:6, border:"none", background:"none", cursor:"pointer", color:T.textTertiary }}
+                                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
+                                                      <Trash2 size={13} />
+                                                    </button>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                              <AddButton onClick={addCustomLink} label="Add Link" color={T.accent} />
+                                            </div>
+                                          </>
+                                        )}
+
+                                        {/* SUMMARY */}
+                                        {item.id === "summary" && (
+                                          <>
+                                            <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8, gap:8 }}>
+                                              <WordCountBadge text={resumeData.summary||""} />
+                                              <button onClick={handleGenerateSummary} disabled={loading}
+                                                style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:T.radius,
+                                                  border:`1.5px solid ${T.accent}30`, background:T.accentLight, color:T.accent,
+                                                  fontSize:11, fontWeight:700, cursor:"pointer", transition:"all 0.15s", opacity:loading?0.5:1 }}>
+                                                {loading&&aiAction==="summary" ? <Loader2 size={11} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={11} />}
+                                                AI Generate
+                                              </button>
+                                            </div>
+                                            <div id="field-summary"><Textarea value={resumeData.summary||""} onChange={(e:any)=>set(d=>({...d,summary:e.target.value}))} rows={8} placeholder="Professional summary..." /></div>
+                                            <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
+                                              <Coins size={10} style={{ color:T.textTertiary }} />
+                                              <p style={{ fontSize:10, color:T.textTertiary, margin:0 }}>AI Generate uses <strong>5 credits</strong></p>
+                                            </div>
+                                          </>
+                                        )}
+
+                                        {/* EXPERIENCE */}
+                                        {item.id === "experience" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                              {(resumeData.experience||[]).map((exp:any,i:number)=>(
+                                                <div key={i} id={`editor-experience-${i}`}><SectionCard>
+                                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                                                    <span style={{ fontSize:12, fontWeight:700, color:"#2563eb" }}>{exp.company||`Experience #${i+1}`}</span>
+                                                    <button onClick={()=>removeExperience(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
+                                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
+                                                      <Trash2 size={13} />
+                                                    </button>
+                                                  </div>
+                                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
+                                                    <div><Label>Company</Label><Inp value={exp.company||""} onChange={(e:any)=>updateExperience(i,"company",e.target.value)} /></div>
+                                                    <div><Label>Role</Label><Inp value={exp.role||""} onChange={(e:any)=>updateExperience(i,"role",e.target.value)} /></div>
+                                                  </div>
+                                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:10 }}>
+                                                    <div><Label>Location</Label><Inp value={exp.location||""} onChange={(e:any)=>updateExperience(i,"location",e.target.value)} /></div>
+                                                    <div><Label>Period</Label><Inp value={exp.period||""} onChange={(e:any)=>updateExperience(i,"period",e.target.value)} /></div>
+                                                  </div>
+                                                  <Label>Bullets</Label>
+                                                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                                                    {(exp.bullets||[]).map((b:string,bi:number)=>(
+                                                      <div key={bi} style={{ display:"flex", gap:5 }}>
+                                                        <Textarea value={b} onChange={(e:any)=>updateBullet("experience",i,bi,e.target.value)} rows={2} />
+                                                        <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                                                          <Tooltip tip="AI rewrite (5 credits)" side="right">
+                                                            <button onClick={()=>handleRewriteBullet("experience",i,bi)} disabled={rewritingBullet===`experience-${i}-${bi}`}
+                                                              style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
+                                                              onMouseEnter={e=>{(e.currentTarget as any).style.color=T.purple;(e.currentTarget as any).style.borderColor=T.purple+"50";}}
+                                                              onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
+                                                              {rewritingBullet===`experience-${i}-${bi}` ? <Loader2 size={12} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={12} />}
+                                                            </button>
+                                                          </Tooltip>
+                                                          <button onClick={()=>removeBullet("experience",i,bi)}
+                                                            style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
+                                                            onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
+                                                            onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
+                                                            <Trash2 size={12} />
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                  <AddButton onClick={()=>addBullet("experience",i)} label="Add Bullet" color="#2563eb" small />
+                                                </SectionCard></div>
+                                              ))}
+                                            </div>
+                                            <AddButton onClick={addExperience} label="Add Experience" color="#2563eb" />
+                                          </>
+                                        )}
+
+                                        {/* PROJECTS */}
+                                        {item.id === "projects" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                              {(resumeData.projects||[]).map((p:any,i:number)=>(
+                                                <div key={i} id={`editor-projects-${i}`}><SectionCard>
+                                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                                                    <span style={{ fontSize:12, fontWeight:700, color:T.purple }}>{p.title||`Project #${i+1}`}</span>
+                                                    <button onClick={()=>removeProject(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
+                                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
+                                                      <Trash2 size={13} />
+                                                    </button>
+                                                  </div>
+                                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
+                                                    <div><Label>Title</Label><Inp value={p.title||p.name||""} onChange={(e:any)=>updateProject(i,"title",e.target.value)} /></div>
+                                                    <div><Label>Period</Label><Inp value={p.period||""} onChange={(e:any)=>updateProject(i,"period",e.target.value)} /></div>
+                                                  </div>
+                                                  <div style={{ marginBottom:10 }}><Label>Tech Stack</Label><Inp value={p.tech||""} onChange={(e:any)=>updateProject(i,"tech",e.target.value)} /></div>
+                                                  <Label>Bullets</Label>
+                                                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                                                    {(p.bullets||[]).map((b:string,bi:number)=>(
+                                                      <div key={bi} style={{ display:"flex", gap:5 }}>
+                                                        <Textarea value={b} onChange={(e:any)=>updateBullet("projects",i,bi,e.target.value)} rows={2} />
+                                                        <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                                                          <Tooltip tip="AI rewrite (5 credits)" side="right">
+                                                            <button onClick={()=>handleRewriteBullet("projects",i,bi)} disabled={rewritingBullet===`projects-${i}-${bi}`}
+                                                              style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
+                                                              onMouseEnter={e=>{(e.currentTarget as any).style.color=T.purple;(e.currentTarget as any).style.borderColor=T.purple+"50";}}
+                                                              onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
+                                                              {rewritingBullet===`projects-${i}-${bi}` ? <Loader2 size={12} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={12} />}
+                                                            </button>
+                                                          </Tooltip>
+                                                          <button onClick={()=>removeBullet("projects",i,bi)}
+                                                            style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
+                                                            onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
+                                                            onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
+                                                            <Trash2 size={12} />
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                  <AddButton onClick={()=>addBullet("projects",i)} label="Add Bullet" color={T.purple} small />
+                                                </SectionCard></div>
+                                              ))}
+                                            </div>
+                                            <AddButton onClick={addProject} label="Add Project" color={T.purple} />
+                                          </>
+                                        )}
+
+                                        {/* EDUCATION */}
+                                        {item.id === "education" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                              {(resumeData.education||[]).map((e:any,i:number)=>(
+                                                <div key={i} id={`editor-education-${i}`}><SectionCard>
+                                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                                                    <span style={{ fontSize:12, fontWeight:700, color:T.success }}>{e.school||`Education #${i+1}`}</span>
+                                                    <button onClick={()=>removeEducation(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
+                                                      onMouseEnter={ev=>(ev.currentTarget as any).style.color=T.danger} onMouseLeave={ev=>(ev.currentTarget as any).style.color=T.textTertiary}>
+                                                      <Trash2 size={13} />
+                                                    </button>
+                                                  </div>
+                                                  <div style={{ marginBottom:7 }}><Label>School</Label><Inp value={e.school||e.institution||""} onChange={(ev:any)=>updateEducation(i,"school",ev.target.value)} /></div>
+                                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
+                                                    <div><Label>Degree</Label><Inp value={e.degree||""} onChange={(ev:any)=>updateEducation(i,"degree",ev.target.value)} /></div>
+                                                    <div><Label>Period</Label><Inp value={e.period||e.year||""} onChange={(ev:any)=>updateEducation(i,"period",ev.target.value)} /></div>
+                                                  </div>
+                                                  <div><Label>GPA</Label><Inp value={e.gpa||""} onChange={(ev:any)=>updateEducation(i,"gpa",ev.target.value)} /></div>
+                                                </SectionCard></div>
+                                              ))}
+                                            </div>
+                                            <AddButton onClick={addEducation} label="Add Education" color={T.success} />
+                                          </>
+                                        )}
+
+                                        {/* SKILLS */}
+                                        {item.id === "skills" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                              {(resumeData.skillCategories||[]).map((c:any,i:number)=>(
+                                                <div key={i} id={`editor-skills-${i}`}><SectionCard>
+                                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                                                    <span style={{ fontSize:12, fontWeight:700, color:T.warning }}>{c.name||`Category #${i+1}`}</span>
+                                                    <button onClick={()=>removeSkillCategory(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
+                                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
+                                                      <Trash2 size={13} />
+                                                    </button>
+                                                  </div>
+                                                  <div style={{ marginBottom:7 }}><Label>Category Name</Label><Inp value={c.name||""} onChange={(e:any)=>updateSkillCategory(i,"name",e.target.value)} /></div>
+                                                  <div><Label>Skills (comma separated)</Label><Textarea value={c.skills||""} onChange={(e:any)=>updateSkillCategory(i,"skills",e.target.value)} rows={2} /></div>
+                                                </SectionCard></div>
+                                              ))}
+                                            </div>
+                                            <AddButton onClick={addSkillCategory} label="Add Category" color={T.warning} />
+                                          </>
+                                        )}
+
+                                        {/* CERTIFICATIONS */}
+                                        {item.id === "certifications" && (
+                                          <>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                                              {(resumeData.certifications||[]).map((c:any,i:number)=>(
+                                                <div key={i} style={{ display:"flex", gap:5 }}>
+                                                  <Inp value={typeof c==="string"?c:c?.name||""} onChange={(e:any)=>updateCertification(i,e.target.value)} placeholder="AWS Certified - Amazon (2024)" />
+                                                  <button onClick={()=>removeCertification(i)} style={{ padding:6, border:`1.5px solid ${T.border}`, borderRadius:T.radius, background:T.bg, cursor:"pointer", color:T.textTertiary, flexShrink:0, transition:"all 0.15s" }}
+                                                    onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
+                                                    onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
+                                                    <Trash2 size={12} />
+                                                  </button>
+                                                </div>
+                                              ))}
+                                            </div>
+                                            <AddButton onClick={addCertification} label="Add Certification" color="#db2777" />
+                                          </>
+                                        )}
+
+                                        {/* CUSTOM SECTION */}
+                                        {item.id.startsWith("custom_") && (() => {
+                                          const cs = customSections.find(s => s.id === item.id);
+                                          if (!cs) return null;
+                                          return (
+                                            <>
+                                              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                                                <input value={cs.title} onChange={e=>updateCustomSectionTitle(cs.id, e.target.value)}
+                                                  placeholder="Section Title"
+                                                  style={{ background:"none", border:"none", outline:"none", fontSize:13, fontWeight:700,
+                                                    color:T.textPrimary, fontFamily:"inherit", borderBottom:`1.5px solid #8b5cf640`, paddingBottom:2 }} />
+                                                <button onClick={()=>removeCustomSection(cs.id)}
+                                                  style={{ padding:"3px 8px", borderRadius:T.radius, border:`1px solid ${T.danger}30`,
+                                                    background:T.dangerLight, color:T.danger, fontSize:10, fontWeight:700, cursor:"pointer" }}>
+                                                  Delete
+                                                </button>
+                                              </div>
+                                              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                                                {cs.items.map((entry:any, idx:number) => (
+                                                  <SectionCard key={idx}>
+                                                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                                                      <span style={{ fontSize:11, fontWeight:700, color:"#8b5cf6" }}>{entry.title||`Entry ${idx+1}`}</span>
+                                                      <button onClick={()=>removeCustomSectionItem(cs.id,idx)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:2 }}
+                                                        onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger}
+                                                        onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
+                                                        <Trash2 size={12} />
+                                                      </button>
+                                                    </div>
+                                                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
+                                                      <div><Label>Title</Label><Inp value={entry.title} onChange={(e:any)=>updateCustomSectionItem(cs.id,idx,"title",e.target.value)} placeholder="Award Name" /></div>
+                                                      <div><Label>Subtitle</Label><Inp value={entry.subtitle} onChange={(e:any)=>updateCustomSectionItem(cs.id,idx,"subtitle",e.target.value)} placeholder="Organisation" /></div>
+                                                    </div>
+                                                    <div style={{ marginBottom:7 }}><Label>Date / Period</Label><Inp value={entry.date} onChange={(e:any)=>updateCustomSectionItem(cs.id,idx,"date",e.target.value)} placeholder="Jan 2024" /></div>
+                                                    <div><Label>Description</Label><Textarea value={entry.description} rows={3} onChange={(e:any)=>updateCustomSectionItem(cs.id,idx,"description",e.target.value)} placeholder="Describe this entry..." /></div>
+                                                  </SectionCard>
+                                                ))}
+                                              </div>
+                                              <AddButton onClick={()=>addCustomSectionItem(cs.id)} label="Add Entry" color="#8b5cf6" />
+                                            </>
+                                          );
+                                        })()}
+
+                                        {/* SECTION ORDER */}
+                                        {item.id === "order" && (
+                                          <>
+                                            <p style={{ fontSize:11, color:T.textTertiary, marginBottom:12, lineHeight:1.6 }}>Drag sections up/down to reorder on your resume.</p>
+                                            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                                              {sectionOrder.map((id,idx)=>{
+                                                const m = SECTION_META[id];
+                                                return (
+                                                  <div key={id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 10px",
+                                                    background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radiusMd }}>
+                                                    <GripVertical size={13} style={{ color:T.textTertiary }} />
+                                                    <div style={{ width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
+                                                      background:m.color+"15", border:`1px solid ${m.color}25` }}>
+                                                      <m.Icon size={11} style={{ color:m.color }} />
+                                                    </div>
+                                                    <span style={{ flex:1, fontSize:12, fontWeight:600, color:T.textSecondary }}>{m.label}</span>
+                                                    <div style={{ display:"flex", gap:2 }}>
+                                                      <button onClick={()=>moveSection(idx,-1)} disabled={idx===0}
+                                                        style={{ padding:4, borderRadius:5, border:`1px solid ${T.border}`, background:T.bgPanel, cursor:idx===0?"not-allowed":"pointer", color:idx===0?T.textTertiary+"50":T.textTertiary }}>
+                                                        <ChevronUp size={12} />
+                                                      </button>
+                                                      <button onClick={()=>moveSection(idx,1)} disabled={idx===sectionOrder.length-1}
+                                                        style={{ padding:4, borderRadius:5, border:`1px solid ${T.border}`, background:T.bgPanel, cursor:idx===sectionOrder.length-1?"not-allowed":"pointer", color:idx===sectionOrder.length-1?T.textTertiary+"50":T.textTertiary }}>
+                                                        <ChevronDown size={12} />
+                                                      </button>
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </>
+                                        )}
+
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
                             );
                           })}
                         </div>
-                        <Divider />
 
-                        {editSection === "personal" && (
-                          <EntSectionContent title="Personal Info" icon={<User size={14} style={{ color:T.accent }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                              {[{l:"Full Name",f:"name",p:"John Doe"},{l:"Headline",f:"headline",p:"Software Engineer"},{l:"Email",f:"email",p:"john@example.com"},{l:"Phone",f:"phone",p:"+1 (555) 000-0000"},{l:"Location",f:"location",p:"New York, NY"}].map(({l,f,p})=>(
-                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
-                              ))}
-                            </div>
-                            <Divider />
-                            <div style={{ fontSize:12, fontWeight:700, color:T.accent, marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
-                              <LinkIcon size={12} /> Links
-                            </div>
-                            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                              {[{l:"LinkedIn",f:"linkedin",p:"linkedin.com/in/you"},{l:"GitHub",f:"github",p:"github.com/you"},{l:"Portfolio",f:"portfolio",p:"yoursite.com"}].map(({l,f,p})=>(
-                                <div key={f} id={`field-personal-${f}`}><Label>{l}</Label><Inp value={resumeData.personalInfo?.[f]||""} onChange={(e:any)=>updateInfo(f,e.target.value)} placeholder={p} /></div>
-                              ))}
-                            </div>
-                            <div style={{ marginTop:12 }}>
-                              <Label>Custom Links</Label>
-                              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                                {(resumeData.personalInfo?.customLinks||[]).map((link:any,i:number)=>(
-                                  <div key={i} style={{ display:"flex", gap:5 }}>
-                                    <input value={link.label||""} onChange={e=>updateCustomLink(i,"label",e.target.value)} placeholder="Label"
-                                      style={{ width:"35%", background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radius, padding:"7px 9px", fontSize:12, color:T.textPrimary, outline:"none" }} />
-                                    <input value={link.url||""} onChange={e=>updateCustomLink(i,"url",e.target.value)} placeholder="https://..."
-                                      style={{ flex:1, background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radius, padding:"7px 9px", fontSize:12, color:T.textPrimary, outline:"none" }} />
-                                    <button onClick={()=>removeCustomLink(i)} style={{ padding:6, border:"none", background:"none", cursor:"pointer", color:T.textTertiary }}
-                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                              <AddButton onClick={addCustomLink} label="Add Link" color={T.accent} />
-                            </div>
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "summary" && (
-                          <EntSectionContent title="Summary" icon={<FileText size={14} style={{ color:T.accent }} />}
-                            action={
-                              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                                <WordCountBadge text={resumeData.summary||""} />
-                                <button onClick={handleGenerateSummary} disabled={loading}
-                                  style={{ display:"flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:T.radius,
-                                    border:`1.5px solid ${T.accent}30`, background:T.accentLight, color:T.accent,
-                                    fontSize:11, fontWeight:700, cursor:"pointer", transition:"all 0.15s", opacity:loading?0.5:1 }}>
-                                  {loading&&aiAction==="summary" ? <Loader2 size={11} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={11} />}
-                                  AI Generate
-                                </button>
-                              </div>
-                            }>
-                            <div id="field-summary"><Textarea value={resumeData.summary||""} onChange={(e:any)=>set(d=>({...d,summary:e.target.value}))} rows={10} placeholder="Professional summary..." /></div>
-                            <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6 }}>
-                              <Coins size={10} style={{ color:T.textTertiary }} />
-                              <p style={{ fontSize:10, color:T.textTertiary, margin:0 }}>AI Generate uses <strong>5 credits</strong></p>
-                            </div>
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "experience" && (
-                          <EntSectionContent title="Experience" icon={<Briefcase size={14} style={{ color:"#2563eb" }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                              {(resumeData.experience||[]).map((exp:any,i:number)=>(
-                                <div key={i} id={`editor-experience-${i}`}><SectionCard>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                                    <span style={{ fontSize:12, fontWeight:700, color:"#2563eb" }}>{exp.company||`Experience #${i+1}`}</span>
-                                    <button onClick={()=>removeExperience(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
-                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
-                                    <div><Label>Company</Label><Inp value={exp.company||""} onChange={(e:any)=>updateExperience(i,"company",e.target.value)} /></div>
-                                    <div><Label>Role</Label><Inp value={exp.role||""} onChange={(e:any)=>updateExperience(i,"role",e.target.value)} /></div>
-                                  </div>
-                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:10 }}>
-                                    <div><Label>Location</Label><Inp value={exp.location||""} onChange={(e:any)=>updateExperience(i,"location",e.target.value)} /></div>
-                                    <div><Label>Period</Label><Inp value={exp.period||""} onChange={(e:any)=>updateExperience(i,"period",e.target.value)} /></div>
-                                  </div>
-                                  <Label>Bullets</Label>
-                                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                                    {(exp.bullets||[]).map((b:string,bi:number)=>(
-                                      <div key={bi} style={{ display:"flex", gap:5 }}>
-                                        <Textarea value={b} onChange={(e:any)=>updateBullet("experience",i,bi,e.target.value)} rows={2} />
-                                        <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                                          <Tooltip tip="AI rewrite (5 credits)" side="right">
-                                            <button onClick={()=>handleRewriteBullet("experience",i,bi)} disabled={rewritingBullet===`experience-${i}-${bi}`}
-                                              style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
-                                              onMouseEnter={e=>{(e.currentTarget as any).style.color=T.purple;(e.currentTarget as any).style.borderColor=T.purple+"50";}}
-                                              onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
-                                              {rewritingBullet===`experience-${i}-${bi}` ? <Loader2 size={12} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={12} />}
-                                            </button>
-                                          </Tooltip>
-                                          <button onClick={()=>removeBullet("experience",i,bi)}
-                                            style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
-                                            onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
-                                            onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
-                                            <Trash2 size={12} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <AddButton onClick={()=>addBullet("experience",i)} label="Add Bullet" color="#2563eb" small />
-                                </SectionCard></div>
-                              ))}
-                            </div>
-                            <AddButton onClick={addExperience} label="Add Experience" color="#2563eb" />
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "projects" && (
-                          <EntSectionContent title="Projects" icon={<Code size={14} style={{ color:T.purple }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                              {(resumeData.projects||[]).map((p:any,i:number)=>(
-                                <div key={i} id={`editor-projects-${i}`}><SectionCard>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                                    <span style={{ fontSize:12, fontWeight:700, color:T.purple }}>{p.title||`Project #${i+1}`}</span>
-                                    <button onClick={()=>removeProject(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
-                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
-                                    <div><Label>Title</Label><Inp value={p.title||p.name||""} onChange={(e:any)=>updateProject(i,"title",e.target.value)} /></div>
-                                    <div><Label>Period</Label><Inp value={p.period||""} onChange={(e:any)=>updateProject(i,"period",e.target.value)} /></div>
-                                  </div>
-                                  <div style={{ marginBottom:10 }}><Label>Tech Stack</Label><Inp value={p.tech||""} onChange={(e:any)=>updateProject(i,"tech",e.target.value)} /></div>
-                                  <Label>Bullets</Label>
-                                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                                    {(p.bullets||[]).map((b:string,bi:number)=>(
-                                      <div key={bi} style={{ display:"flex", gap:5 }}>
-                                        <Textarea value={b} onChange={(e:any)=>updateBullet("projects",i,bi,e.target.value)} rows={2} />
-                                        <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                                          <Tooltip tip="AI rewrite (5 credits)" side="right">
-                                            <button onClick={()=>handleRewriteBullet("projects",i,bi)} disabled={rewritingBullet===`projects-${i}-${bi}`}
-                                              style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
-                                              onMouseEnter={e=>{(e.currentTarget as any).style.color=T.purple;(e.currentTarget as any).style.borderColor=T.purple+"50";}}
-                                              onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
-                                              {rewritingBullet===`projects-${i}-${bi}` ? <Loader2 size={12} style={{ animation:"spin 1s linear infinite" }} /> : <Wand2 size={12} />}
-                                            </button>
-                                          </Tooltip>
-                                          <button onClick={()=>removeBullet("projects",i,bi)}
-                                            style={{ padding:5, border:`1.5px solid ${T.border}`, borderRadius:6, background:T.bg, cursor:"pointer", color:T.textTertiary, transition:"all 0.15s" }}
-                                            onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
-                                            onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
-                                            <Trash2 size={12} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <AddButton onClick={()=>addBullet("projects",i)} label="Add Bullet" color={T.purple} small />
-                                </SectionCard></div>
-                              ))}
-                            </div>
-                            <AddButton onClick={addProject} label="Add Project" color={T.purple} />
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "education" && (
-                          <EntSectionContent title="Education" icon={<GraduationCap size={14} style={{ color:T.success }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                              {(resumeData.education||[]).map((e:any,i:number)=>(
-                                <div key={i} id={`editor-education-${i}`}><SectionCard>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                                    <span style={{ fontSize:12, fontWeight:700, color:T.success }}>{e.school||`Education #${i+1}`}</span>
-                                    <button onClick={()=>removeEducation(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
-                                      onMouseEnter={ev=>(ev.currentTarget as any).style.color=T.danger} onMouseLeave={ev=>(ev.currentTarget as any).style.color=T.textTertiary}>
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                  <div style={{ marginBottom:7 }}><Label>School</Label><Inp value={e.school||e.institution||""} onChange={(ev:any)=>updateEducation(i,"school",ev.target.value)} /></div>
-                                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
-                                    <div><Label>Degree</Label><Inp value={e.degree||""} onChange={(ev:any)=>updateEducation(i,"degree",ev.target.value)} /></div>
-                                    <div><Label>Period</Label><Inp value={e.period||e.year||""} onChange={(ev:any)=>updateEducation(i,"period",ev.target.value)} /></div>
-                                  </div>
-                                  <div><Label>GPA</Label><Inp value={e.gpa||""} onChange={(ev:any)=>updateEducation(i,"gpa",ev.target.value)} /></div>
-                                </SectionCard></div>
-                              ))}
-                            </div>
-                            <AddButton onClick={addEducation} label="Add Education" color={T.success} />
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "skills" && (
-                          <EntSectionContent title="Skills" icon={<Wrench size={14} style={{ color:T.warning }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                              {(resumeData.skillCategories||[]).map((c:any,i:number)=>(
-                                <div key={i} id={`editor-skills-${i}`}><SectionCard>
-                                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                                    <span style={{ fontSize:12, fontWeight:700, color:T.warning }}>{c.name||`Category #${i+1}`}</span>
-                                    <button onClick={()=>removeSkillCategory(i)} style={{ border:"none", background:"none", cursor:"pointer", color:T.textTertiary, padding:4 }}
-                                      onMouseEnter={e=>(e.currentTarget as any).style.color=T.danger} onMouseLeave={e=>(e.currentTarget as any).style.color=T.textTertiary}>
-                                      <Trash2 size={13} />
-                                    </button>
-                                  </div>
-                                  <div style={{ marginBottom:7 }}><Label>Category Name</Label><Inp value={c.name||""} onChange={(e:any)=>updateSkillCategory(i,"name",e.target.value)} /></div>
-                                  <div><Label>Skills (comma separated)</Label><Textarea value={c.skills||""} onChange={(e:any)=>updateSkillCategory(i,"skills",e.target.value)} rows={2} /></div>
-                                </SectionCard></div>
-                              ))}
-                            </div>
-                            <AddButton onClick={addSkillCategory} label="Add Category" color={T.warning} />
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "certifications" && (
-                          <EntSectionContent title="Certifications" icon={<Award size={14} style={{ color:"#db2777" }} />}>
-                            <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-                              {(resumeData.certifications||[]).map((c:any,i:number)=>(
-                                <div key={i} style={{ display:"flex", gap:5 }}>
-                                  <Inp value={typeof c==="string"?c:c?.name||""} onChange={(e:any)=>updateCertification(i,e.target.value)} placeholder="AWS Certified — Amazon (2024)" />
-                                  <button onClick={()=>removeCertification(i)} style={{ padding:6, border:`1.5px solid ${T.border}`, borderRadius:T.radius, background:T.bg, cursor:"pointer", color:T.textTertiary, flexShrink:0, transition:"all 0.15s" }}
-                                    onMouseEnter={e=>{(e.currentTarget as any).style.color=T.danger;(e.currentTarget as any).style.borderColor=T.danger+"40";}}
-                                    onMouseLeave={e=>{(e.currentTarget as any).style.color=T.textTertiary;(e.currentTarget as any).style.borderColor=T.border;}}>
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                            <AddButton onClick={addCertification} label="Add Certification" color="#db2777" />
-                          </EntSectionContent>
-                        )}
-
-                        {editSection === "order" && (
-                          <EntSectionContent title="Section Order" icon={<Layers size={14} style={{ color:T.textSecondary }} />}>
-                            <p style={{ fontSize:11, color:T.textTertiary, marginBottom:12, lineHeight:1.6 }}>Reorder sections as they appear on your resume.</p>
-                            <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                              {sectionOrder.map((id,idx)=>{
-                                const m = SECTION_META[id];
-                                return (
-                                  <div key={id} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 10px",
-                                    background:T.bg, border:`1.5px solid ${T.border}`, borderRadius:T.radiusMd }}>
-                                    <GripVertical size={13} style={{ color:T.textTertiary }} />
-                                    <div style={{ width:22, height:22, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center",
-                                      background:m.color+"15", border:`1px solid ${m.color}25` }}>
-                                      <m.Icon size={11} style={{ color:m.color }} />
-                                    </div>
-                                    <span style={{ flex:1, fontSize:12, fontWeight:600, color:T.textSecondary }}>{m.label}</span>
-                                    <div style={{ display:"flex", gap:2 }}>
-                                      <button onClick={()=>moveSection(idx,-1)} disabled={idx===0}
-                                        style={{ padding:4, borderRadius:5, border:`1px solid ${T.border}`, background:T.bgPanel,
-                                          cursor:idx===0?"not-allowed":"pointer", color:idx===0?T.textTertiary+"50":T.textTertiary }}>
-                                        <ChevronUp size={12} />
-                                      </button>
-                                      <button onClick={()=>moveSection(idx,1)} disabled={idx===sectionOrder.length-1}
-                                        style={{ padding:4, borderRadius:5, border:`1px solid ${T.border}`, background:T.bgPanel,
-                                          cursor:idx===sectionOrder.length-1?"not-allowed":"pointer", color:idx===sectionOrder.length-1?T.textTertiary+"50":T.textTertiary }}>
-                                        <ChevronDown size={12} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </EntSectionContent>
-                        )}
+                        {/* Add Custom Section button */}
+                        <button onClick={addCustomSection}
+                          style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px",
+                            borderRadius:T.radius, cursor:"pointer", border:`1.5px dashed #8b5cf640`,
+                            background:"rgba(139,92,246,0.04)", color:"#8b5cf6cc",
+                            fontSize:11, fontWeight:700, transition:"all 0.13s", marginTop:8 }}
+                          onMouseEnter={e=>{(e.currentTarget as any).style.background="rgba(139,92,246,0.10)";(e.currentTarget as any).style.borderColor="#8b5cf680";(e.currentTarget as any).style.color="#8b5cf6";}}
+                          onMouseLeave={e=>{(e.currentTarget as any).style.background="rgba(139,92,246,0.04)";(e.currentTarget as any).style.borderColor="#8b5cf640";(e.currentTarget as any).style.color="#8b5cf6cc";}}>
+                          <Plus size={12} /> Add Custom Section
+                        </button>
                       </>
                     )}
 
@@ -1760,7 +1892,6 @@ export default function ResumePage() {
             const target = sectionMap[base];
             if (!target) return;
 
-            // Determine the precise field ID to scroll to
             let fieldId: string | null = null;
             if (target === "personal") fieldId = "field-personal-name";
             else if (target === "summary") fieldId = "field-summary";
@@ -1874,7 +2005,7 @@ function EntPanelHeader({ activeTab }: { activeTab: TabId }) {
   );
 }
 
-function EntSectionContent({ title, icon, action, children }: { title:string; icon:React.ReactNode; action?:React.ReactNode; children:React.ReactNode }) {
+function EntSectionContent({ title, icon, action, children }: { title:React.ReactNode; icon:React.ReactNode; action?:React.ReactNode; children:React.ReactNode }) {
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>

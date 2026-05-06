@@ -1,13 +1,8 @@
 // app/real-interview/_hooks/useSession.ts
-// Handles all Firestore session save / load logic
+// All session I/O goes through /api/sessions (Firebase Admin SDK on the server),
+// so Firestore client security rules never block saves or reads.
 
-import { useState, useCallback } from "react";
-import {
-  collection, addDoc, getDocs,
-  query, where, orderBy,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { useState, useRef, useCallback } from "react";
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -19,13 +14,14 @@ export type Turn = {
 
 export type Session = {
   id:            string;
-  createdAt:     any;
+  createdAt:     any;           // raw from API — use formatDate() to display
   companyName:   string;
   role:          string;
   resumeSnippet: string;
   turns:         Turn[];
   questionCount: number;
   durationSecs:  number;
+  _createdAtSeconds?: number;  // pre-computed for sorting
 };
 
 // ─────────────────────────────────────────────
@@ -37,7 +33,56 @@ export function useSession(userEmail: string) {
   const [saving,    setSaving]    = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // ── SAVE SESSION ──
+  // Current live session's Firestore document ID.
+  // null = no session created yet (first Q&A will create one).
+  const sessionDocId = useRef<string | null>(null);
+
+  // ── UPSERT SESSION ────────────────────────────────────────────────────────
+  // Creates a Firestore doc on the first call, then updates it on subsequent
+  // calls — same behaviour as the Windows native app writing to a .txt file
+  // after every Q&A exchange.
+  const upsertSession = useCallback(async (payload: {
+    companyName:   string;
+    role:          string;
+    resume:        string;
+    turns:         Turn[];
+    durationSecs:  number;
+  }) => {
+    if (!userEmail || !payload.turns || payload.turns.length === 0) return;
+
+    try {
+      const res = await fetch("/api/sessions", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail,
+          sessionId:    sessionDocId.current,   // null = create, string = update
+          companyName:  payload.companyName  || "Unknown",
+          role:         payload.role         || "Unknown",
+          resume:       payload.resume       || "",
+          turns:        payload.turns,
+          durationSecs: payload.durationSecs || 0,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("[session] Save failed:", data.error);
+        return;
+      }
+
+      // Store the doc ID so future calls update rather than create
+      if (data.sessionId && !sessionDocId.current) {
+        sessionDocId.current = data.sessionId;
+        console.log("[session] Created →", data.sessionId);
+      }
+    } catch (err) {
+      console.error("[session] upsertSession error:", err);
+    }
+  }, [userEmail]);
+
+  // ── SAVE SESSION (kept for endSession compat) ─────────────────────────────
   const saveSession = useCallback(async (payload: {
     companyName:   string;
     role:          string;
@@ -45,59 +90,68 @@ export function useSession(userEmail: string) {
     turns:         Turn[];
     durationSecs:  number;
   }) => {
-    if (!userEmail || payload.turns.length === 0) return;
+    if (!userEmail || !payload.turns || payload.turns.length === 0) return;
     setSaving(true);
-    try {
-      await addDoc(collection(db, "interview_sessions"), {
-        userEmail:     userEmail,
-        companyName:   payload.companyName  || "Unknown",
-        role:          payload.role         || "Unknown",
-        resumeSnippet: payload.resume.slice(0, 300),
-        turns:         payload.turns,
-        questionCount: payload.turns.filter(t => t.role === "interviewer").length,
-        durationSecs:  payload.durationSecs,
-        createdAt:     serverTimestamp(),
-      });
-    } catch (err) {
-      console.error("Session save error:", err);
-    }
+    await upsertSession(payload);
     setSaving(false);
-  }, [userEmail]);
+  }, [userEmail, upsertSession]);
 
-  // ── LOAD SESSIONS ──
+  // ── RESET SESSION ID ──────────────────────────────────────────────────────
+  // Call when starting a new session so the next upsertSession creates a
+  // fresh Firestore document instead of appending to the previous one.
+  const resetSessionId = useCallback(() => {
+    sessionDocId.current = null;
+  }, []);
+
+  // ── LOAD SESSIONS ─────────────────────────────────────────────────────────
   const loadSessions = useCallback(async () => {
     if (!userEmail) return;
     setLoading(true);
+    setLoadError(null);
+
     try {
-      const q = query(
-        collection(db, "interview_sessions"),
-        where("userEmail", "==", userEmail),
-        orderBy("createdAt", "desc")
+      const res = await fetch(
+        `/api/sessions?email=${encodeURIComponent(userEmail)}`
       );
-      const snap = await getDocs(q);
-      const docs = snap.docs.map(d => ({
-        id:            d.id,
-        createdAt:     d.data().createdAt,
-        companyName:   d.data().companyName   || "Unknown",
-        role:          d.data().role          || "Unknown",
-        resumeSnippet: d.data().resumeSnippet || "",
-        turns:         d.data().turns         || [],
-        questionCount: d.data().questionCount || 0,
-        durationSecs:  d.data().durationSecs  || 0,
-      })) as Session[];
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoadError(data.error || "Failed to load sessions.");
+        setLoading(false);
+        return;
+      }
+
+      const docs: Session[] = (data.sessions || []).map((d: any) => ({
+        id:                 d.id,
+        createdAt:          d.createdAt,
+        _createdAtSeconds:  d._createdAtSeconds ?? 0,
+        companyName:        d.companyName   || "Unknown",
+        role:               d.role          || "Unknown",
+        resumeSnippet:      d.resumeSnippet || "",
+        turns:              d.turns         || [],
+        questionCount:      d.questionCount || 0,
+        durationSecs:       d.durationSecs  || 0,
+      }));
+
       setSessions(docs);
     } catch (err: any) {
-      console.error("Session load error:", err);
-      setLoadError("Failed to load sessions. Please refresh and try again.");
+      console.error("[session] loadSessions error:", err);
+      setLoadError("Could not load sessions. Check your connection and try again.");
     }
+
     setLoading(false);
   }, [userEmail]);
 
-  // ── FORMAT DATE ──
+  // ── FORMAT DATE ───────────────────────────────────────────────────────────
+  // Handles both Admin SDK timestamps ({ _seconds }) and client SDK Timestamps
   const formatDate = (ts: any): string => {
     if (!ts) return "—";
     try {
-      const date = ts.toDate ? ts.toDate() : new Date(ts);
+      let date: Date;
+      if (typeof ts._seconds === "number")      date = new Date(ts._seconds * 1000);
+      else if (typeof ts.seconds === "number")  date = new Date(ts.seconds  * 1000);
+      else if (ts.toDate)                       date = ts.toDate();
+      else                                      date = new Date(ts);
       return date.toLocaleDateString("en-US", {
         month: "short", day: "numeric", year: "numeric",
         hour: "2-digit", minute: "2-digit",
@@ -105,7 +159,7 @@ export function useSession(userEmail: string) {
     } catch { return "—"; }
   };
 
-  // ── FORMAT DURATION ──
+  // ── FORMAT DURATION ───────────────────────────────────────────────────────
   const formatDuration = (secs: number): string => {
     const safe = Math.floor(secs ?? 0);
     if (!safe || Number.isNaN(safe)) return "0:00";
@@ -120,6 +174,8 @@ export function useSession(userEmail: string) {
     saving,
     loadError,
     saveSession,
+    upsertSession,
+    resetSessionId,
     loadSessions,
     formatDate,
     formatDuration,
