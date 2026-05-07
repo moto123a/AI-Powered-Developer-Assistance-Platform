@@ -119,7 +119,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-[#030305] text-white">
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />}
 
       {/* Header */}
       <div className="max-w-7xl mx-auto px-6 pt-20 pb-16 text-center">
