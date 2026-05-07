@@ -67,7 +67,7 @@ export default function DashboardPage() {
     <div className="min-h-screen antialiased"
       style={{ background: C.pageBg, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />}
 
       {/* ── NAV ── */}
       <nav className="sticky top-0 z-30 border-b shadow-sm"
