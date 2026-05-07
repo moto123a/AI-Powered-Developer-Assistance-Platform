@@ -156,7 +156,7 @@ export default function RealInterviewPage() {
     <div className="min-h-screen overflow-x-hidden"
       style={{ background: PG, fontFamily: "'DM Sans', 'Inter', system-ui, sans-serif" }}>
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />}
 
       {!user ? (
         /* ── NOT SIGNED IN ── */
