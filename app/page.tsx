@@ -8,6 +8,7 @@ import { auth, db } from "./firebaseConfig";
 import { doc, updateDoc, arrayUnion, collection, addDoc } from "firebase/firestore";
 import CreditsBadge from "../components/CreditsBadge";
 import Footer from "../components/Footer";
+import AuthModal from "../components/AuthModal";
 
 import HeroSection from "../components/home/HeroSection";
 import DownloadSection from "../components/home/DownloadSection";
@@ -26,17 +27,16 @@ const MAC_DOWNLOAD     = "/InterviewCopilotMac-1.0.0.pkg";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser]         = useState<any>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const [mounted, setMounted]   = useState(false);
-  const [detectedOS, setDetectedOS] = useState<"win" | "mac" | "other">("other");
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [user, setUser]               = useState<any>(null);
+  const [showMenu, setShowMenu]       = useState(false);   // profile dropdown
+  const [showMobile, setShowMobile]   = useState(false);   // mobile nav drawer
+  const [authModal, setAuthModal]     = useState<{ open: boolean; mode: "signin" | "signup" }>({ open: false, mode: "signin" });
+  const [mounted, setMounted]         = useState(false);
+  const [detectedOS, setDetectedOS]   = useState<"win" | "mac" | "other">("other");
+  const menuRef   = useRef<HTMLDivElement>(null);
+  const mobileRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-  const headerBg = useTransform(scrollYProgress, [0, 0.05], ["rgba(10,14,39,0.6)", "rgba(10,14,39,0.97)"]);
-
-  useEffect(() => {
-    // dark theme - no light-page class needed
-  }, []);
+  const headerBg = useTransform(scrollYProgress, [0, 0.05], ["rgba(250,247,255,0.50)", "rgba(252,250,255,0.96)"]);
 
   useEffect(() => {
     const ua = navigator.userAgent;
@@ -46,6 +46,8 @@ export default function Home() {
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { const u = onAuthStateChanged(auth, setUser); return () => u(); }, []);
+
+  // Close profile dropdown on outside click
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
@@ -53,6 +55,15 @@ export default function Home() {
     if (showMenu) document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [showMenu]);
+
+  // Close mobile drawer on outside click
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (mobileRef.current && !mobileRef.current.contains(e.target as Node)) setShowMobile(false);
+    };
+    if (showMobile) document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [showMobile]);
 
   useEffect(() => {
     if (!document.querySelector('link[href*="Inter"]')) {
@@ -63,8 +74,9 @@ export default function Home() {
   }, []);
 
   const go = (path: string) => {
-    if (!user && path !== "pricing" && path !== "resume") {
-      router.push("/login?redirect=/" + path); return;
+    // Only pricing is public — everything else requires sign-in
+    if (!user && path !== "pricing") {
+      setAuthModal({ open: true, mode: "signin" }); return;
     }
     router.push("/" + path);
   };
@@ -72,7 +84,7 @@ export default function Home() {
   const handleLogout = async () => {
     await signOut(auth);
     document.cookie = "coopilotx_session=; path=/; max-age=0";
-    setUser(null); setShowMenu(false); router.push("/login");
+    setUser(null); setShowMenu(false);
   };
 
   const download = async (os: "win" | "mac") => {
@@ -90,74 +102,238 @@ export default function Home() {
   return (
     <main className="bg-white text-gray-900 overflow-x-hidden" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
+      {/* Scroll progress bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 z-[100] h-[3px] bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500"
-        style={{ scaleX: scrollYProgress, transformOrigin: "0%" }}
+        className="fixed top-0 left-0 right-0 z-[100] h-[3px]"
+        style={{ scaleX: scrollYProgress, transformOrigin: "0%", background: "linear-gradient(90deg, #7c3aed, #ea580c)" }}
       />
 
-      <motion.header style={{ backgroundColor: headerBg as any }}
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
-          <div className="flex items-center gap-2.5 mr-8 cursor-pointer" onClick={() => router.push("/")}>
-            <img src="/logo.jpeg" alt="CoopilotX" className="w-7 h-7 rounded-lg shadow-sm" />
-            <span className="text-[15px] font-bold tracking-tight text-white">
+      {/* ══════════════ NAVBAR ══════════════ */}
+      <motion.header
+        style={{ backgroundColor: headerBg as any, borderBottom: "1px solid rgba(124,58,237,0.07)" }}
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl">
+
+        <div className="max-w-7xl mx-auto px-5 h-16 flex items-center gap-3">
+
+          {/* ── Logo ── */}
+          <button onClick={() => router.push("/")}
+            className="flex items-center gap-2.5 flex-shrink-0 group">
+            <img src="/logo.jpeg" alt="CoopilotX" className="w-8 h-8 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
+            <span className="text-[15px] font-extrabold tracking-tight text-gray-900">
               CoopilotX{" "}
-              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">AI</span>
+              <span style={{ background: "linear-gradient(135deg, #7c3aed, #ea580c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>AI</span>
             </span>
-          </div>
-          <div className="hidden md:block w-px h-4 bg-white/10 mr-5" />
-          <nav className="hidden md:flex items-center gap-0.5 flex-1">
+          </button>
+
+          {/* ── Divider ── */}
+          <div className="hidden lg:block w-px h-5 bg-gray-200 mx-1 flex-shrink-0" />
+
+          {/* ── Nav links — desktop (lg+) ── */}
+          <nav className="hidden lg:flex items-center gap-0 flex-1">
             {[
               { label: "Resume",         path: "resume" },
               { label: "Mock Interview", path: "mock-interview" },
-              { label: "Real-Time",      path: "real-interview" },
+              { label: "Real-Time AI",   path: "real-interview" },
               { label: "Pricing",        path: "pricing" },
             ].map(item => (
               <button key={item.path} onClick={() => go(item.path)}
-                className="px-3.5 py-1.5 text-[13px] font-medium text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-all">
+                className="px-4 py-2 text-[13px] font-semibold text-gray-600 hover:text-violet-700 hover:bg-violet-50/70 rounded-lg transition-all duration-150 whitespace-nowrap">
                 {item.label}
               </button>
             ))}
           </nav>
-          <div className="flex items-center gap-2 ml-auto">
+
+          {/* Spacer (md, no nav links) */}
+          <div className="flex-1 lg:hidden" />
+
+          {/* ── Download pills — md+ ── */}
+          <div className="hidden md:flex items-center gap-2 mr-1">
+            <button onClick={() => download("win")}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
+              style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.28)" }}>
+              <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+              </svg>
+              Windows
+            </button>
+            <button onClick={() => download("mac")}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-gray-700 bg-white border border-gray-200 hover:border-violet-300 hover:text-violet-700 rounded-full transition-all active:scale-[0.97] shadow-sm whitespace-nowrap">
+              <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+              </svg>
+              macOS
+            </button>
+          </div>
+
+          {/* ── Thin separator ── */}
+          <div className="hidden md:block w-px h-5 bg-gray-200 flex-shrink-0" />
+
+          {/* ── Auth cluster — always visible ── */}
+          <div className="flex items-center gap-2">
             <CreditsBadge />
+
             {!user ? (
               <>
-                <button onClick={() => router.push("/login?mode=signin")}
-                  className="px-4 py-1.5 text-[13px] font-medium text-gray-400 hover:text-white transition-colors">
+                {/* Log in — always visible on all screen sizes */}
+                <button onClick={() => setAuthModal({ open: true, mode: "signin" })}
+                  className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-600 hover:text-violet-700 transition-colors whitespace-nowrap rounded-lg hover:bg-violet-50/70">
                   Log in
                 </button>
-                <button onClick={() => router.push("/login?mode=signup")}
-                  className="px-4 py-1.5 text-[13px] font-bold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-all shadow-sm">
-                  Get started free
+
+                {/* Get started — primary CTA */}
+                <button onClick={() => setAuthModal({ open: true, mode: "signup" })}
+                  className="px-4 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
+                  style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.30)" }}>
+                  <span className="hidden sm:inline">Get started free</span>
+                  <span className="sm:hidden">Sign up</span>
                 </button>
               </>
             ) : (
+              /* Logged-in: avatar + dropdown */
               <div className="relative" ref={menuRef}>
-                <button onClick={() => setShowMenu(!showMenu)} className="focus:outline-none">
+                <button onClick={() => setShowMenu(v => !v)}
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-violet-50 transition-all group focus:outline-none">
                   <img
                     src={user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                     alt="Profile"
-                    className="w-8 h-8 rounded-full border-2 border-indigo-200 hover:border-indigo-400 transition-colors"
+                    className="w-7 h-7 rounded-full border-2 border-violet-200 group-hover:border-violet-400 transition-colors shadow-sm"
                   />
+                  <svg className={`w-3 h-3 text-gray-400 transition-transform ${showMenu ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
+
                 {showMenu && (
-                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-                    className="absolute right-0 mt-2 w-56 bg-[#161b22] border border-white/10 rounded-xl shadow-xl overflow-hidden">
-                    <div className="p-4 border-b border-white/10">
-                      <p className="text-sm font-semibold text-white truncate">{user.displayName || user.email}</p>
-                      <p className="text-xs text-gray-400 mt-0.5 truncate">{user.email}</p>
+                  <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-60 rounded-2xl shadow-xl overflow-hidden bg-white"
+                    style={{ border: "1px solid rgba(124,58,237,0.10)", boxShadow: "0 16px 48px rgba(0,0,0,0.10), 0 4px 12px rgba(124,58,237,0.08)" }}>
+                    {/* User info */}
+                    <div className="px-4 py-3.5 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                          alt="Profile"
+                          className="w-9 h-9 rounded-full border border-violet-100"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold text-gray-900 truncate">{user.displayName || "User"}</p>
+                          <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                        </div>
+                      </div>
                     </div>
-                    <button onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                      Sign Out
-                    </button>
+                    {/* Menu items */}
+                    <div className="p-1.5">
+                      {[
+                        { label: "Real-Time AI",   path: "real-interview", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
+                        { label: "Mock Interview",  path: "mock-interview", icon: "M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" },
+                        { label: "Resume Builder",  path: "resume",        icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+                        { label: "Pricing",         path: "pricing",       icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
+                      ].map(item => (
+                        <button key={item.path} onClick={() => { go(item.path); setShowMenu(false); }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium text-gray-700 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-all">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                          </svg>
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Sign out */}
+                    <div className="p-1.5 border-t border-gray-100">
+                      <button onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        Sign out
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </div>
             )}
+
+            {/* ── Hamburger — < lg only ── */}
+            <button onClick={() => setShowMobile(v => !v)}
+              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 hover:text-violet-700 hover:bg-violet-50 transition-all">
+              {showMobile ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* ══ Mobile drawer — slides down from nav ══ */}
+        {showMobile && (
+          <motion.div ref={mobileRef}
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18 }}
+            className="lg:hidden border-t border-gray-100 bg-white/98 backdrop-blur-xl">
+
+            {/* Nav links */}
+            <div className="px-4 pt-3 pb-2 space-y-0.5">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Features</p>
+              {[
+                { label: "Resume Builder",  path: "resume",         icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+                { label: "Mock Interview",  path: "mock-interview", icon: "M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" },
+                { label: "Real-Time AI",    path: "real-interview", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
+                { label: "Pricing",         path: "pricing",        icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
+              ].map(item => (
+                <button key={item.path} onClick={() => { go(item.path); setShowMobile(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-semibold text-gray-700 hover:text-violet-700 hover:bg-violet-50 rounded-xl transition-all">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                  </svg>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Download — only on < md (md+ already shows pills in navbar) */}
+            <div className="px-4 pb-3 md:hidden">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Download App</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => { download("win"); setShowMobile(false); }}
+                  className="flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-white rounded-xl"
+                  style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)" }}>
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                  </svg>
+                  Windows
+                </button>
+                <button onClick={() => { download("mac"); setShowMobile(false); }}
+                  className="flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-gray-700 bg-gray-100 border border-gray-200 rounded-xl">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+                  </svg>
+                  macOS
+                </button>
+              </div>
+            </div>
+
+            {/* Auth row */}
+            {!user && (
+              <div className="px-4 pb-4 border-t border-gray-100 pt-3 flex gap-2">
+                <button onClick={() => { setAuthModal({ open: true, mode: "signin" }); setShowMobile(false); }}
+                  className="flex-1 py-2.5 text-[13px] font-semibold text-gray-700 border border-gray-200 hover:border-violet-300 hover:text-violet-700 rounded-xl transition-all">
+                  Log in
+                </button>
+                <button onClick={() => { setAuthModal({ open: true, mode: "signup" }); setShowMobile(false); }}
+                  className="flex-1 py-2.5 text-[13px] font-bold text-white rounded-xl transition-all"
+                  style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)" }}>
+                  Get started free
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
       </motion.header>
 
       {/* ── RESUME BUILDER SECTION ── */}
@@ -225,6 +401,13 @@ export default function Home() {
       <CtaSection onNav={go} />
       <Footer />
 
+      {/* ── Auth modal — opens on Log in / Get started, never leaves the page ── */}
+      <AuthModal
+        open={authModal.open}
+        initialMode={authModal.mode}
+        onClose={() => setAuthModal(v => ({ ...v, open: false }))}
+        onSuccess={() => setAuthModal(v => ({ ...v, open: false }))}
+      />
     </main>
   );
 }
