@@ -1,36 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/terms", "/privacy"];
-
-const PUBLIC_PREFIXES = [
-  "/_next",
-  "/api",
-  "/favicon",
-  "/logo",
-  "/app.msixbundle",
-  "/InterviewCopilotMac",
+/**
+ * Only these routes require a valid session cookie.
+ * Everything else (home, pricing, terms, etc.) is publicly accessible.
+ * Auth for protected pages is handled client-side via Firebase + modal.
+ */
+const PROTECTED_PREFIXES = [
+  "/real-interview",
+  "/mock-interview",
+  "/resume",
+  "/admin",
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always allow static files and api routes
-  if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-    return NextResponse.next();
-  }
-
-  // Always allow public routes
-  if (PUBLIC_ROUTES.includes(pathname)) {
-    return NextResponse.next();
-  }
+  // Only apply auth check to protected routes
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  if (!isProtected) return NextResponse.next();
 
   // Check for session cookie set by AuthProvider
   const sessionCookie = request.cookies.get("coopilotx_session");
-
   if (!sessionCookie) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    // No session — let the page through; client-side Firebase will show the auth modal
+    return NextResponse.next();
   }
 
   return NextResponse.next();

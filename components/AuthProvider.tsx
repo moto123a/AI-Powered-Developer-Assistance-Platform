@@ -13,7 +13,8 @@ const AuthContext = createContext<AuthContextType>({ user: null, loading: true }
 
 export const useAuth = () => useContext(AuthContext);
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/terms", "/privacy"];
+// Routes that require a logged-in user
+const PROTECTED_PREFIXES = ["/real-interview", "/mock-interview", "/resume", "/admin"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -27,25 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
 
       if (firebaseUser) {
-        // Set session cookie so middleware can verify auth
+        // Keep session cookie fresh so middleware can verify auth
         const token = await firebaseUser.getIdToken();
         document.cookie = `coopilotx_session=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
-
-        // If on login page and now authenticated, redirect to destination
-        if (pathname === "/login" || pathname === "/signup") {
-          const params = new URLSearchParams(window.location.search);
-          const redirect = params.get("redirect") || "/";
-          // Prevent redirect loops — never redirect back to login/signup
-          const safeDest = PUBLIC_ROUTES.includes(redirect) ? "/" : redirect;
-          router.replace(safeDest);
-        }
       } else {
         // Clear session cookie on logout
         document.cookie = "coopilotx_session=; path=/; max-age=0";
 
-        // If on protected route and not authenticated, redirect to login
-        if (!PUBLIC_ROUTES.includes(pathname)) {
-          router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+        // Only redirect away from protected routes — home page stays public
+        const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+        if (isProtected) {
+          router.replace("/");
         }
       }
     });

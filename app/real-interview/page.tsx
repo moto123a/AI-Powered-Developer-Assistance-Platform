@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Loader2, Zap, BarChart2, Sparkles,
-  ArrowRight, BrainCircuit, Coins, Flame,
+  ArrowRight, Coins, Flame,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -165,9 +165,9 @@ export default function RealInterviewPage() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
-              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
-              <BrainCircuit size={26} className="text-indigo-500" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto overflow-hidden"
+              style={{ border: "1px solid rgba(124,58,237,0.2)" }}>
+              <img src="/logo.jpeg" alt="CoopilotX" className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">Sign in to continue</h1>
@@ -194,17 +194,14 @@ export default function RealInterviewPage() {
               {/* Logo — CoopilotX AI */}
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
-                    <BrainCircuit size={18} className="text-white" />
-                  </div>
+                  <img src="/logo.jpeg" alt="CoopilotX" className="w-9 h-9 rounded-xl shadow-md object-contain" />
                   <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full"
                     style={{ border: `2px solid ${PNL}` }} />
                 </div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-[16px] font-black tracking-tight text-slate-800">CoopilotX</span>
-                  <span className="text-[10px] font-black text-indigo-500 px-1.5 py-0.5 rounded-md"
-                    style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.18)" }}>
+                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md"
+                    style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.12), rgba(234,88,12,0.10))", border: "1px solid rgba(124,58,237,0.2)", color: "#7c3aed" }}>
                     AI
                   </span>
                 </div>

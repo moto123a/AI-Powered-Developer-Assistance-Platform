@@ -10,7 +10,7 @@ import {
   Mic, MicOff, Camera, CameraOff, Play, SkipForward,
   FileText, Briefcase, Search, Loader2, CheckCircle2,
   Zap, RotateCcw, Volume2, VolumeX, LayoutDashboard,
-  BrainCircuit, Target, AlertCircle, PhoneOff,
+  Target, AlertCircle, PhoneOff,
   Shield, Star, TrendingUp, Clock, Award,
   Activity, Sparkles, ArrowRight, BarChart3, Cpu,
   Coins, ChevronDown, Bolt, Flame, Gauge
@@ -697,14 +697,15 @@ export default function MockInterviewPage() {
         <div className="max-w-[1400px] mx-auto px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
-                <BrainCircuit size={18} className="text-white" />
-              </div>
+              <img src="/logo.jpeg" alt="CoopilotX" className="w-9 h-9 rounded-xl shadow-md object-contain" />
               <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-[#030308]" />
             </div>
-            <div className="flex flex-col leading-none">
-              <span className="text-[15px] font-bold tracking-tight text-white/95">InterviewOS</span>
-              <span className="text-[10px] text-white/30 font-medium tracking-widest uppercase">AI Interview Suite</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[15px] font-bold tracking-tight text-white/95">CoopilotX</span>
+              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md"
+                style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.25), rgba(234,88,12,0.20))", border: "1px solid rgba(124,58,237,0.3)", color: "#c4b5fd" }}>
+                AI
+              </span>
             </div>
           </div>
 
