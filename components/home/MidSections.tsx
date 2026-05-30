@@ -1,31 +1,61 @@
 "use client";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { FadeUp, FadeIn, Counter, COMPANIES } from "./shared";
+import { FadeUp, FadeIn, Counter, COMPANIES_ROW1, COMPANIES_ROW2 } from "./shared";
 
 /* ── TRUSTED BY ─────────────────────────────────────────────── */
 export function TrustedBySection() {
-  const doubled = [...COMPANIES, ...COMPANIES];
+  const row1 = [...COMPANIES_ROW1, ...COMPANIES_ROW1, ...COMPANIES_ROW1];
+  const row2 = [...COMPANIES_ROW2, ...COMPANIES_ROW2, ...COMPANIES_ROW2];
   return (
-    <section className="py-14 border-y border-white/5 overflow-hidden" style={{ background: "#ffffff" }}>
-      <div className="max-w-6xl mx-auto px-6 mb-8">
+    <section className="py-14 bg-white border-y border-gray-100 overflow-hidden">
+      <style>{`
+        @keyframes tickerLeft {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes tickerRight {
+          0%   { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        .ticker-left  { animation: tickerLeft  28s linear infinite; }
+        .ticker-right { animation: tickerRight 36s linear infinite; }
+        .ticker-left:hover,
+        .ticker-right:hover { animation-play-state: paused; }
+      `}</style>
+
+      <div className="max-w-6xl mx-auto px-6 mb-9">
         <FadeIn>
           <p className="text-center text-[11px] font-bold text-gray-400 uppercase tracking-[0.3em]">
             Users have landed offers at
           </p>
         </FadeIn>
       </div>
-      <div className="relative">
-        <div className="flex animate-marquee whitespace-nowrap gap-0">
-          {doubled.map((c, i) => (
-            <span key={i} className="inline-flex items-center mx-10 text-gray-400 hover:text-gray-700 font-extrabold text-lg tracking-tight transition-colors cursor-default select-none">
+
+      <div className="relative space-y-3">
+        {/* Row 1 — left (global tech) */}
+        <div className="flex ticker-left gap-3 w-max">
+          {row1.map((c, i) => (
+            <span key={i} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-500 whitespace-nowrap flex-shrink-0 hover:border-violet-200 hover:text-violet-700 hover:shadow-sm transition-all cursor-default select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
               {c}
-              <span className="ml-10 w-1.5 h-1.5 rounded-full bg-gray-300 inline-block" />
             </span>
           ))}
         </div>
-        <div className="absolute inset-y-0 left-0 w-24 pointer-events-none" style={{ background: "linear-gradient(to right, #ffffff, transparent)" }} />
-        <div className="absolute inset-y-0 right-0 w-24 pointer-events-none" style={{ background: "linear-gradient(to left, #ffffff, transparent)" }} />
+
+        {/* Row 2 — right (startups & Indian tech) */}
+        <div className="flex ticker-right gap-3 w-max">
+          {row2.map((c, i) => (
+            <span key={i} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-500 whitespace-nowrap flex-shrink-0 hover:border-indigo-200 hover:text-indigo-700 hover:shadow-sm transition-all cursor-default select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />
+              {c}
+            </span>
+          ))}
+        </div>
+
+        {/* Edge fades */}
+        <div className="absolute inset-y-0 left-0 w-28 pointer-events-none" style={{ background: "linear-gradient(to right, #ffffff, transparent)" }} />
+        <div className="absolute inset-y-0 right-0 w-28 pointer-events-none" style={{ background: "linear-gradient(to left, #ffffff, transparent)" }} />
       </div>
     </section>
   );
@@ -74,9 +104,9 @@ export function HowItWorksSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const steps = [
-    { n: "1", icon: "📄", title: "Upload Your Resume",  desc: "Paste your resume once. AI indexes every project, skill, and achievement so every answer comes from YOUR real background.", color: "bg-violet-600", border: "border-violet-500/20 bg-violet-500/5" },
+    { n: "1", icon: "📄", title: "Upload Your Resume",  desc: "Paste your resume once. The system reads every project, skill, and achievement so every answer comes from your real background.", color: "bg-violet-600", border: "border-violet-500/20 bg-violet-500/5" },
     { n: "2", icon: "🎤", title: "Start Your Interview", desc: "Open CoopilotX on desktop or web. It silently listens via mic, transcribes speech in real-time, and works invisibly on any platform.", color: "bg-indigo-600", border: "border-indigo-500/20 bg-indigo-500/5" },
-    { n: "3", icon: "⚡", title: "Get Perfect Answers",  desc: "Resume-grounded answers stream to your stealth overlay in under 2 seconds. Invisible to screen-share. Just a confident you.", color: "bg-cyan-600", border: "border-cyan-500/20 bg-cyan-500/5" },
+    { n: "3", icon: "⚡", title: "Get Perfect Answers",  desc: "Tailored answers stream to your stealth overlay in under 2 seconds. Invisible to screen-share. Just a confident you.", color: "bg-cyan-600", border: "border-cyan-500/20 bg-cyan-500/5" },
   ];
   return (
     <section className="py-24 px-6 overflow-hidden bg-white">

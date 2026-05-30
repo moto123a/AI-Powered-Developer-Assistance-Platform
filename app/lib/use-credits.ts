@@ -23,6 +23,10 @@ export function useCredits() {
   const [paywallAction, setPaywallAction] = useState("");
   const [paywallCost, setPaywallCost] = useState(0);
 
+  // Server-rejection error: client thought the user could afford it, but the
+  // server-side deduction failed (race condition, credit already spent, etc.)
+  const [serverError, setServerError] = useState<string | null>(null);
+
   // Listen to auth
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -84,10 +88,18 @@ export function useCredits() {
     }
   }, [uid]);
 
-  // Combined: check + deduct (use this before AI calls)
+  // Combined: check + deduct (use this before AI calls).
+  // Returns true only when both the local check AND the server deduction succeed.
+  // If the server rejects after the local check passed (e.g. race condition),
+  // `serverError` is set so callers can surface an error to the user.
   const checkAndDeduct = useCallback(async (action: CreditAction): Promise<boolean> => {
     if (!canAfford(action)) return false;
-    return await deductOnServer(action);
+    setServerError(null);
+    const ok = await deductOnServer(action);
+    if (!ok) {
+      setServerError("Could not deduct credits — please refresh and try again.");
+    }
+    return ok;
   }, [canAfford, deductOnServer]);
 
   return {
@@ -101,6 +113,8 @@ export function useCredits() {
     setShowPaywall,
     paywallAction,
     paywallCost,
+    serverError,
+    setServerError,
     isUnlimited: PLAN_CONFIG[plan].totalCredits === -1,
   };
 }

@@ -10,7 +10,7 @@ import {
   ArrowRight, Coins, Flame,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import AuthModal from "../../components/AuthModal";
 import SetupForm from "./_components/SetupForm";
@@ -118,10 +118,9 @@ export default function RealInterviewPage() {
       if (!u) { setShowAuth(true); return; }
       setCreditsLoading(true);
       try {
-        const q    = query(collection(db, "users"), where("email", "==", u.email));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          const data = snap.docs[0].data();
+        const snap = await getDoc(doc(db, "users", u.uid));
+        if (snap.exists()) {
+          const data = snap.data();
           setCredits(data.credits ?? 0);
           setPlan(data.plan ?? "free");
         }

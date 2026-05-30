@@ -134,7 +134,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
               </span>
               <span className="text-[11px] font-semibold text-gray-600 tracking-wide">
-                GPT-4o &nbsp;·&nbsp; Real-Time Speech AI &nbsp;·&nbsp; Stealth Mode
+                Real-Time &nbsp;·&nbsp; Stealth Mode &nbsp;·&nbsp; Sub-2s Response
               </span>
             </motion.div>
 
@@ -153,9 +153,9 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
             {/* Sub-headline — concise */}
             <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
               className="text-[1rem] text-gray-500 leading-relaxed mb-7 max-w-[420px]">
-              AI listens live, reads your resume, and whispers the{" "}
+              Listens live, reads your resume, and delivers the{" "}
               <span className="text-violet-600 font-semibold">perfect answer in 1.8s</span>
-              {" "}— completely undetectable.
+              {" "}completely undetectable.
             </motion.p>
 
             {/* ── PRIMARY: Download buttons — full width, always visible ── */}
@@ -210,7 +210,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               className="flex items-center gap-6 mb-6 flex-wrap">
               {[
                 { value: "50K+",  label: "Offers landed" },
-                { value: "1.8s",  label: "AI response" },
+                { value: "1.8s",  label: "Response time" },
                 { value: "4.9★",  label: "User rating" },
                 { value: "97%",   label: "Success rate" },
               ].map((s, i) => (
@@ -318,7 +318,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                       </div>
                     </div>
                     <p className="px-4 py-3.5 text-sm text-gray-700 leading-relaxed">
-                      "In my previous role I led a 5-person cross-functional team delivering a critical API migration in 3 weeks — on time with a{" "}
+                      "In my previous role I led a 5-person cross-functional team delivering a critical API migration in 3 weeks, on time, with a{" "}
                       <span className="font-semibold text-violet-700">40% latency reduction</span>."
                     </p>
                   </div>
@@ -376,7 +376,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </div>
               <div>
                 <div className="text-[10px] font-black text-gray-800">1.8s Response</div>
-                <div className="text-[9px] text-gray-400">Real-time AI answer</div>
+                <div className="text-[9px] text-gray-400">Real-time answer</div>
               </div>
             </motion.div>
           </motion.div>

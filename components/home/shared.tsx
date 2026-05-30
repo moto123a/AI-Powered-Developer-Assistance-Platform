@@ -75,11 +75,12 @@ export function Counter({ to, suffix = "", prefix = "" }: { to: number; suffix?:
 }
 
 export const TESTIMONIALS = [
-  { name: "Aarav Mehta",  role: "SDE-2 @ Google",         initials: "AM", grad: "from-indigo-500 to-violet-600", stars: 5, text: "Landed my Google offer after 3 weeks of practice with CoopilotX. Every answer used my actual resume — no generic filler. Got the offer and a 34% salary bump." },
-  { name: "Priya Sharma", role: "PM @ Microsoft",          initials: "PS", grad: "from-violet-500 to-pink-500",   stars: 5, text: "Used the stealth overlay in my real Microsoft interview. AI gave a perfect STAR answer in under 2 seconds. Got the offer the very next day. I still can't believe it." },
+  { name: "Aarav Mehta",  role: "SDE-2 @ Google",         initials: "AM", grad: "from-indigo-500 to-violet-600", stars: 5, text: "Landed my Google offer after 3 weeks of practice with CoopilotX. Every answer used my actual resume. No generic filler. Got the offer and a 34% salary bump." },
+  { name: "Priya Sharma", role: "PM @ Microsoft",          initials: "PS", grad: "from-violet-500 to-pink-500",   stars: 5, text: "Used the stealth overlay in my real Microsoft interview. It gave a perfect STAR answer in under 2 seconds. Got the offer the very next day. I still can't believe it." },
   { name: "Rohan Kapoor", role: "Full-Stack @ Razorpay",   initials: "RK", grad: "from-cyan-500 to-blue-600",     stars: 5, text: "Mock mode helped me practice 40+ questions. My confidence went from 3/10 to 9/10. Got 3 job offers in 2 weeks. Absolutely worth it." },
-  { name: "Sneha Iyer",   role: "Data Scientist @ Amazon", initials: "SI", grad: "from-emerald-500 to-teal-600",  stars: 5, text: "Every answer references my real projects. Interviewers kept saying great specific example — that was CoopilotX. Resume-grounded AI is the killer feature." },
+  { name: "Sneha Iyer",   role: "Data Scientist @ Amazon", initials: "SI", grad: "from-emerald-500 to-teal-600",  stars: 5, text: "Every answer references my real projects. Interviewers kept saying great specific example. That was CoopilotX. Resume-grounded answers are the standout feature." },
   { name: "Arjun Nair",   role: "ML Engineer @ Meta",      initials: "AN", grad: "from-orange-500 to-red-500",    stars: 5, text: "Built my resume with CoopilotX then used mock interviews to prep. Went from 0 callbacks to 4 interviews in one week. This product is absurdly good." },
 ];
 
-export const COMPANIES = ["Google", "Microsoft", "Amazon", "Meta", "Stripe", "Flipkart", "Atlassian", "Razorpay", "Swiggy", "Zepto"];
+export const COMPANIES_ROW1 = ["Google", "Microsoft", "Amazon", "Meta", "Apple", "Netflix", "Uber", "LinkedIn", "Salesforce", "Adobe", "Shopify", "Spotify"];
+export const COMPANIES_ROW2 = ["Flipkart", "Stripe", "Atlassian", "Razorpay", "Swiggy", "Zepto", "Zomato", "Paytm", "CRED", "Groww", "Meesho", "PhonePe"];

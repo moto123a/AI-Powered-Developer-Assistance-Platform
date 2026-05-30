@@ -28,7 +28,7 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
           <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-gray-500 bg-white border border-gray-200 mb-4 uppercase tracking-widest">Desktop App</span>
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">{heading}</h2>
           <p className="text-gray-500 text-lg max-w-lg mx-auto">
-            The stealth overlay needs the native app — completely hidden from Zoom, Teams, and Meet screen-share.
+            The stealth overlay needs the native app, completely hidden from Zoom, Teams, and Meet screen-share.
           </p>
         </FadeUp>
 
@@ -46,9 +46,9 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
                 <p className="text-gray-500 mb-7">MSIX installer · Works on Windows 10 and 11 · Auto-updates</p>
                 <button onClick={() => onDownload("win")}
                   className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-2xl shadow-[0_8px_40px_rgba(37,99,235,0.4)] hover:shadow-[0_12px_48px_rgba(37,99,235,0.55)] transition-all active:scale-[0.97]">
-                  <WinIcon className="w-6 h-6" /> Download for Windows — Free
+                  <WinIcon className="w-6 h-6" /> Download for Windows, Free
                 </button>
-                <div className="mt-6 pt-6 border-t border-white/10">
+                <div className="mt-6 pt-6 border-t border-gray-100">
                   <button onClick={() => onDownload("mac")} className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors">
                     <MacIcon className="w-4 h-4" /> Also available for macOS
                   </button>
@@ -62,12 +62,12 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
                   <MacIcon className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-2">CoopilotX for macOS</h3>
-                <p className="text-gray-500 mb-7">.pkg installer · macOS 12 and above · Auto-updates</p>
+                <p className="text-gray-500 mb-7">.pkg installer · macOS 12 and above · Apple Silicon</p>
                 <button onClick={() => onDownload("mac")}
                   className="inline-flex items-center gap-3 px-10 py-5 bg-gray-900 hover:bg-black text-white font-black text-lg rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.45)] transition-all active:scale-[0.97]">
-                  <MacIcon className="w-6 h-6" /> Download for macOS — Free
+                  <MacIcon className="w-6 h-6" /> Download for macOS, Free
                 </button>
-                <div className="mt-6 pt-6 border-t border-white/10">
+                <div className="mt-6 pt-6 border-t border-gray-100">
                   <button onClick={() => onDownload("win")} className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors">
                     <WinIcon className="w-4 h-4" /> Also available for Windows
                   </button>
@@ -81,7 +81,7 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
               </div>
             )}
 
-            <div className="flex flex-wrap justify-center gap-5 text-[12px] text-gray-400 border-t border-white/10 pt-6">
+            <div className="flex flex-wrap justify-center gap-5 text-[12px] text-gray-400 border-t border-gray-100 pt-6">
               {["Free to start", "No credit card", "Audio stays on device", "Invisible to screen-share", "Auto-updates"].map((t, i) => (
                 <span key={i} className="flex items-center gap-1.5 text-gray-500">
                   <span className="text-emerald-500 font-bold">✓</span> {t}

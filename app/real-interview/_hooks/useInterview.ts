@@ -22,12 +22,12 @@ export type Turn = { role: "interviewer" | "candidate"; text: string };
 function sanitizeResume(text: string): string {
   if (!text) return "";
   return text
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/[\u2013\u2014]/g, "-")
-    .replace(/\u2022/g, "•")
-    .replace(/\u00A0/g, " ")
-    .replace(/\u2026/g, "...")
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/•/g, "•")
+    .replace(/ /g, " ")
+    .replace(/…/g, "...")
     .replace(/[^\x20-\x7E\n\r\t•]/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -56,31 +56,48 @@ export function useInterview(config: {
   const [sessionSecs,  setSessionSecs]  = useState(0);
   const [micStatus,    setMicStatus]    = useState("Ready");
 
-  const sttClient       = useRef<SpeechmaticsClient | null>(null);
-  const transcriptRef   = useRef("");
-  const partialRef      = useRef("");
-  const historyRef      = useRef<Turn[]>([]);
-  const timerRef        = useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef    = useRef<number>(0);
-  const isGeneratingRef = useRef(false); // Race-condition guard
+  const sttClient         = useRef<SpeechmaticsClient | null>(null);
+  const transcriptRef     = useRef("");
+  const partialRef        = useRef("");
+  const historyRef        = useRef<Turn[]>([]);
+  const timerRef          = useRef<NodeJS.Timeout | null>(null);
+  const recordingStartRef = useRef<number>(0);   // when this recording segment started
+  const accumulatedRef    = useRef<number>(0);   // total seconds before current segment
+  const isGeneratingRef   = useRef(false);       // race-condition guard
 
   // Keep historyRef in sync
   useEffect(() => { historyRef.current = history; }, [history]);
 
-  // ── SESSION TIMER ──
+  // ── SESSION TIMER ──────────────────────────────────────────────
+  // Tracks elapsed time correctly even when recording is toggled:
+  // • recordingStartRef: wall-clock ms when this segment started
+  // • accumulatedRef:    total seconds from all previous segments
+  // Together they give: elapsed = accumulated + (now - segmentStart)
   useEffect(() => {
     if (isRecording) {
-      startTimeRef.current = Date.now() - sessionSecs * 1000;
+      recordingStartRef.current = Date.now();
       timerRef.current = setInterval(() => {
-        setSessionSecs(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        const segmentSecs = Math.floor((Date.now() - recordingStartRef.current) / 1000);
+        setSessionSecs(accumulatedRef.current + segmentSecs);
       }, 1000);
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        // Persist elapsed time from this segment before stopping
+        if (recordingStartRef.current) {
+          accumulatedRef.current += Math.floor(
+            (Date.now() - recordingStartRef.current) / 1000
+          );
+        }
+      }
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [isRecording]);
 
-  // ── GENERATE ANSWER ──
+  // ── GENERATE ANSWER ────────────────────────────────────────────
   const generateAnswer = useCallback(async () => {
     const fullText = (transcriptRef.current + " " + partialRef.current).trim();
     if (!fullText || isGeneratingRef.current) return;
@@ -92,8 +109,10 @@ export function useInterview(config: {
     }
     setIsRecording(false);
 
-    // ── ZERO-LATENCY LOCAL REPLIES ──
-    // Handle greetings and noise instantly without API call
+    // ── ZERO-LATENCY LOCAL REPLIES ──────────────────────────────
+    // Handle greetings and noise instantly without API call.
+    // NOTE: isGeneratingRef is NOT set to true on these paths —
+    //       no cleanup needed.
     if (isGreeting(fullText) || isNoisyGreeting(fullText)) {
       const reply = getGreetingResponse();
       setAnswer(reply);
@@ -136,7 +155,7 @@ export function useInterview(config: {
       return;
     }
 
-    // ── NORMAL AI ANSWER ──
+    // ── NORMAL AI ANSWER ────────────────────────────────────────
     isGeneratingRef.current = true;
     setIsGenerating(true);
     setAnswer("");
@@ -154,6 +173,8 @@ export function useInterview(config: {
     const cleanJd     = sanitizeResume(config.jobDescription);
 
     try {
+      // Pass history WITHOUT the just-added interviewer turn —
+      // buildMessages() receives it separately as `currentQuestion`.
       const messages = buildMessages(
         cleanResume,
         fullText,
@@ -169,7 +190,7 @@ export function useInterview(config: {
           resume:     cleanResume,
           jd:         cleanJd,
           userEmail:  config.userEmail,
-          model:      config.model || "llama-3.1-8b",
+          model:      config.model || "llama-3.1-8b-instant",
           context:    `Role: ${config.role} | Company: ${config.companyName}`,
         }),
         signal: AbortSignal.timeout(35000),
@@ -177,9 +198,12 @@ export function useInterview(config: {
 
       const data = await res.json();
 
+      // BUG FIX: reset isGeneratingRef BEFORE any early returns so the
+      // guard is never left stuck at `true` after partial-error paths.
       if (res.status === 402 || data.error === "insufficient_credits") {
-        setAnswer("⚠️ You've used all your credits. Please upgrade your plan.");
+        isGeneratingRef.current = false;
         setIsGenerating(false);
+        setAnswer("⚠️ You've used all your credits. Please upgrade your plan at /pricing.");
         return;
       }
 
@@ -201,11 +225,12 @@ export function useInterview(config: {
       setAnswer("Error generating answer. Please try again.");
     }
 
+    // Always reached unless the function already returned above
     isGeneratingRef.current = false;
     setIsGenerating(false);
   }, [config]);
 
-  // ── START MIC ──
+  // ── START MIC ──────────────────────────────────────────────────
   const startMic = useCallback(() => {
     setIsRecording(true);
     setTranscript("");
@@ -246,7 +271,7 @@ export function useInterview(config: {
     });
   }, [config.language, config.maxDelay, config.operatingPoint]);
 
-  // ── STOP MIC ──
+  // ── STOP MIC ───────────────────────────────────────────────────
   const stopMic = useCallback(() => {
     if (sttClient.current) {
       sttClient.current.stop();
@@ -255,31 +280,33 @@ export function useInterview(config: {
     setIsRecording(false);
   }, []);
 
-  // ── TOGGLE ──
+  // ── TOGGLE ─────────────────────────────────────────────────────
   const toggleMic = useCallback(() => {
     if (isRecording) stopMic();
     else startMic();
   }, [isRecording, startMic, stopMic]);
 
-  // ── CLEAR ──
+  // ── CLEAR ──────────────────────────────────────────────────────
   const clear = useCallback(() => {
     setTranscript(""); setPartial(""); setAnswer("");
     transcriptRef.current = ""; partialRef.current = "";
   }, []);
 
-  // ── RESET SESSION ──
+  // ── RESET SESSION ──────────────────────────────────────────────
   const resetSession = useCallback(() => {
     stopMic();
     setHistory([]); historyRef.current = [];
     setSessionSecs(0);
-    clearSessionState(); // clear locked facts for fresh session
+    accumulatedRef.current = 0;
+    recordingStartRef.current = 0;
+    clearSessionState(); // clear locked facts for a fresh session
     clear();
   }, [stopMic, clear]);
 
-  // ── SPACEBAR ──
+  // ── SPACEBAR ───────────────────────────────────────────────────
   const handleSpacebar = useCallback((e: KeyboardEvent) => {
     if (e.code !== "Space") return;
-    if (e.target instanceof HTMLInputElement)  return;
+    if (e.target instanceof HTMLInputElement)   return;
     if (e.target instanceof HTMLTextAreaElement) return;
     e.preventDefault();
     if (isRecording) generateAnswer();

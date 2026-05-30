@@ -1,8 +1,13 @@
 // app/real-interview/_hooks/useSession.ts
 // All session I/O goes through /api/sessions (Firebase Admin SDK on the server),
 // so Firestore client security rules never block saves or reads.
+//
+// Auth: every request sends the current user's Firebase ID token as
+// Authorization: Bearer <token>.  The server verifies it and rejects
+// calls that don't match the requested email.
 
 import { useState, useRef, useCallback } from "react";
+import { auth } from "../../firebaseConfig";
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -23,6 +28,21 @@ export type Session = {
   durationSecs:  number;
   _createdAtSeconds?: number;  // pre-computed for sorting
 };
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+
+// Returns a fresh Firebase ID token, or empty string if not signed in.
+// Always call this immediately before a fetch — tokens expire after 1 hour
+// but Firebase auto-refreshes them so getIdToken() returns a valid one.
+async function getAuthToken(): Promise<string> {
+  try {
+    return (await auth.currentUser?.getIdToken()) ?? "";
+  } catch {
+    return "";
+  }
+}
 
 // ─────────────────────────────────────────────
 // HOOK
@@ -51,9 +71,14 @@ export function useSession(userEmail: string) {
     if (!userEmail || !payload.turns || payload.turns.length === 0) return;
 
     try {
+      const token = await getAuthToken();
+
       const res = await fetch("/api/sessions", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
         body: JSON.stringify({
           userEmail,
           sessionId:    sessionDocId.current,   // null = create, string = update
@@ -110,8 +135,13 @@ export function useSession(userEmail: string) {
     setLoadError(null);
 
     try {
+      const token = await getAuthToken();
+
       const res = await fetch(
-        `/api/sessions?email=${encodeURIComponent(userEmail)}`
+        `/api/sessions?email=${encodeURIComponent(userEmail)}`,
+        {
+          headers: { "Authorization": `Bearer ${token}` },
+        }
       );
       const data = await res.json();
 

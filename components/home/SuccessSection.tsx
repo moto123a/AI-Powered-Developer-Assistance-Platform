@@ -15,7 +15,7 @@ const STORIES = [
     name: "Priya Sharma", role: "PM @ Microsoft", initials: "PS",
     grad: "from-violet-500 to-pink-500",
     metric: "4 offers", metricLabel: "in 3 weeks",
-    quote: "AI resume builder rewrote my CV overnight. Then I practiced every behavioral with mock mode. Microsoft, Google, Meta, Stripe — all called back.",
+    quote: "The resume builder rewrote my CV overnight. Then I practiced every behavioral with mock mode. Microsoft, Google, Meta, Stripe. All called back.",
     tags: ["Resume Builder", "Mock Interview"],
   },
   {
@@ -39,13 +39,13 @@ export default function SuccessSection() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="py-28 px-6 overflow-hidden" style={{ background: "#ffffff" }}>
+    <section className="py-28 px-6 overflow-hidden bg-gray-950">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-20">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 mb-4 uppercase tracking-widest">Success Stories</span>
+          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-4 uppercase tracking-widest">Success Stories</span>
           <h2 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Real people. Real offers.</h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            Thousands of CoopilotX users have landed dream jobs at top companies — with bigger salaries and more confidence.
+            Thousands of CoopilotX users have landed dream jobs at top companies, with bigger salaries and more confidence.
           </p>
         </FadeUp>
 
@@ -92,7 +92,7 @@ export default function SuccessSection() {
                 <div className="text-2xl font-black text-white mb-1">
                   <Counter to={m.n} prefix={m.pre} suffix={m.suf} />
                 </div>
-                <div className="text-xs text-gray-500 font-medium">{m.label}</div>
+                <div className="text-xs text-gray-400 font-medium">{m.label}</div>
               </div>
             ))}
           </div>

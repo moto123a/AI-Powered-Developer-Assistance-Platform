@@ -72,7 +72,8 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
     setFileName(f.name); setUploadError(""); setUploading(true); setVerified(false); setVerifyResult("");
     try {
       let text = "";
-      if (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")) {
+      const name = f.name.toLowerCase();
+      if (f.type === "application/pdf" || name.endsWith(".pdf")) {
         try {
           text = await extractPdfText(f);
           if (!text || text.length < 30) {
@@ -83,7 +84,14 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
           setUploadError("Could not read this PDF. Please paste your resume text in the Paste tab.");
           setUploading(false); return;
         }
-      } else { text = await f.text(); }
+      } else if (name.endsWith(".doc") || name.endsWith(".docx")) {
+        // .doc/.docx are binary Office formats — f.text() returns garbled data.
+        setUploadError("Word documents (.doc/.docx) cannot be read directly. Please save as PDF or paste the text in the Paste tab.");
+        setUploading(false); return;
+      } else {
+        // Plain text (.txt) — safe to read as UTF-8
+        text = await f.text();
+      }
       const cleaned = cleanText(text);
       if (cleaned.length < 50) {
         setUploadError("Not enough text found. Please paste your resume instead.");
@@ -191,7 +199,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
                                   "border-slate-300 bg-white hover:border-indigo-400 hover:bg-indigo-50"
               }`}
             >
-              <input ref={fileRef} type="file" className="hidden" accept=".txt,.pdf,.doc,.docx" onChange={handleFile} />
+              <input ref={fileRef} type="file" className="hidden" accept=".txt,.pdf" onChange={handleFile} />
               {uploading ? (
                 <><Loader2 size={28} className="text-indigo-500 animate-spin" />
                   <p className="text-indigo-600 font-semibold text-sm">Reading PDF…</p></>
@@ -207,7 +215,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
                 <><UploadCloud size={28} className="text-slate-400" />
                   <div className="text-center">
                     <p className="text-slate-600 font-semibold text-sm mb-1">Click to upload resume</p>
-                    <p className="text-slate-400 text-xs">PDF, TXT, DOC, DOCX</p>
+                    <p className="text-slate-400 text-xs">PDF or TXT · For Word docs, save as PDF first</p>
                   </div></>
               )}
             </motion.div>

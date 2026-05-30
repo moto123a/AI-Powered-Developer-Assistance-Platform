@@ -128,16 +128,16 @@ export default function WhatIsItSection({ onNav }: { onNav: (p: string) => void 
         isPrimary={true}
         tag="Resume Builder"
         tagColor="text-indigo-400 bg-indigo-500/10 border-indigo-500/30"
-        headline={"Your resume,\nrebuilt by AI."}
+        headline={"Your resume,\nprofessionally rebuilt."}
         sub="Land 3x more interviews."
-        desc="Paste your experience, choose your target role. CoopilotX rewrites every bullet point to be ATS-optimized and role-specific — in under 2 minutes."
+        desc="Paste your experience, choose your target role. CoopilotX rewrites every bullet point to be ATS-optimized and role-specific, in under 2 minutes."
         stats={[{ n: "3×", l: "more callbacks" }, { n: "2 min", l: "avg build time" }, { n: "ATS", l: "optimized" }]}
         cta="Build My Resume"
         gradient="radial-gradient(circle, #6366f1, transparent)"
         mockup={[
-          { icon: "👤", label: "Input", text: "Pavan Sharma — Software Engineer, 3 years at startup" },
-          { icon: "⚙️", label: "AI Processing", text: "Analyzing role: Senior SWE @ Google...", dim: true },
-          { icon: "✅", label: "ATS Score", text: "94 / 100 — Ready to submit", accent: true, badge: "Optimized" },
+          { icon: "👤", label: "Input", text: "Pavan Sharma, Software Engineer, 3 years at startup" },
+          { icon: "⚙️", label: "Processing", text: "Analyzing role: Senior SWE @ Google...", dim: true },
+          { icon: "✅", label: "ATS Score", text: "94 / 100: Ready to submit", accent: true, badge: "Optimized" },
           { icon: "📄", label: "Output", text: "5 tailored bullet points added. Keywords matched.", highlight: true },
         ]}
       />
@@ -151,14 +151,14 @@ export default function WhatIsItSection({ onNav }: { onNav: (p: string) => void 
         tagColor="text-violet-400 bg-violet-500/10 border-violet-500/30"
         headline={"Practice until\nnerves are gone."}
         sub="87% of users land offers after 5+ sessions."
-        desc="AI generates 200+ behavioral, technical, and role-specific questions. Every answer is scored instantly with coaching on exactly what to improve."
-        stats={[{ n: "87%", l: "offer rate" }, { n: "200+", l: "questions" }, { n: "AI", l: "live scoring" }]}
+        desc="Over 200 behavioral, technical, and role-specific questions. Every answer is scored instantly with coaching on exactly what to improve."
+        stats={[{ n: "87%", l: "offer rate" }, { n: "200+", l: "questions" }, { n: "Live", l: "scoring" }]}
         cta="Start Practicing Free"
         gradient="radial-gradient(circle, #8b5cf6, transparent)"
         mockup={[
           { icon: "🎯", label: "Question", text: '"Tell me about a time you led a project under pressure."' },
           { icon: "🎤", label: "Your Answer", text: "Recording... (1m 32s)", dim: true },
-          { icon: "📊", label: "AI Score", text: "8.4 / 10 — Strong structure, good metrics", accent: true, badge: "Good" },
+          { icon: "📊", label: "Score", text: "8.4 / 10: Strong structure, good metrics", accent: true, badge: "Good" },
           { icon: "💡", label: "Coaching Tip", text: "Add a specific business impact number to seal it.", highlight: true },
         ]}
       />
@@ -170,16 +170,16 @@ export default function WhatIsItSection({ onNav }: { onNav: (p: string) => void 
         isPrimary={false}
         tag="Live Interview Copilot"
         tagColor="text-cyan-400 bg-cyan-500/10 border-cyan-500/30"
-        headline={"AI answers,\nlive and invisible."}
+        headline={"Live answers,\ncompletely invisible."}
         sub="Perfect response streamed in under 2 seconds."
         desc="During your real interview, CoopilotX silently listens, reads your resume for context, and streams the ideal answer to your private stealth overlay. Screen-share safe. Zero lag."
         stats={[{ n: "<2s", l: "response time" }, { n: "100%", l: "stealth" }, { n: "98%", l: "accuracy" }]}
         cta="Try Live Copilot"
         gradient="radial-gradient(circle, #0891b2, transparent)"
         mockup={[
-          { icon: "🎤", label: "Listening", text: "Interview audio detected — processing...", dim: true },
+          { icon: "🎤", label: "Listening", text: "Interview audio detected, processing...", dim: true },
           { icon: "❓", label: "Question Detected", text: '"Why should we hire you over other candidates?"' },
-          { icon: "⚡", label: "AI Response", text: "Streaming answer... 1.8s", accent: true, badge: "Live" },
+          { icon: "⚡", label: "Response", text: "Streaming answer... 1.8s", accent: true, badge: "Live" },
           { icon: "🛡️", label: "Stealth Status", text: "Overlay hidden from screen share ✓", highlight: true },
         ]}
       />

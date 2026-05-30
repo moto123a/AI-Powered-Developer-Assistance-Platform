@@ -20,8 +20,8 @@ export default function TestimonialsSection() {
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-16">
           <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-100 mb-4 uppercase tracking-widest">What Users Say</span>
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Loved by thousands of job seekers.</h2>
-          <p className="text-gray-400 text-lg max-w-lg mx-auto">From fresh graduates to senior engineers — CoopilotX changes how people interview.</p>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Trusted by thousands of professionals.</h2>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">From fresh graduates to senior engineers. CoopilotX transforms how professionals prepare and perform.</p>
         </FadeUp>
 
         {/* Auto-cycling featured */}
@@ -45,7 +45,7 @@ export default function TestimonialsSection() {
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${featured.grad} flex items-center justify-center text-white font-black text-base shadow-lg`}>{featured.initials}</div>
                   <div>
-                    <p className="font-black text-white">{featured.name}</p>
+                    <p className="font-black text-gray-900">{featured.name}</p>
                     <p className="text-sm text-gray-500 font-medium">{featured.role}</p>
                   </div>
                 </div>
@@ -79,7 +79,7 @@ export default function TestimonialsSection() {
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${t.grad} flex items-center justify-center text-white text-xs font-black`}>{t.initials}</div>
                 <div>
-                  <p className="text-xs font-bold text-white">{t.name}</p>
+                  <p className="text-xs font-bold text-gray-900">{t.name}</p>
                   <p className="text-[10px] text-gray-500">{t.role}</p>
                 </div>
               </div>

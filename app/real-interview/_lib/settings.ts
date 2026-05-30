@@ -9,14 +9,14 @@ export type AppSettings = {
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  model:          "llama-3.1-8b",
+  model:          "llama-3.1-8b-instant",
   maxDelay:       0.7,
   operatingPoint: "enhanced",
   temperature:    0.3,
 };
 
 export const MODELS = [
-  { id: "llama-3.1-8b",     label: "Llama 3.1 8B",     tag: "FAST",     color: "blue"   },
+  { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B",     tag: "FAST",     color: "blue"   },
   { id: "llama-3.3-70b",    label: "Llama 3.3 70B",    tag: "SMART",    color: "purple" },
   { id: "gpt-4o-mini",      label: "GPT-4o Mini",      tag: "BALANCED", color: "green"  },
   { id: "gpt-4o",           label: "GPT-4o",           tag: "BEST",     color: "yellow" },

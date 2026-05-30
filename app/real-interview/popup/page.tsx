@@ -1,6 +1,13 @@
 // app/real-interview/popup/page.tsx
 // Stealth popup window — survives main tab closing
 // Opens via window.open() — no browser UI, stays on top
+//
+// Config is read from localStorage ("interviewConfig") first, then falls back
+// to URL search params.  This avoids the ~2000-char URL length limit which
+// silently truncates large resume text.  The opener page should write to
+// localStorage before calling window.open().
+//
+// userEmail is pulled from Firebase auth so sessions are attributed correctly.
 
 "use client";
 
@@ -8,6 +15,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { auth } from "../../firebaseConfig";
 import { useInterview } from "../_hooks/useInterview";
 import AnswerDisplay   from "../_components/AnswerDisplay";
 import TranscriptBar   from "../_components/TranscriptBar";
@@ -16,13 +24,22 @@ import MicButton       from "../_components/MicButton";
 export default function PopupPage() {
   const params = useSearchParams();
 
-  // ── Read config from URL params ──
+  // ── Read config: localStorage first, then URL params as fallback ──
+  // localStorage avoids the ~2000-char URL limit that silently truncates resumes.
+  let stored: Record<string, string> = {};
+  try {
+    const raw = typeof window !== "undefined"
+      ? localStorage.getItem("interviewConfig") : null;
+    if (raw) stored = JSON.parse(raw);
+  } catch {}
+
   const config = {
-    resume:         params.get("resume")  || "",
-    jobDescription: params.get("jd")      || "",
-    companyName:    params.get("company") || "",
-    role:           params.get("role")    || "",
-    userEmail:      "",
+    resume:         stored.resume         ?? params.get("resume")  ?? "",
+    jobDescription: stored.jobDescription ?? params.get("jd")      ?? "",
+    companyName:    stored.companyName    ?? params.get("company") ?? "",
+    role:           stored.role           ?? params.get("role")    ?? "",
+    // Read authenticated user's email so popup sessions are saved to Firestore.
+    userEmail:      auth.currentUser?.email ?? "",
   };
 
   const {

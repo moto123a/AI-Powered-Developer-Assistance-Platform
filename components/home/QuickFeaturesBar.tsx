@@ -7,7 +7,7 @@ const FEATURES = [
     icon: "📝",
     label: "Resume Builder",
     headline: "Land more interviews",
-    desc: "AI rewrites your resume to be ATS-perfect and role-specific in minutes.",
+    desc: "Rewrites your resume to be ATS-perfect and role-specific in minutes.",
     cta: "Build my resume",
     path: "resume",
     gradient: "from-indigo-600 to-violet-600",
@@ -20,7 +20,7 @@ const FEATURES = [
     icon: "🧠",
     label: "Mock Interview",
     headline: "Practice until perfect",
-    desc: "200+ AI questions for your exact role. Real-time scoring and instant coaching.",
+    desc: "200+ tailored questions for your exact role. Real-time scoring and instant coaching.",
     cta: "Start practicing",
     path: "mock-interview",
     gradient: "from-violet-600 to-pink-600",
@@ -34,7 +34,7 @@ const FEATURES = [
     icon: "⚡",
     label: "Live Interview Copilot",
     headline: "Ace your real interview",
-    desc: "AI streams perfect answers to your stealth overlay in under 2 seconds — invisible to your interviewer.",
+    desc: "Streams perfect answers to your stealth overlay in under 2 seconds, invisible to your interviewer.",
     cta: "Try live copilot",
     path: "real-interview",
     gradient: "from-cyan-500 to-blue-600",
@@ -66,7 +66,7 @@ export default function QuickFeaturesBar({ onNav }: { onNav: (p: string) => void
           className="text-center mb-14">
           <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-gray-400 bg-white/5 border border-white/10 uppercase tracking-widest mb-4">3 Ways CoopilotX Helps You</span>
           <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-            From zero to offer —{" "}
+            From zero to offer:{" "}
             <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">all in one place.</span>
           </h2>
         </motion.div>

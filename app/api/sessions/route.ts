@@ -1,11 +1,15 @@
 // app/api/sessions/route.ts
 // Handles session save (POST) and load (GET) via Firebase Admin SDK,
 // bypassing Firestore client security rules entirely.
+//
+// Auth: every request must carry a Firebase ID token in the
+// Authorization: Bearer <token> header. The token is verified
+// server-side and the verified email must match the requested email.
 
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 
-// ─── Admin init (same pattern as credits/deduct) ─────────────────────────────
+// ── Admin init ───────────────────────────────────────────────────
 function getDb(): admin.firestore.Firestore | null {
   if (admin.apps.length) return admin.firestore();
 
@@ -44,13 +48,42 @@ function getDb(): admin.firestore.Firestore | null {
   }
 }
 
-// ─── GET /api/sessions?email=... ─────────────────────────────────────────────
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const email = searchParams.get("email");
+// ── Auth helper ─────────────────────────────────────────────────
+// Verifies the Firebase ID token in the Authorization header.
+// Returns the verified email on success, null on failure.
+async function verifyAuth(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+  if (!token) return null;
 
-  if (!email) {
+  try {
+    // Ensure Admin SDK is initialised before calling auth()
+    getDb();
+    const decoded = await admin.auth().verifyIdToken(token);
+    return decoded.email ?? null;
+  } catch (e) {
+    console.warn("[sessions] Token verification failed:", (e as Error).message);
+    return null;
+  }
+}
+
+// ── GET /api/sessions?email=... ──────────────────────────────────
+export async function GET(req: Request) {
+  const verifiedEmail = await verifyAuth(req);
+  if (!verifiedEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const requestedEmail   = searchParams.get("email");
+
+  if (!requestedEmail) {
     return NextResponse.json({ error: "Missing email" }, { status: 400 });
+  }
+
+  // Enforce: the authenticated user can only read their own sessions
+  if (verifiedEmail.toLowerCase() !== requestedEmail.toLowerCase()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const db = getDb();
@@ -61,7 +94,7 @@ export async function GET(req: Request) {
   try {
     const snap = await db
       .collection("interview_sessions")
-      .where("userEmail", "==", email)
+      .where("userEmail", "==", requestedEmail)
       .get();
 
     const sessions = snap.docs
@@ -69,7 +102,7 @@ export async function GET(req: Request) {
         const data = d.data();
         return {
           id:            d.id,
-          createdAt:     data.createdAt,   // Firestore Timestamp — serialised below
+          createdAt:     data.createdAt,
           companyName:   data.companyName   || "Unknown",
           role:          data.role          || "Unknown",
           resumeSnippet: data.resumeSnippet || "",
@@ -80,7 +113,7 @@ export async function GET(req: Request) {
           _createdAtSeconds: data.createdAt?._seconds ?? data.createdAt?.seconds ?? 0,
         };
       })
-      // Sort newest-first client-side — no composite index needed
+      // Sort newest-first — no composite index needed
       .sort((a, b) => b._createdAtSeconds - a._createdAtSeconds);
 
     return NextResponse.json({ sessions });
@@ -90,11 +123,16 @@ export async function GET(req: Request) {
   }
 }
 
-// ─── POST /api/sessions ───────────────────────────────────────────────────────
+// ── POST /api/sessions ───────────────────────────────────────────
 // Body: { userEmail, sessionId?, companyName, role, resume, turns, durationSecs }
 // If sessionId is provided → update existing doc.
 // Otherwise → create new doc and return its ID.
 export async function POST(req: Request) {
+  const verifiedEmail = await verifyAuth(req);
+  if (!verifiedEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: any;
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
@@ -109,6 +147,12 @@ export async function POST(req: Request) {
   if (!userEmail) {
     return NextResponse.json({ error: "Missing userEmail" }, { status: 400 });
   }
+
+  // Enforce: the authenticated user can only write their own sessions
+  if (verifiedEmail.toLowerCase() !== userEmail.toLowerCase()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   if (!turns || turns.length === 0) {
     return NextResponse.json({ error: "No turns to save" }, { status: 400 });
   }

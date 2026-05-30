@@ -44,7 +44,7 @@ export class SpeechmaticsClient {
 
       // ── CORRECT URL: language goes in transcription_config NOT in URL ──
       this.ws = new WebSocket(
-        `wss://eu.rt.speechmatics.com/v2?jwt=${data.token}`
+        `wss://${process.env.NEXT_PUBLIC_SPEECHMATICS_RT_HOST ?? "eu.rt.speechmatics.com"}/v2?jwt=${data.token}`
       );
       this.ws.binaryType = "arraybuffer";
 

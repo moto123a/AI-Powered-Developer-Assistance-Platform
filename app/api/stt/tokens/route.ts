@@ -432,9 +432,20 @@ export async function GET(req: Request) {
     const response = await fetch("https://mp.speechmatics.com/v1/api_keys?type=rt", {
       method:  "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body:    JSON.stringify({ ttl: 60 }),
+      body:    JSON.stringify({ ttl: 120 }),   // 120s gives more headroom before expiry
     });
-    if (!response.ok) return NextResponse.json({ error: "Failed" }, { status: 401 });
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      console.error("Speechmatics token error:", response.status, errBody);
+      const detail = response.status === 401
+        ? "Speechmatics API key is invalid or expired"
+        : response.status === 403
+          ? "Speechmatics key has no permissions for real-time"
+          : response.status === 429
+            ? "Speechmatics quota exhausted — upgrade your plan at speechmatics.com"
+            : `Speechmatics returned ${response.status}`;
+      return NextResponse.json({ error: detail }, { status: response.status });
+    }
     const data = await response.json();
     await logUsageAndIncrement(userEmail, "Speechmatics", { action: "Token Requested" });
     return NextResponse.json({ token: data.key_value });

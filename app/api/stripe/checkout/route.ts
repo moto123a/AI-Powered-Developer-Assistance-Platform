@@ -31,6 +31,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
     }
 
+    // Reject unknown plans — prevents crafted requests from creating
+    // checkout sessions with arbitrary metadata values.
+    if (!plan || !["basic", "pro"].includes(plan)) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
+
+    // uid is required to link the payment to a Firestore user doc.
+    if (!uid || typeof uid !== "string" || uid.trim().length === 0) {
+      return NextResponse.json({ error: "Missing uid" }, { status: 400 });
+    }
+
     const priceKey = `${plan}_${annual ? "annual" : "monthly"}`;
     const priceId = PRICE_IDS[priceKey];
 

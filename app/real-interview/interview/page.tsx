@@ -20,6 +20,7 @@ import type { AppSettings }           from "../_lib/settings";
 import {
   MODELS, loadSettings, saveSettings, DEFAULT_SETTINGS,
 } from "../_lib/settings";
+import { clearSessionState } from "../_lib/promptBuilder";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -335,11 +336,25 @@ export default function InterviewPage() {
 
   useEffect(() => { setSettings(loadSettings()); }, []);
 
-  const raw    = typeof window !== "undefined"
+  // Clear stale locked facts whenever this page mounts (e.g. back-navigation
+  // after a previous session without hitting "End Session").
+  useEffect(() => { clearSessionState(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Redirect to setup if sessionStorage is missing or corrupted.
+  useEffect(() => {
+    if (typeof window !== "undefined" && !sessionStorage.getItem("interviewConfig")) {
+      router.replace("/real-interview");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const raw = typeof window !== "undefined"
     ? sessionStorage.getItem("interviewConfig") : null;
-  const config = raw ? JSON.parse(raw) : {
-    resume: "", jobDescription: "", companyName: "", role: "",
-  };
+  let config = { resume: "", jobDescription: "", companyName: "", role: "" };
+  try {
+    if (raw) config = { ...config, ...JSON.parse(raw) };
+  } catch {
+    // corrupted sessionStorage — use safe defaults, redirect effect above will fire
+  }
 
   const userEmail = auth.currentUser?.email || "";
 

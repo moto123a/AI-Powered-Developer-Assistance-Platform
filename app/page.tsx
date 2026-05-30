@@ -23,7 +23,7 @@ import {
 } from "../components/home/MidSections";
 
 const WINDOWS_DOWNLOAD = "/app.msixbundle";
-const MAC_DOWNLOAD     = "/InterviewCopilotMac-1.0.0.pkg";
+const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/latest/download/InterviewCopilot-mac.pkg";
 
 export default function Home() {
   const router = useRouter();
@@ -90,7 +90,7 @@ export default function Home() {
   const download = async (os: "win" | "mac") => {
     const a = document.createElement("a");
     a.href     = os === "win" ? WINDOWS_DOWNLOAD : MAC_DOWNLOAD;
-    a.download = os === "win" ? "app.msixbundle" : "InterviewCopilotMac-1.0.0.pkg";
+    a.download = os === "win" ? "app.msixbundle" : "InterviewCopilot-mac.pkg";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     const entry = { os, at: new Date().toISOString(), email: user?.email || "anonymous" };
     try {
