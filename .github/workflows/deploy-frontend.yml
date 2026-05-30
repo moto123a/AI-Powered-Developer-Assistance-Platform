@@ -20,7 +20,10 @@ jobs:
             set -e
             cd ~/coopilotx/frontend
             git pull origin main
-            docker build --no-cache -t coopilotx-frontend .
+            docker build --no-cache \
+              --build-arg NEXT_PUBLIC_BACKEND_URL=https://coopilotxai.com \
+              --build-arg NEXT_PUBLIC_SPEECHMATICS_RT_HOST=us.rt.speechmatics.com \
+              -t coopilotx-frontend .
             docker rm -f coopilotx-frontend || true
             docker run -d \
               --name coopilotx-frontend \

@@ -12,6 +12,10 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_BACKEND_URL=https://coopilotxai.com
+ARG NEXT_PUBLIC_SPEECHMATICS_RT_HOST=us.rt.speechmatics.com
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_SPEECHMATICS_RT_HOST=$NEXT_PUBLIC_SPEECHMATICS_RT_HOST
 RUN npm run build
 
 # Stage 3 — production runner (small image)
