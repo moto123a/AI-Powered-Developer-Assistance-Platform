@@ -434,7 +434,8 @@ export function isDrillDown(q: string, history: Turn[]): boolean {
 export function buildFormatReminder(
   type:      QuestionType,
   q:         string,
-  drillDown: boolean
+  drillDown: boolean,
+  hasResume: boolean = true
 ): string {
   // Conflict push: interviewer asserting a different value than locked — always MICRO
   if (hasLockedConflict(q))
@@ -466,7 +467,9 @@ export function buildFormatReminder(
       return "[FORMAT: FULL — 5-6 bullets using • only. NEVER start with education or oldest job. Structure: WHO YOU ARE NOW (current role) → KEY WIN (specific metric) → previous role briefly → education in 1 sentence → side projects → why THIS company specifically. Each bullet 1-2 sentences. No filler opener.]";
 
     case "technical":
-      return "[FORMAT: FULL — 4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = real example from your most recent experience + outcome. Bullet 3 = supporting example from previous role. Practitioner tone, not textbook.]";
+      return hasResume
+        ? "[FORMAT: FULL — 4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = real example from your most recent experience + outcome. Bullet 3 = supporting example from previous role. Practitioner tone, not textbook.]"
+        : "[FORMAT: FULL — 4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = key technical concept or use case. Bullet 3 = real-world application or benefit. Bullet 4 = practical insight. Pure technical explanation — do NOT invent personal work experience or fabricate company/project names.]";
 
     case "behavioral":
       return "[FORMAT: FULL — 4-5 bullets using • only. STAR: Situation (brief) → Action (detailed) → Result (specific numbers). Lead with most recent experience. Company, tool, team size, outcome.]";
@@ -517,6 +520,8 @@ CRITICAL RULES FOR NO-RESUME MODE:
 - For visa: say you are authorized to work, can discuss details.
 - For education: say "Computer Science background" — no school name.
 - NEVER invent specific project names, teams, or metrics.
+- For pure technical/definition questions ("What is Java?", "Explain REST", "How does TCP work?"):
+  Give a clean technical explanation ONLY. NO fabricated personal experience. NO "at my company..." stories.
 `;
 
   const rule3 = hasResume
@@ -729,7 +734,8 @@ export function buildMessages(
   const q         = currentQuestion.trim();
   const type      = detectType(q);
   const drillDown = isDrillDown(q, history);
-  const reminder  = buildFormatReminder(type, q, drillDown);
+  const hasResume = resume.trim().length > 20;
+  const reminder  = buildFormatReminder(type, q, drillDown, hasResume);
 
   const messages: Array<{ role: string; content: string }> = [];
 
