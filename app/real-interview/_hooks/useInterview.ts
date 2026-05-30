@@ -260,13 +260,10 @@ export function useInterview(config: {
         transcriptRef.current = next;
         setPartial(""); partialRef.current = "";
       },
-      onError: () => {
+      onError: (msg?: string) => {
         setIsRecording(false);
-        setMicStatus("Mic error");
-        if (sttClient.current) {
-          sttClient.current.stop();
-          sttClient.current = null;
-        }
+        setMicStatus(msg || "Mic error — press Space to retry");
+        sttClient.current = null;
       },
     });
   }, [config.language, config.maxDelay, config.operatingPoint]);
@@ -309,8 +306,14 @@ export function useInterview(config: {
     if (e.target instanceof HTMLInputElement)   return;
     if (e.target instanceof HTMLTextAreaElement) return;
     e.preventDefault();
-    if (isRecording) generateAnswer();
-    else startMic();
+    if (isRecording) {
+      generateAnswer();
+    } else if (transcriptRef.current.trim() || partialRef.current.trim()) {
+      // Mic stopped due to error but there's transcript — still generate answer
+      generateAnswer();
+    } else {
+      startMic();
+    }
   }, [isRecording, generateAnswer, startMic]);
 
   return {

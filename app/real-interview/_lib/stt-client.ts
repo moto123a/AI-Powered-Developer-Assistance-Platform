@@ -55,10 +55,18 @@ export class SpeechmaticsClient {
       this.ws.onmessage = (evt) => this.handleMessage(evt, opts);
       this.ws.onerror   = (e)   => {
         console.error("WS error:", e);
-        opts.onError("WebSocket error — check console");
+        opts.onError("Connection error — please try again");
+        this.stop();
       };
       this.ws.onclose   = (e)   => {
-        if (this.started) opts.onStatus(`Disconnected (${e.code})`);
+        if (this.started) {
+          // code 1000 = normal intentional close; anything else is unexpected
+          if (e.code !== 1000) {
+            opts.onError(`Disconnected (${e.code}) — please try again`);
+          } else {
+            opts.onStatus("Disconnected");
+          }
+        }
         this.stop();
       };
 
@@ -158,8 +166,12 @@ export class SpeechmaticsClient {
         opts.onFinal(msg.metadata.transcript);
       else if (msg.message === "AddPartialTranscript" && msg.metadata?.transcript)
         opts.onPartial(msg.metadata.transcript);
-      else if (msg.message === "Error")
+      else if (msg.message === "Error") {
+        const reason = msg.reason || msg.type || "Speechmatics error";
         console.error("Speechmatics error:", msg);
+        opts.onError(reason === "not_authorised" ? "Not authorised — press Space to retry" : reason);
+        this.stop();
+      }
     } catch {}
   }
 

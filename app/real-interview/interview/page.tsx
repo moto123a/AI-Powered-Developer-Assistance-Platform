@@ -895,9 +895,14 @@ export default function InterviewPage() {
             </p>
             {micStatus && micStatus !== "Ready" && micStatus !== "Listening..." && (
               <p className={`text-[11px] font-bold ${
-                micStatus.toLowerCase().includes("error") || micStatus.toLowerCase().includes("denied")
+                micStatus.toLowerCase().includes("error") ||
+                micStatus.toLowerCase().includes("denied") ||
+                micStatus.toLowerCase().includes("authoris") ||
+                micStatus.toLowerCase().includes("disconnected")
                   ? "text-red-500"
-                  : micStatus.toLowerCase().includes("connect") || micStatus.toLowerCase().includes("token")
+                  : micStatus.toLowerCase().includes("connect") ||
+                    micStatus.toLowerCase().includes("token") ||
+                    micStatus.toLowerCase().includes("retry")
                   ? "text-amber-500"
                   : "text-slate-400"
               }`}>{micStatus}</p>
