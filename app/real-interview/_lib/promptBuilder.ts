@@ -395,6 +395,13 @@ export function isDrillDown(q: string, history: Turn[]): boolean {
   if (history.length === 0) return false;
   const t = q.toLowerCase().trim();
 
+  // ── NEVER treat definition/explanation questions as drill-downs ──
+  // "What is X?", "What are X?", "How does X work?", "Explain X", "Define X"
+  // These are technical questions that need full answers, not history lookups.
+  if (/^what (is|are|does|did|was|were)\b/.test(t))   return false;
+  if (/^how (does|do|did|is|are|was|were)\b/.test(t)) return false;
+  if (/^(explain|describe|define|tell me about|talk about)\b/.test(t)) return false;
+
   if (/^how (many|long|much|often|far|soon|old)/.test(t))           return true;
   if (/^which (version|one|tool|language|framework|company|team|project|platform|stack|cloud|database|year|month|role|position)/.test(t)) return true;
   if (/^what (version|year|company|team|tool|language|framework|platform|size|number|percentage|metric|result|outcome|role|project)/.test(t)) return true;
@@ -405,11 +412,13 @@ export function isDrillDown(q: string, history: Turn[]): boolean {
   if (/^(what did you mean|what do you mean by|can you clarify|clarify that)/.test(t))    return true;
   if (/(years? of|year experience|how many years|years? experience)/.test(t))             return true;
 
-  // Short ≤6 words with reference word
+  // Short ≤6 words with reference word — but NOT if it looks like a definition question
   const words = t.split(" ").filter(Boolean);
   if (words.length <= 6) {
+    // Skip if it's clearly asking for a definition/explanation
+    if (/\b(is|are|does|mean|work|difference|between|explain|define)\b/.test(t)) return false;
     const refWords = [
-      "how","which","what","who","when","where",
+      "which","who","when","where",
       "years","version","size","team","number",
       "much","many","long","old","big","use","used",
     ];
