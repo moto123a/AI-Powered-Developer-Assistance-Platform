@@ -1,6 +1,4 @@
-"use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 const NAV = [
   { label: "Features",     href: "/features" },
@@ -9,11 +7,10 @@ const NAV = [
 ];
 
 export function PageHeader() {
-  const path = usePathname();
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center gap-2.5">
           <img src="/logo.jpeg" alt="CoopilotX" className="w-8 h-8 rounded-lg object-contain" />
           <span className="text-[15px] font-black text-gray-900 tracking-tight">
             CoopilotX <span className="text-indigo-600">AI</span>
@@ -22,7 +19,7 @@ export function PageHeader() {
         <nav className="hidden md:flex items-center gap-7">
           {NAV.map(n => (
             <Link key={n.href} href={n.href}
-              className={`text-sm font-semibold transition-colors ${path === n.href ? "text-indigo-600" : "text-gray-500 hover:text-gray-900"}`}>
+              className="text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors">
               {n.label}
             </Link>
           ))}
