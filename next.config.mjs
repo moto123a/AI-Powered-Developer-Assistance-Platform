@@ -12,6 +12,15 @@ const nextConfig = {
         filename: "static/worker/[hash][ext][query]",
       },
     });
+
+    // Exclude pdf worker from minification
+    config.optimization.minimizer = config.optimization.minimizer.map((minimizer) => {
+      if (minimizer.constructor.name === "TerserPlugin") {
+        minimizer.options.exclude = /pdf\.worker\.(min\.)?mjs$/;
+      }
+      return minimizer;
+    });
+
     return config;
   },
 
