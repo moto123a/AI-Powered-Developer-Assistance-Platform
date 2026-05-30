@@ -18,25 +18,14 @@ jobs:
           key: ${{ secrets.ORACLE_SSH_KEY }}
           script: |
             set -e
-
-            cd ~/frontend
-
-            # Pull latest code
+            cd ~/coopilotx/frontend
             git pull origin main
-
-            # Build new Docker image
-            docker build -t coopilotx-frontend .
-
-            # Stop and remove old container
-            docker stop coopilotx-frontend || true
-            docker rm coopilotx-frontend || true
-
-            # Start new container with env file
+            docker build --no-cache -t coopilotx-frontend .
+            docker rm -f coopilotx-frontend || true
             docker run -d \
               --name coopilotx-frontend \
               --restart always \
               -p 3000:3000 \
-              --env-file .env.local \
+              --env-file ~/coopilotx/.env \
               coopilotx-frontend
-
             echo "Deployed successfully"
