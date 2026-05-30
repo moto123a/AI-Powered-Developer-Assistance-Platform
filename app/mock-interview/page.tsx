@@ -122,7 +122,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
 };
 
 const normalizeQuestions = (res: unknown): string[] => {
-  const r = res as Record<string, unknown>;
+  const r = res as Record<string, any>;
   const candidates = [
     r?.questions, r?.data?.questions, r?.result?.questions,
     r?.data, r?.result, Array.isArray(res) ? res : null,
