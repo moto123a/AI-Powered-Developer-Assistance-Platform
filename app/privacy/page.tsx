@@ -1,161 +1,135 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { PageHeader, PageFooter } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — CoopilotX",
-  description: "How CoopilotX handles your data.",
+  title: "Privacy Policy — CoopilotX AI",
+  description: "How CoopilotX collects, uses, and protects your data.",
 };
 
 const LAST_UPDATED = "May 1, 2026";
-const CONTACT_EMAIL = "support@coopilotxai.com";
+const CONTACT = "support@coopilotxai.com";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-[#06060f] text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
-      {/* Top bar */}
-      <div className="border-b border-white/[0.06] px-6 py-4 flex items-center justify-between max-w-5xl mx-auto">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          Back to CoopilotX
-        </Link>
-        <span className="text-xs text-white/30">Updated {LAST_UPDATED}</span>
-      </div>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <PageHeader />
 
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="mb-12">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 uppercase tracking-widest mb-4">Legal</span>
-          <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Privacy Policy</h1>
-          <p className="text-white/40 text-sm">Last updated: {LAST_UPDATED}</p>
+      {/* Hero */}
+      <section className="py-16 px-6" style={{ background: "linear-gradient(150deg, #faf8ff 0%, #f4edff 50%, #fdf8ff 100%)" }}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-3">Legal</p>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Privacy Policy</h1>
+          <p className="text-gray-500">Last updated: {LAST_UPDATED} · Questions? <a href={`mailto:${CONTACT}`} className="text-indigo-600 hover:underline">{CONTACT}</a></p>
         </div>
+      </section>
 
-        <div className="prose prose-invert max-w-none space-y-10 text-white/70 leading-relaxed">
+      {/* Content */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-3xl mx-auto space-y-12 text-gray-600 leading-relaxed">
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">1. Who we are</h2>
-            <p>CoopilotX ("we", "us", "our") operates coopilotxai.com and the CoopilotX desktop apps for Windows and macOS. If you have questions about this policy, email us at <a href={`mailto:${CONTACT_EMAIL}`} className="text-indigo-400 hover:underline">{CONTACT_EMAIL}</a>.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">1. Who we are</h2>
+            <p>CoopilotX ("we", "us", "our") operates coopilotxai.com and the CoopilotX desktop apps for Windows and macOS. If you have questions about this policy, email us at <a href={`mailto:${CONTACT}`} className="text-indigo-600 hover:underline">{CONTACT}</a>.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">2. What we collect</h2>
-            <div className="space-y-4">
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-                <h3 className="font-bold text-white mb-2">Account information</h3>
-                <p className="text-sm">When you sign up, we collect your email address and, if you choose Google Sign-In, your Google profile name and photo. We use Firebase Authentication to manage accounts securely.</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-                <h3 className="font-bold text-white mb-2">Resume content</h3>
-                <p className="text-sm">Text you paste into the resume builder is sent to our backend to generate suggestions. We do not store your resume permanently — it exists only for the duration of your session and is discarded afterwards.</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-                <h3 className="font-bold text-white mb-2">Interview audio</h3>
-                <p className="text-sm">Audio captured during live interview sessions is processed entirely on your device. Raw audio is never transmitted to our servers. Only the resulting text transcript is sent as part of the prompt, and that text is not stored after the request is fulfilled.</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-                <h3 className="font-bold text-white mb-2">Payment information</h3>
-                <p className="text-sm">Payments are handled by Stripe. We never see or store your card number, CVV, or bank details. We only receive a transaction confirmation and your subscription status from Stripe.</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5">
-                <h3 className="font-bold text-white mb-2">Usage data</h3>
-                <p className="text-sm">We log basic usage events (e.g., feature used, session count) to understand how the product is used. These logs contain no personally identifiable information beyond a hashed user ID.</p>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">3. What we do NOT collect</h2>
-            <ul className="list-none space-y-2 text-sm">
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">2. What we collect</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
               {[
-                "We do not record or store interview audio.",
+                { title: "Account information", body: "Your email address. If you use Google Sign-In, your Google profile name and photo. Managed securely via Firebase Authentication." },
+                { title: "Resume content", body: "Text you paste into the resume builder is processed to generate suggestions. It is not stored permanently — it exists only for your session." },
+                { title: "Interview audio", body: "Processed entirely on your device. Raw audio is never sent to our servers. Only the text transcript is used, and it's discarded after the response." },
+                { title: "Payment information", body: "Handled entirely by Stripe. We never see or store your card number, CVV, or bank details — only your subscription status." },
+                { title: "Usage data", body: "Basic usage events (e.g. feature used, session count) using a hashed user ID. No personal identifiers in these logs." },
+              ].map((c, i) => (
+                <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-5">
+                  <h3 className="font-bold text-gray-900 mb-1.5 text-sm">{c.title}</h3>
+                  <p className="text-sm text-gray-500">{c.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">3. What we never do</h2>
+            <ul className="space-y-2">
+              {[
+                "We do not record or permanently store interview audio.",
                 "We do not store conversation transcripts after a session ends.",
                 "We do not sell your data to third parties.",
                 "We do not use your data to train language models.",
-                "We do not share your resume or interview content with employers or recruiters.",
+                "We do not share your resume or interview content with employers.",
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1 w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-2.5 h-2.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <li key={i} className="flex items-start gap-3 text-sm">
+                  <span className="mt-0.5 w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   </span>
                   {item}
                 </li>
               ))}
             </ul>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">4. How we use your data</h2>
-            <p className="text-sm mb-3">We use the information we collect to:</p>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">4. How we use your data</h2>
+            <p className="mb-3 text-sm">We use the information we collect to:</p>
             <ul className="list-disc list-inside space-y-1 text-sm pl-2">
               <li>Operate and maintain your account</li>
               <li>Process payments and manage your subscription</li>
               <li>Provide the resume builder, mock interview, and live copilot features</li>
-              <li>Send you transactional emails (account confirmation, receipts)</li>
+              <li>Send transactional emails (account confirmation, receipts)</li>
               <li>Debug issues and improve the product</li>
             </ul>
             <p className="text-sm mt-3">We will never send unsolicited marketing emails without your explicit consent.</p>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">5. Third-party services</h2>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">5. Third-party services</h2>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               {[
-                { name: "Firebase (Google)", purpose: "Authentication and user account management" },
+                { name: "Firebase (Google)", purpose: "Authentication and account management" },
                 { name: "Stripe", purpose: "Payment processing and subscription management" },
-                { name: "Groq", purpose: "LLM inference for answer generation (text only, no audio)" },
-                { name: "Speechmatics", purpose: "Real-time speech-to-text transcription (audio stays on device)" },
+                { name: "Groq", purpose: "LLM inference — text only, no audio ever sent" },
+                { name: "Speechmatics", purpose: "Real-time speech-to-text (audio stays on device)" },
               ].map((s, i) => (
-                <div key={i} className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4">
-                  <p className="font-bold text-white text-xs mb-1">{s.name}</p>
-                  <p className="text-white/50">{s.purpose}</p>
+                <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                  <p className="font-bold text-gray-900 text-xs mb-1">{s.name}</p>
+                  <p className="text-gray-500 text-xs">{s.purpose}</p>
                 </div>
               ))}
             </div>
-            <p className="text-sm mt-4">Each of these providers has their own privacy policy. We only share the minimum data required for the service to function.</p>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">6. Data retention</h2>
-            <p className="text-sm">Account data is retained as long as your account is active. If you delete your account, all associated data is permanently removed within 30 days. Session transcripts are discarded immediately after the session ends and are never stored on our servers.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">6. Data retention</h2>
+            <p className="text-sm">Account data is retained while your account is active. Deleting your account removes all associated data within 30 days. Session transcripts are discarded immediately after the session ends.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">7. Your rights</h2>
-            <p className="text-sm mb-3">Depending on where you live, you may have the right to:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm pl-2">
-              <li>Access the personal data we hold about you</li>
-              <li>Request correction of inaccurate data</li>
-              <li>Request deletion of your account and data</li>
-              <li>Object to or restrict certain types of processing</li>
-              <li>Data portability</li>
-            </ul>
-            <p className="text-sm mt-3">To exercise any of these rights, email us at <a href={`mailto:${CONTACT_EMAIL}`} className="text-indigo-400 hover:underline">{CONTACT_EMAIL}</a>. We will respond within 14 days.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">7. Your rights</h2>
+            <p className="text-sm mb-3">Depending on where you live, you may have the right to access, correct, or delete your data, restrict processing, or request portability. Email <a href={`mailto:${CONTACT}`} className="text-indigo-600 hover:underline">{CONTACT}</a> and we'll respond within 14 days.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">8. Security</h2>
-            <p className="text-sm">We use HTTPS for all data in transit. Passwords are never stored — authentication is handled entirely through Firebase and Google OAuth. Payment data is handled exclusively by Stripe and never touches our servers.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">8. Security</h2>
+            <p className="text-sm">All data in transit is encrypted via HTTPS. Passwords are never stored — authentication is handled by Firebase and Google OAuth. Payment data is handled exclusively by Stripe and never touches our servers.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">9. Changes to this policy</h2>
-            <p className="text-sm">If we make material changes to this policy, we will notify you via email or a notice on the website at least 14 days before the change takes effect. The "last updated" date at the top of this page will always reflect the most recent version.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">9. Changes to this policy</h2>
+            <p className="text-sm">If we make material changes, we'll notify you by email or site notice at least 14 days before the change takes effect.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">10. Contact</h2>
-            <p className="text-sm">Questions? Email us: <a href={`mailto:${CONTACT_EMAIL}`} className="text-indigo-400 hover:underline">{CONTACT_EMAIL}</a></p>
-          </section>
+          <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-6">
+            <h2 className="text-base font-black text-gray-900 mb-2">Questions?</h2>
+            <p className="text-sm text-gray-600">Email us at <a href={`mailto:${CONTACT}`} className="text-indigo-600 font-semibold hover:underline">{CONTACT}</a>. We'll respond within 2 business days.</p>
+          </div>
 
         </div>
-      </div>
+      </section>
 
-      {/* Footer strip */}
-      <div className="border-t border-white/[0.06] px-6 py-6 text-center text-xs text-white/20">
-        <div className="flex justify-center gap-6">
-          <Link href="/terms" className="hover:text-white/50 transition-colors">Terms of Service</Link>
-          <Link href="/cookies" className="hover:text-white/50 transition-colors">Cookie Policy</Link>
-          <Link href="/" className="hover:text-white/50 transition-colors">Home</Link>
-        </div>
-      </div>
+      <PageFooter />
     </div>
   );
 }

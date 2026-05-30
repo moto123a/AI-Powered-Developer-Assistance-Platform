@@ -1,129 +1,136 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { PageHeader, PageFooter } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — CoopilotX",
-  description: "Terms governing your use of CoopilotX.",
+  title: "Terms of Service — CoopilotX AI",
+  description: "Terms governing your use of CoopilotX AI.",
 };
 
 const LAST_UPDATED = "May 1, 2026";
-const CONTACT_EMAIL = "support@coopilotxai.com";
+const CONTACT = "support@coopilotxai.com";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#06060f] text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
-      {/* Top bar */}
-      <div className="border-b border-white/[0.06] px-6 py-4 flex items-center justify-between max-w-5xl mx-auto">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          Back to CoopilotX
-        </Link>
-        <span className="text-xs text-white/30">Updated {LAST_UPDATED}</span>
-      </div>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <PageHeader />
 
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="mb-12">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 uppercase tracking-widest mb-4">Legal</span>
-          <h1 className="text-4xl font-black text-white mb-3 tracking-tight">Terms of Service</h1>
-          <p className="text-white/40 text-sm">Last updated: {LAST_UPDATED}</p>
+      {/* Hero */}
+      <section className="py-16 px-6" style={{ background: "linear-gradient(150deg, #faf8ff 0%, #f4edff 50%, #fdf8ff 100%)" }}>
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-3">Legal</p>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Terms of Service</h1>
+          <p className="text-gray-500">Last updated: {LAST_UPDATED} · Questions? <a href={`mailto:${CONTACT}`} className="text-violet-600 hover:underline">{CONTACT}</a></p>
         </div>
+      </section>
 
-        <div className="prose prose-invert max-w-none space-y-10 text-white/70 leading-relaxed">
+      {/* Content */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-3xl mx-auto space-y-12 text-gray-600 leading-relaxed">
 
-          <section>
-            <p className="text-sm">By accessing or using CoopilotX at coopilotxai.com or the CoopilotX desktop apps ("the Service"), you agree to these Terms of Service. If you do not agree, do not use the Service.</p>
-          </section>
+          <p className="text-sm bg-gray-50 border border-gray-100 rounded-xl p-5">
+            By accessing or using CoopilotX at coopilotxai.com or the CoopilotX desktop apps ("the Service"), you agree to these Terms. If you do not agree, do not use the Service.
+          </p>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">1. The Service</h2>
-            <p className="text-sm">CoopilotX provides interview preparation tools including a resume builder, mock interview mode, and a live interview copilot. The Service is designed for personal, non-commercial job-search use.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">1. The Service</h2>
+            <p className="text-sm">CoopilotX provides interview preparation tools including a resume builder, mock interview mode, and a live interview copilot. The Service is intended for personal, non-commercial job-search use.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">2. Eligibility</h2>
-            <p className="text-sm">You must be at least 18 years old to use CoopilotX. By creating an account, you confirm that the information you provide is accurate and that you have the legal capacity to enter into this agreement.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">2. Eligibility</h2>
+            <p className="text-sm">You must be at least 18 years old to use CoopilotX. By creating an account, you confirm the information you provide is accurate and that you have the legal capacity to enter this agreement.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">3. Your account</h2>
-            <p className="text-sm">You are responsible for keeping your account credentials secure. You are responsible for all activity that occurs under your account. Notify us immediately at <a href={`mailto:${CONTACT_EMAIL}`} className="text-indigo-400 hover:underline">{CONTACT_EMAIL}</a> if you suspect unauthorised access.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">3. Your account</h2>
+            <p className="text-sm">You are responsible for keeping your credentials secure and for all activity under your account. Contact <a href={`mailto:${CONTACT}`} className="text-violet-600 hover:underline">{CONTACT}</a> immediately if you suspect unauthorised access.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">4. Acceptable use</h2>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">4. Acceptable use</h2>
             <p className="text-sm mb-3">You agree not to:</p>
-            <ul className="list-disc list-inside space-y-1.5 text-sm pl-2">
-              <li>Use the Service for any unlawful purpose or in violation of any applicable laws</li>
-              <li>Attempt to reverse-engineer, decompile, or extract the source code of the Service</li>
-              <li>Use the Service to generate content that is harassing, defamatory, or fraudulent</li>
-              <li>Attempt to circumvent any security or access controls</li>
-              <li>Share your account with others or resell access to the Service</li>
-              <li>Use automated scripts or bots to interact with the Service</li>
+            <ul className="space-y-2">
+              {[
+                "Use the Service for any unlawful purpose",
+                "Reverse-engineer, decompile, or extract the source code",
+                "Generate harassing, defamatory, or fraudulent content",
+                "Attempt to circumvent any security or access controls",
+                "Share your account with others or resell access",
+                "Use automated scripts or bots to interact with the Service",
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm">
+                  <span className="mt-0.5 w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-3 h-3 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </span>
+                  {item}
+                </li>
+              ))}
             </ul>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">5. Subscriptions and payments</h2>
-            <div className="space-y-3 text-sm">
-              <p><span className="font-semibold text-white">Free tier:</span> CoopilotX offers a free tier with limited usage. No credit card is required to get started.</p>
-              <p><span className="font-semibold text-white">Paid plans:</span> Paid subscriptions are billed monthly or annually via Stripe. Prices are shown on the pricing page and may change with 30 days' notice.</p>
-              <p><span className="font-semibold text-white">Refunds:</span> If you are not satisfied within 7 days of your first paid subscription, contact us for a full refund. After 7 days, refunds are issued at our discretion.</p>
-              <p><span className="font-semibold text-white">Cancellations:</span> You may cancel your subscription at any time. Your access continues until the end of the current billing period.</p>
-              <p><span className="font-semibold text-white">Credits:</span> Unused credits do not roll over between billing periods and have no cash value.</p>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-4">5. Subscriptions and payments</h2>
+            <div className="space-y-4">
+              {[
+                { label: "Free tier", body: "A free tier with limited usage is available. No credit card required to start." },
+                { label: "Paid plans", body: "Billed monthly or annually via Stripe. Prices are shown on the pricing page and may change with 30 days' notice." },
+                { label: "Refunds", body: "If you're unsatisfied within 7 days of your first paid subscription, contact us for a full refund. After 7 days, refunds are at our discretion." },
+                { label: "Cancellations", body: "Cancel any time. Your access continues until the end of the current billing period." },
+                { label: "Credits", body: "Unused credits do not roll over between billing periods and have no cash value." },
+              ].map((c, i) => (
+                <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm">
+                  <span className="font-bold text-gray-900">{c.label}: </span>
+                  <span className="text-gray-600">{c.body}</span>
+                </div>
+              ))}
             </div>
-          </section>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">6. Intellectual property</h2>
-            <p className="text-sm">All code, design, trademarks, and content that make up CoopilotX are owned by us or our licensors. You may not copy, reproduce, or distribute any part of the Service without our written permission. Content you create using the Service (e.g., your resume text) remains yours.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">6. Intellectual property</h2>
+            <p className="text-sm">All code, design, trademarks, and content forming CoopilotX are owned by us or our licensors. Content you create using the Service (such as your resume text) remains yours.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">7. Third-party services</h2>
-            <p className="text-sm">The Service integrates with third-party providers including Stripe, Firebase, Groq, and Speechmatics. Use of these services is subject to their own terms. We are not responsible for the actions or content of third-party services.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">7. Third-party services</h2>
+            <p className="text-sm">The Service integrates with Stripe, Firebase, Groq, and Speechmatics. Use of these is subject to their own terms. We are not responsible for their actions or content.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">8. Disclaimer of warranties</h2>
-            <p className="text-sm">The Service is provided "as is" without warranties of any kind. We do not guarantee that the Service will be uninterrupted, error-free, or that the answers generated will be accurate or appropriate for every interview situation. Use the Service as a preparation aid, not as a substitute for your own judgment.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">8. Disclaimer of warranties</h2>
+            <p className="text-sm">The Service is provided "as is" without warranties of any kind. We do not guarantee it will be uninterrupted or error-free. Use CoopilotX as a preparation aid, not a substitute for your own judgment.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">9. Limitation of liability</h2>
-            <p className="text-sm">To the maximum extent permitted by law, CoopilotX and its team will not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service, including but not limited to loss of employment opportunities. Our total liability for any claim is limited to the amount you paid us in the 3 months preceding the claim.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">9. Limitation of liability</h2>
+            <p className="text-sm">To the maximum extent permitted by law, our total liability for any claim is limited to the amount you paid us in the 3 months preceding the claim. We are not liable for indirect, incidental, or consequential damages.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">10. Termination</h2>
-            <p className="text-sm">We may suspend or terminate your account if you violate these Terms. You may delete your account at any time from your account settings. Upon termination, your right to use the Service ends immediately.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">10. Termination</h2>
+            <p className="text-sm">We may suspend or terminate your account for violations of these Terms. You may delete your account at any time from account settings.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">11. Changes to these Terms</h2>
-            <p className="text-sm">We may update these Terms from time to time. If the changes are material, we will notify you by email at least 14 days before they take effect. Continued use of the Service after that date constitutes acceptance of the updated Terms.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">11. Changes to these Terms</h2>
+            <p className="text-sm">If we make material changes, we'll notify you by email at least 14 days before they take effect. Continued use after that date constitutes acceptance.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">12. Governing law</h2>
-            <p className="text-sm">These Terms are governed by and construed in accordance with applicable laws. Any disputes will be resolved through good-faith negotiation first. If that fails, disputes will be submitted to binding arbitration.</p>
-          </section>
+          <div>
+            <h2 className="text-xl font-black text-gray-900 mb-3">12. Governing law</h2>
+            <p className="text-sm">These Terms are governed by applicable laws. Disputes will be resolved through good-faith negotiation first. If that fails, through binding arbitration.</p>
+          </div>
 
-          <section>
-            <h2 className="text-xl font-black text-white mb-3">13. Contact</h2>
-            <p className="text-sm">Questions about these Terms? Email us: <a href={`mailto:${CONTACT_EMAIL}`} className="text-indigo-400 hover:underline">{CONTACT_EMAIL}</a></p>
-          </section>
+          <div className="rounded-xl border border-violet-100 bg-violet-50 p-6">
+            <h2 className="text-base font-black text-gray-900 mb-2">Questions about these Terms?</h2>
+            <p className="text-sm text-gray-600">Email us at <a href={`mailto:${CONTACT}`} className="text-violet-600 font-semibold hover:underline">{CONTACT}</a>.</p>
+          </div>
 
         </div>
-      </div>
+      </section>
 
-      {/* Footer strip */}
-      <div className="border-t border-white/[0.06] px-6 py-6 text-center text-xs text-white/20">
-        <div className="flex justify-center gap-6">
-          <Link href="/privacy" className="hover:text-white/50 transition-colors">Privacy Policy</Link>
-          <Link href="/cookies" className="hover:text-white/50 transition-colors">Cookie Policy</Link>
-          <Link href="/" className="hover:text-white/50 transition-colors">Home</Link>
-        </div>
-      </div>
+      <PageFooter />
     </div>
   );
 }

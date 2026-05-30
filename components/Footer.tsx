@@ -29,9 +29,9 @@ export default function Footer({ isDark = true }) {
   ];
 
   const footerLinks = [
-    { name: "Features",     href: "#features", icon: "fa-solid fa-star" },
-    { name: "How it Works", href: "#how",      icon: "fa-solid fa-lightbulb" },
-    { name: "Pricing",      href: "/pricing",  icon: "fa-solid fa-tag" },
+    { name: "Features",     href: "/features",     icon: "fa-solid fa-star" },
+    { name: "How it Works", href: "/how-it-works",  icon: "fa-solid fa-lightbulb" },
+    { name: "Pricing",      href: "/pricing",       icon: "fa-solid fa-tag" },
     { name: "Contact",      href: "mailto:support@coopilotxai.com", icon: "fa-solid fa-envelope" },
   ];
 
