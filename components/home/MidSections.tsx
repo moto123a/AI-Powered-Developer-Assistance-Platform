@@ -108,7 +108,7 @@ export function HowItWorksSection() {
     { n: "3", icon: "⚡", title: "Get Perfect Answers",  desc: "Tailored answers stream to your stealth overlay in under 2 seconds. Invisible to screen-share. Just a confident you.", color: "bg-cyan-600", border: "border-cyan-500/20 bg-cyan-500/5" },
   ];
   return (
-    <section className="py-24 px-6 overflow-hidden bg-white">
+    <section id="how-it-works" className="py-24 px-6 overflow-hidden bg-white">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">3 steps. Then you win.</h2>

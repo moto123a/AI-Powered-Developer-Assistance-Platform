@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 const NAV = [
-  { label: "Features",     href: "/features" },
-  { label: "How it Works", href: "/how-it-works" },
+  { label: "Features",     href: "/#features" },
+  { label: "How it Works", href: "/#how-it-works" },
   { label: "Pricing",      href: "/pricing" },
 ];
 
@@ -45,8 +45,8 @@ export function PageFooter() {
           <span>© {new Date().getFullYear()} CoopilotX AI. All rights reserved.</span>
         </div>
         <div className="flex items-center gap-6">
-          <Link href="/features"    className="hover:text-indigo-600 transition-colors">Features</Link>
-          <Link href="/how-it-works" className="hover:text-indigo-600 transition-colors">How it Works</Link>
+          <Link href="/#features"    className="hover:text-indigo-600 transition-colors">Features</Link>
+          <Link href="/#how-it-works" className="hover:text-indigo-600 transition-colors">How it Works</Link>
           <Link href="/pricing"     className="hover:text-indigo-600 transition-colors">Pricing</Link>
           <Link href="/privacy"     className="hover:text-indigo-600 transition-colors">Privacy</Link>
           <Link href="/terms"       className="hover:text-indigo-600 transition-colors">Terms</Link>

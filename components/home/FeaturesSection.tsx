@@ -26,7 +26,7 @@ export default function FeaturesSection() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="py-28 px-6 bg-white overflow-hidden">
+    <section id="features" className="py-28 px-6 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Everything you need to win.</h2>
