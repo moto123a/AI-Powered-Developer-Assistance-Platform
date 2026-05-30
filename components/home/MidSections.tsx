@@ -77,7 +77,7 @@ export function StatsSection() {
         <FadeUp className="text-center mb-14">
           <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-600 bg-violet-500/10 border border-violet-500/20 mb-4 uppercase tracking-widest">Results</span>
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">The numbers speak.</h2>
-          <p className="text-gray-500 text-lg max-w-lg mx-auto">Built on actual outcomes from 50,000+ interview sessions.</p>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">From 50,000+ users who prepped, showed up, and got the call.</p>
         </FadeUp>
         <div ref={ref} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (

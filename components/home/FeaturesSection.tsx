@@ -6,11 +6,11 @@ import { FadeUp } from "./shared";
 const FEATURES = [
   { icon: "🕵️", title: "Stealth Overlay",       desc: "Invisible to screen-share on Zoom, Teams, Meet. Your secret weapon during real interviews.",             color: "bg-indigo-50 border-indigo-100",   iconBg: "bg-indigo-500",  tag: "Most loved" },
   { icon: "📋", title: "Resume-Grounded Answers", desc: "Every answer uses your actual experience and projects. Zero generic filler, ever.",                        color: "bg-violet-50 border-violet-100",   iconBg: "bg-violet-500",  tag: "" },
-  { icon: "⚡", title: "Sub-2-Second Speed",    desc: "Groq LPU inference streams the perfect answer before you even finish thinking about it.",                 color: "bg-amber-50 border-amber-100",     iconBg: "bg-amber-500",   tag: "Fastest" },
+  { icon: "⚡", title: "Sub-2-Second Speed",    desc: "Groq LPU delivers the answer in 1.8 seconds flat. Before you've had time to hesitate.",                 color: "bg-amber-50 border-amber-100",     iconBg: "bg-amber-500",   tag: "Fastest" },
   { icon: "🌐", title: "Any Platform",          desc: "Works with Zoom, Google Meet, Teams, Webex, HireVue, anything that uses your microphone.",               color: "bg-sky-50 border-sky-100",         iconBg: "bg-sky-500",     tag: "" },
   { icon: "🧠", title: "Mock Interview Mode",   desc: "200+ tailored questions for your exact role. Practice until every answer is pitch-perfect.",                    color: "bg-emerald-50 border-emerald-100", iconBg: "bg-emerald-500", tag: "Popular" },
   { icon: "📝", title: "Smart Resume Builder",   desc: "Build an ATS-optimized resume in minutes, then use it to power your live interview answers.",             color: "bg-rose-50 border-rose-100",       iconBg: "bg-rose-500",    tag: "" },
-  { icon: "🔒", title: "100% Private",          desc: "Audio never stored. Text-only prompts sent for processing. Zero conversation logs. Your data stays yours.",        color: "bg-teal-50 border-teal-100",       iconBg: "bg-teal-500",    tag: "" },
+  { icon: "🔒", title: "100% Private",          desc: "Audio never leaves your device. Nothing stored, no logs, no recordings, no data sold. Full stop.",        color: "bg-teal-50 border-teal-100",       iconBg: "bg-teal-500",    tag: "" },
   { icon: "🖥️", title: "Native Desktop App",   desc: "Windows + Mac native apps. System audio capture for true stealth. Zero browser limitations.",            color: "bg-pink-50 border-pink-100",       iconBg: "bg-pink-500",    tag: "New" },
   { icon: "🎯", title: "Role-Specific Answers", desc: "SWE, PM, Data Science, Marketing. Answers precision-tuned for your exact target role.",                 color: "bg-purple-50 border-purple-100",   iconBg: "bg-purple-500",  tag: "" },
 ];

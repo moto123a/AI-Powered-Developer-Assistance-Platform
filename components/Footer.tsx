@@ -91,7 +91,7 @@ export default function Footer({ isDark = true }) {
               </span>
             </div>
             <p className="text-sm text-white/30 leading-relaxed max-w-xs">
-              Empowering professionals with AI-driven interview assistance. Master every interview with confidence.
+              Built for job seekers who refuse to wing it. Real prep, real answers, real offers.
             </p>
             <motion.div
               initial={{ opacity: 0 }}
@@ -102,7 +102,7 @@ export default function Footer({ isDark = true }) {
             >
               <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}
                 className="w-2 h-2 bg-emerald-500 rounded-full" />
-              <span>AI Systems Operational</span>
+              <span>All systems running</span>
             </motion.div>
           </motion.div>
 
