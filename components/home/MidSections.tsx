@@ -75,9 +75,8 @@ export function StatsSection() {
     <section className="py-24 px-6 overflow-hidden bg-gray-50">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-14">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-600 bg-violet-500/10 border border-violet-500/20 mb-4 uppercase tracking-widest">Results</span>
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">The numbers speak.</h2>
-          <p className="text-gray-500 text-lg max-w-lg mx-auto">From 50,000+ users who prepped, showed up, and got the call.</p>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">Built on actual outcomes from 50,000+ interview sessions.</p>
         </FadeUp>
         <div ref={ref} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (
@@ -112,7 +111,6 @@ export function HowItWorksSection() {
     <section className="py-24 px-6 overflow-hidden bg-white">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-16">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-cyan-600 bg-cyan-50 border border-cyan-200 mb-4 uppercase tracking-widest">How It Works</span>
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">3 steps. Then you win.</h2>
           <p className="text-gray-500 text-lg max-w-lg mx-auto">No complex setup. Upload, open, ace.</p>
         </FadeUp>
@@ -152,7 +150,7 @@ export function CtaSection({ onNav }: { onNav: (p: string) => void }) {
               style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
             <div className="relative z-10">
-              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 mb-6 uppercase tracking-widest">Start Free Today</span>
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 mb-6 uppercase tracking-widest hidden">Start Free Today</span>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight leading-tight">
                 Your dream job is<br />one interview away.
               </h2>

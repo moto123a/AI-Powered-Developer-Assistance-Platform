@@ -91,7 +91,7 @@ export default function Footer({ isDark = true }) {
               </span>
             </div>
             <p className="text-sm text-white/30 leading-relaxed max-w-xs">
-              Built for job seekers who refuse to wing it. Real prep, real answers, real offers.
+              Empowering professionals with AI-driven interview assistance. Master every interview with confidence.
             </p>
             <motion.div
               initial={{ opacity: 0 }}
@@ -102,7 +102,7 @@ export default function Footer({ isDark = true }) {
             >
               <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}
                 className="w-2 h-2 bg-emerald-500 rounded-full" />
-              <span>All systems running</span>
+              <span>AI Systems Operational</span>
             </motion.div>
           </motion.div>
 
@@ -243,15 +243,6 @@ export default function Footer({ isDark = true }) {
       {/* Bottom glow line */}
       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
 
-      {/* Corner rings */}
-      <motion.div animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-4 left-4 w-20 h-20 border border-indigo-500/[0.07] rounded-full flex items-center justify-center pointer-events-none">
-        <i className="fa-solid fa-rocket text-xl text-indigo-500/[0.10]" />
-      </motion.div>
-      <motion.div animate={{ rotate: -360 }} transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-        className="absolute top-4 right-4 w-16 h-16 border border-violet-500/[0.07] rounded-full flex items-center justify-center pointer-events-none">
-        <i className="fa-solid fa-brain text-lg text-violet-500/[0.10]" />
-      </motion.div>
     </footer>
   );
 }

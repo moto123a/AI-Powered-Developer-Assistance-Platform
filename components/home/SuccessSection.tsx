@@ -42,10 +42,9 @@ export default function SuccessSection() {
     <section className="py-28 px-6 overflow-hidden bg-gray-950">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-20">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-4 uppercase tracking-widest">Success Stories</span>
           <h2 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Real people. Real offers.</h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            Not marketing fluff. Real outcomes from people who prepped with CoopilotX and walked out with the offer.
+            Thousands of CoopilotX users have landed dream jobs at top companies, with bigger salaries and more confidence.
           </p>
         </FadeUp>
 

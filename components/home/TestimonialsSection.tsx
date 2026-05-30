@@ -19,9 +19,8 @@ export default function TestimonialsSection() {
     <section className="py-28 px-6 overflow-hidden bg-gray-50">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-16">
-          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-100 mb-4 uppercase tracking-widest">What Users Say</span>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">People who used it. People who got hired.</h2>
-          <p className="text-gray-500 text-lg max-w-lg mx-auto">Fresh grads, career changers, senior engineers. Different paths. Same result.</p>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Trusted by thousands of professionals.</h2>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">From fresh graduates to senior engineers. CoopilotX transforms how professionals prepare and perform.</p>
         </FadeUp>
 
         {/* Auto-cycling featured */}

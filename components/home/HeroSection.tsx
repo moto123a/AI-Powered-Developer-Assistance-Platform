@@ -209,10 +209,10 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}
               className="flex items-center gap-6 mb-6 flex-wrap">
               {[
-                { value: "50K+",  label: "Offers landed" },
+                { value: "50K+",  label: "Sessions" },
                 { value: "1.8s",  label: "Response time" },
-                { value: "4.9★",  label: "User rating" },
-                { value: "97%",   label: "Success rate" },
+                { value: "87%",   label: "Offer rate" },
+                { value: "< 2s",  label: "Live answers" },
               ].map((s, i) => (
                 <div key={s.value} className="flex items-center gap-5">
                   {i > 0 && <div className="w-px h-7 bg-gray-200" />}
