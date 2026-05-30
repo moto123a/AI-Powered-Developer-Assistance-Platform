@@ -306,15 +306,17 @@ export function useInterview(config: {
     if (e.target instanceof HTMLInputElement)   return;
     if (e.target instanceof HTMLTextAreaElement) return;
     e.preventDefault();
+    if (isGenerating) return; // never interrupt while AI is thinking
     if (isRecording) {
-      generateAnswer();
-    } else if (transcriptRef.current.trim() || partialRef.current.trim()) {
-      // Mic stopped due to error but there's transcript — still generate answer
+      generateAnswer(); // stop mic + generate
+    } else if (!answer && (transcriptRef.current.trim() || partialRef.current.trim())) {
+      // Mic stopped due to error but no answer yet — still generate from what we got
       generateAnswer();
     } else {
+      // Either fresh start OR answer already shown → listen for next question
       startMic();
     }
-  }, [isRecording, generateAnswer, startMic]);
+  }, [isRecording, isGenerating, answer, generateAnswer, startMic]);
 
   return {
     isRecording, isGenerating,
