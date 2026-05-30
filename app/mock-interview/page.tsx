@@ -1516,7 +1516,7 @@ export default function MockInterviewPage() {
                           style={{
                             display: "flex", alignItems: "center", gap: 8,
                             padding: "11px 26px", borderRadius: 12, fontWeight: 800, fontSize: 13.5,
-                            border: "none", cursor: isAnalyzing ? "not-allowed" : "pointer",
+                            cursor: isAnalyzing ? "not-allowed" : "pointer",
                             opacity: isAnalyzing ? 0.5 : 1, transition: "all 0.2s", position: "relative",
                             background: isRecording
                               ? "rgba(220,38,38,0.08)"
