@@ -29,7 +29,7 @@ jobs:
               --name coopilotx-frontend \
               --restart always \
               -p 3000:3000 \
-              -e PORT=3000 \
               --env-file ~/coopilotx/.env \
+              -e PORT=3000 \
               coopilotx-frontend
             echo "Deployed successfully"
