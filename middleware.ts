@@ -21,9 +21,15 @@ export function middleware(request: NextRequest) {
 
   // Check for session cookie set by AuthProvider
   const sessionCookie = request.cookies.get("coopilotx_session");
-  if (!sessionCookie) {
-    // No session — let the page through; client-side Firebase will show the auth modal
-    return NextResponse.next();
+  if (!sessionCookie?.value) {
+    // No session cookie — redirect to home with auth=required flag so the
+    // auth modal opens automatically. Preserve the intended path so the user
+    // can navigate back after signing in.
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.searchParams.set("auth", "required");
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();

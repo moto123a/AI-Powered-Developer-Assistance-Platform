@@ -156,9 +156,14 @@ const T = {
    AI HELPER
 ════════════════════════════════════════════════════════════════ */
 async function fetchAi(payload: any) {
+  let authToken = "";
+  try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
   const res = await fetch("/api/stt/tokens", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+    },
     body: JSON.stringify({ ...payload, userEmail: getEmail() }),
     signal: AbortSignal.timeout(35000),
   });

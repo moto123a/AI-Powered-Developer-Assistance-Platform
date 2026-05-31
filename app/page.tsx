@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { doc, updateDoc, arrayUnion, collection, addDoc } from "firebase/firestore";
@@ -26,7 +26,8 @@ const WINDOWS_DOWNLOAD = "/app.msixbundle";
 const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/latest/download/InterviewCopilot-mac.pkg";
 
 export default function Home() {
-  const router = useRouter();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser]               = useState<any>(null);
   const [showMenu, setShowMenu]       = useState(false);   // profile dropdown
   const [showMobile, setShowMobile]   = useState(false);   // mobile nav drawer
@@ -46,6 +47,13 @@ export default function Home() {
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { const u = onAuthStateChanged(auth, setUser); return () => u(); }, []);
+
+  // Open auth modal automatically when middleware redirects here with ?auth=required
+  useEffect(() => {
+    if (searchParams.get("auth") === "required") {
+      setAuthModal({ open: true, mode: "signin" });
+    }
+  }, [searchParams]);
 
   // Close profile dropdown on outside click
   useEffect(() => {

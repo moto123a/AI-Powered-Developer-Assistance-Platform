@@ -275,7 +275,7 @@ export function useInterview(config: {
       },
       onError: (msg?: string) => {
         setIsRecording(false);
-        setMicStatus(msg || "Mic error — press Space to retry");
+        setMicStatus(msg || "Mic error: press Space to retry");
         sttClient.current = null;
       },
     });

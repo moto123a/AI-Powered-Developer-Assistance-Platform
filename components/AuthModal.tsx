@@ -7,6 +7,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth } from "../app/firebaseConfig";
 import { initializeUserCredits } from "../app/lib/credits";
@@ -62,10 +63,21 @@ export default function AuthModal({ open, initialMode = "signin", onClose, onSuc
     e.preventDefault(); clear(); setLoading(true);
     try {
       let result;
-      if (mode === "signup") result = await createUserWithEmailAndPassword(auth, email, password);
-      else                   result = await signInWithEmailAndPassword(auth, email, password);
-      if (result.user) await saveUser(result.user);
-      onSuccess?.(); onClose();
+      if (mode === "signup") {
+        result = await createUserWithEmailAndPassword(auth, email, password);
+        if (result.user) {
+          // Send verification email — ignore errors so signup still completes
+          try { await sendEmailVerification(result.user); } catch {}
+          await saveUser(result.user);
+          setSuccess("Account created! Please check your inbox to verify your email.");
+          setLoading(false);
+          return; // stay on modal so user sees the message; they sign in after verifying
+        }
+      } else {
+        result = await signInWithEmailAndPassword(auth, email, password);
+        if (result.user) await saveUser(result.user);
+        onSuccess?.(); onClose();
+      }
     } catch (err: any) { setError(FRIENDLY[err.code] ?? "Something went wrong."); }
     finally { setLoading(false); }
   };

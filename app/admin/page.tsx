@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { db, auth } from "../firebaseConfig";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   Shield, Zap, Crown, Clock, Users, Activity,
@@ -17,32 +16,46 @@ export default function AdminPage() {
   const [newCreditValue, setNewCreditValue] = useState<number>(0);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
 
-  const ADMIN_EMAIL = "krishnapk288@gmail.com";
+  // ── Helper: all admin API calls carry the Firebase ID token ────
+  async function adminApi(path: string, opts?: RequestInit) {
+    const token = await auth.currentUser?.getIdToken() ?? "";
+    return fetch(path, {
+      ...opts,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+        ...(opts?.headers as Record<string, string> | undefined),
+      },
+    });
+  }
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user?.email === ADMIN_EMAIL) {
-        setIsAdmin(true);
-        fetchAll();
+      if (user) {
+        fetchAll(); // Server will verify admin status — no client-side email check
       } else {
         setIsAdmin(false);
         setLoading(false);
       }
     });
     return () => unsub();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchAll() {
     try {
       setLoading(true);
-      const [usersSnap, dlSnap] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(collection(db, "app_downloads")),
-      ]);
-      const userList = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      userList.sort((a: any, b: any) => (b.lastActive?.seconds || 0) - (a.lastActive?.seconds || 0));
+      const res = await adminApi("/api/admin");
+      if (!res.ok) {
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setIsAdmin(true);
+      const userList: any[] = data.users || [];
+      userList.sort((a: any, b: any) => (b.lastActive?._seconds || b.lastActive?.seconds || 0) - (a.lastActive?._seconds || a.lastActive?.seconds || 0));
       setUsers(userList);
-      setDownloads(dlSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setDownloads(data.downloads || []);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -53,19 +66,28 @@ export default function AdminPage() {
   function fetchUsers() { fetchAll(); }
 
   async function updatePlan(userId: string, plan: string, credits: number) {
-    await updateDoc(doc(db, "users", userId), { plan, credits });
+    await adminApi("/api/admin", {
+      method: "POST",
+      body: JSON.stringify({ action: "updatePlan", userId, plan, credits }),
+    });
     fetchAll();
   }
 
   async function handleManualCredits(userId: string) {
-    await updateDoc(doc(db, "users", userId), { credits: newCreditValue });
+    await adminApi("/api/admin", {
+      method: "POST",
+      body: JSON.stringify({ action: "updateCredits", userId, credits: newCreditValue }),
+    });
     setEditingCredits(null);
     fetchAll();
   }
 
   async function removeUser(userId: string, email: string) {
     if (confirm("PERMANENTLY DELETE USER: " + email + "?\nThis cannot be undone.")) {
-      await deleteDoc(doc(db, "users", userId));
+      await adminApi("/api/admin", {
+        method: "POST",
+        body: JSON.stringify({ action: "deleteUser", userId }),
+      });
       fetchAll();
     }
   }
@@ -80,7 +102,11 @@ export default function AdminPage() {
   function fmtTs(ts: any): string {
     if (!ts) return "\u2014";
     try {
-      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      let d: Date;
+      if (ts.toDate)           { d = ts.toDate(); }
+      else if (ts._seconds != null) { d = new Date(ts._seconds * 1000); }
+      else if (ts.seconds  != null) { d = new Date(ts.seconds  * 1000); }
+      else                     { d = new Date(ts); }
       return d.toLocaleString("en-US", {
         month: "short", day: "numeric", year: "numeric",
         hour: "2-digit", minute: "2-digit",
@@ -105,7 +131,7 @@ export default function AdminPage() {
     <div className="p-20 text-red-500 font-bold text-center">403: Forbidden - Admin Only</div>
   );
 
-  const liveCount = users.filter(u => (Date.now()/1000 - (u.lastActive?.seconds || 0)) < 300).length;
+  const liveCount = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < 300).length;
   const proCount  = users.filter(u => u.plan === "pro").length;
   const totalMins = users.reduce((acc, u) => acc + (u.totalMinutesSpent || 0), 0);
   const winDls    = downloads.filter(d => d.os === "win").length;
@@ -193,7 +219,8 @@ function UserRow({
   onUpdatePlan, onSaveCredits, onRemove,
   formatTime, fmtTs, fmtIso,
 }: any) {
-  const isOnline     = (Date.now()/1000 - (user.lastActive?.seconds || 0)) < 300;
+  const lastActiveSecs = user.lastActive?._seconds ?? user.lastActive?.seconds ?? 0;
+  const isOnline       = (Date.now()/1000 - lastActiveSecs) < 300;
   const userDls      = Array.isArray(user.appDownloads) ? user.appDownloads : [];
   const winDl        = userDls.find((d: any) => d.os === "win");
   const macDl        = userDls.find((d: any) => d.os === "mac");

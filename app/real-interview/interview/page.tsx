@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useInterview }               from "../_hooks/useInterview";
 import { useSession }                 from "../_hooks/useSession";
-import { auth }                       from "../../firebaseConfig";
+import { useAuth }                    from "../../../components/AuthProvider";
 import { parseAnswer, isMicroAnswer } from "../_lib/formatAnswer";
 import type { AppSettings }           from "../_lib/settings";
 import {
@@ -324,6 +324,7 @@ function AnswerRenderer({
 // ─────────────────────────────────────────────
 export default function InterviewPage() {
   const router                          = useRouter();
+  const { user }                        = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [copied, setCopied]             = useState(false);
   const [settings, setSettings]         = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -356,7 +357,7 @@ export default function InterviewPage() {
     // corrupted sessionStorage — use safe defaults, redirect effect above will fire
   }
 
-  const userEmail = auth.currentUser?.email || "";
+  const userEmail = user?.email || "";
 
   const {
     isRecording, isGenerating,

@@ -167,7 +167,15 @@ export async function POST(req: Request) {
 
   try {
     if (sessionId) {
-      // ── Update existing session ──
+      // ── Update existing session — verify ownership first ──
+      const existingDoc = await db.collection("interview_sessions").doc(sessionId).get();
+      if (!existingDoc.exists) {
+        return NextResponse.json({ error: "Session not found" }, { status: 404 });
+      }
+      const existingOwner = (existingDoc.data()?.userEmail ?? "").toLowerCase();
+      if (existingOwner !== verifiedEmail.toLowerCase()) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
       await db.collection("interview_sessions").doc(sessionId).update({
         turns,
         questionCount,

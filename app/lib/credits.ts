@@ -4,7 +4,7 @@
 // Reads/writes Firestore. Used by API routes + frontend pages.
 // ═══════════════════════════════════════════════════════════════
 
-import { doc, getDoc, updateDoc, setDoc, increment } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc, increment, runTransaction, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 // ── CREDIT COSTS PER ACTION ──
@@ -124,12 +124,12 @@ export async function initializeUserCredits(uid: string, email: string, displayN
       creditsResetDate: null,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
+      createdAt:  serverTimestamp(), // server clock — immune to client clock skew
+      lastLogin:  serverTimestamp(),
     });
   } else {
     // Existing user — just update last login
-    await updateDoc(ref, { lastLogin: new Date().toISOString() });
+    await updateDoc(ref, { lastLogin: serverTimestamp() });
   }
 }
 
@@ -150,36 +150,43 @@ export async function hasCredits(uid: string, action: CreditAction): Promise<boo
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DEDUCT CREDITS — call AFTER successful action
+// DEDUCT CREDITS — atomic transaction to prevent race conditions
 // ═══════════════════════════════════════════════════════════════
 export async function deductCredits(uid: string, action: CreditAction): Promise<{ success: boolean; remaining: number }> {
-  const profile = await getUserProfile(uid);
-  if (!profile) return { success: false, remaining: 0 };
-
-  const plan = PLAN_CONFIG[profile.plan];
+  const ref  = doc(db, "users", uid);
   const cost = CREDIT_COSTS[action];
 
-  // Pro = unlimited, still track usage
-  if (plan.totalCredits === -1) {
-    await updateDoc(doc(db, "users", uid), {
-      creditsUsed: increment(cost),
+  try {
+    return await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(ref);
+      if (!snap.exists()) return { success: false, remaining: 0 };
+
+      const data    = snap.data();
+      const planKey = (data.plan as PlanId) in PLAN_CONFIG ? (data.plan as PlanId) : "free";
+      const plan    = PLAN_CONFIG[planKey];
+      const credits = (data.credits as number) || 0;
+
+      // Pro = unlimited, still track usage
+      if (plan.totalCredits === -1) {
+        transaction.update(ref, { creditsUsed: increment(cost) });
+        return { success: true, remaining: -1 };
+      }
+
+      // Check balance inside the transaction — prevents TOCTOU race
+      if (credits < cost) {
+        return { success: false, remaining: credits };
+      }
+
+      transaction.update(ref, {
+        credits:     increment(-cost),
+        creditsUsed: increment(cost),
+      });
+
+      return { success: true, remaining: credits - cost };
     });
-    return { success: true, remaining: -1 };
+  } catch {
+    return { success: false, remaining: 0 };
   }
-
-  // Check balance
-  if (profile.credits < cost) {
-    return { success: false, remaining: profile.credits };
-  }
-
-  // Deduct
-  const newBalance = profile.credits - cost;
-  await updateDoc(doc(db, "users", uid), {
-    credits: increment(-cost),
-    creditsUsed: increment(cost),
-  });
-
-  return { success: true, remaining: newBalance };
 }
 
 // ═══════════════════════════════════════════════════════════════

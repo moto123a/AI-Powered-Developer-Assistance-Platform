@@ -606,7 +606,34 @@ export async function POST(req: Request) {
     // Always use the server-verified email, never trust the body
     const userEmail = verifiedEmail ?? bodyEmail ?? "";
 
-    const selectedModel    = model || "llama-3.1-8b";
+    // ── MODEL RESTRICTION BY PLAN ────────────────────────────────
+    // Free users may only use the fast Llama model.
+    // Basic users may also use gpt-4o-mini.
+    // Pro users have no restriction.
+    const FREE_MODELS   = ["llama-3.1-8b-instant", "llama-3.1-8b", "llama-3.3-70b", "mixtral-8x7b"];
+    const BASIC_MODELS  = [...FREE_MODELS, "gpt-4o-mini"];
+
+    let selectedModel = model || "llama-3.1-8b-instant";
+
+    if (db && userEmail) {
+      try {
+        const userQuery = await db.collection("users").where("email", "==", userEmail).limit(1).get();
+        if (!userQuery.empty) {
+          const plan = userQuery.docs[0].data().plan || "free";
+          if (plan === "free" && !FREE_MODELS.includes(selectedModel)) {
+            console.warn(`[model-guard] free user "${userEmail}" tried "${selectedModel}" → clamped to llama`);
+            selectedModel = "llama-3.1-8b-instant";
+          } else if (plan === "basic" && !BASIC_MODELS.includes(selectedModel)) {
+            console.warn(`[model-guard] basic user "${userEmail}" tried "${selectedModel}" → clamped to gpt-4o-mini`);
+            selectedModel = "gpt-4o-mini";
+          }
+          // pro: no restriction
+        }
+      } catch (err) {
+        console.warn("[model-guard] plan lookup failed, proceeding with requested model:", err);
+      }
+    }
+
     const { provider }     = resolveModel(selectedModel);
     console.log(`🤖 Model: "${selectedModel}" → ${provider}`);
 
