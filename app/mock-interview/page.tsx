@@ -75,12 +75,8 @@ type AiModel = {
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════
 const AI_MODELS: AiModel[] = [
-  { id: "gpt-4o",          name: "GPT-4o",       provider: "OpenAI", badge: "Recommended", speed: "~2s",   quality: "Best",  creditsPerQ: 5, icon: "🤖", color: "#6366f1" },
-  { id: "gpt-4o-mini",     name: "GPT-4o Mini",  provider: "OpenAI", badge: "Balanced",    speed: "~1s",   quality: "Great", creditsPerQ: 2, icon: "⚡", color: "#818cf8" },
-  { id: "gemini-1.5-pro",  name: "Gemini 1.5 Pro", provider: "Google", badge: "Multimodal", speed: "~2s",  quality: "Best",  creditsPerQ: 5, icon: "💎", color: "#3b82f6" },
-  { id: "gemini-1.5-flash",name: "Gemini Flash", provider: "Google", badge: "Fastest",     speed: "~0.5s", quality: "Fast",  creditsPerQ: 1, icon: "🌟", color: "#06b6d4" },
-  { id: "llama-3.3-70b",   name: "Llama 3.3 70B",provider: "Groq",   badge: "Instant",     speed: "~0.3s", quality: "Great", creditsPerQ: 2, icon: "🦙", color: "#7c3aed" },
-  { id: "mixtral-8x7b",    name: "Mixtral 8x7B", provider: "Groq",   badge: "Ultra Fast",  speed: "~0.2s", quality: "Good",  creditsPerQ: 1, icon: "🚀", color: "#a855f7" },
+  { id: "gpt-4o",        name: "GPT-4o",        provider: "OpenAI", badge: "Recommended", speed: "~2s",   quality: "Best",  creditsPerQ: 5, icon: "🤖", color: "#6366f1" },
+  { id: "llama-3.3-70b", name: "Llama 3.3 70B", provider: "Groq",   badge: "Instant",     speed: "~0.3s", quality: "Great", creditsPerQ: 2, icon: "🦙", color: "#7c3aed" },
 ];
 
 const QUESTION_COUNTS = [5, 10, 15, 20];
