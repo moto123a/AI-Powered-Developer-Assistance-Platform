@@ -7,7 +7,7 @@ import { auth } from "../firebaseConfig";
 import { getUserProfile, type PlanId } from "../lib/credits";
 import AuthModal from "../../components/AuthModal";
 import Link from "next/link";
-import { PageHeader, PageFooter } from "../../components/PageShell";
+import { PageHeader } from "../../components/PageShell";
 
 function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef(null);
@@ -897,7 +897,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <PageFooter />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PageHeader, PageFooter } from "../../components/PageShell";
+import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
   title: "Features — CoopilotX AI",
@@ -214,7 +214,6 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <PageFooter />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PageHeader, PageFooter } from "../../components/PageShell";
+import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
   title: "Cookie Policy — CoopilotX AI",
@@ -128,7 +128,6 @@ export default function CookiesPage() {
         </div>
       </section>
 
-      <PageFooter />
     </div>
   );
 }
