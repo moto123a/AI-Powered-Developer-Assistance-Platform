@@ -295,7 +295,7 @@ async function checkAndDeductCredits(
 }
 
 // ============================================================================
-// 6) DETERMINISTIC RESUME PARSER
+// 6) DETERMINISTIC RESUME PARSER  (works with any common resume format)
 // ============================================================================
 const NOW_YEAR      = new Date().getFullYear();
 const NOW_MONTH     = new Date().getMonth() + 1;
@@ -310,43 +310,110 @@ const monthMap: Record<string, number> = {
 function toMonthNum(s: string)            { return monthMap[s.trim().toLowerCase()] ?? null; }
 function monthIndex(y: number, m: number) { return y * 12 + (m - 1); }
 function monthsInclusive(s: number, e: number) {
-  if (e < s) { console.warn(`monthsInclusive: end index ${e} is before start index ${s}, skipping range`); return 0; }
+  if (e < s) return 0;
   return e - s + 1;
 }
-function formatYearsMonths(t: number)     { return `${Math.floor(t / 12)} years ${t % 12} months`; }
+function formatYearsMonths(t: number) { return `${Math.floor(t / 12)} yrs ${t % 12} mos`; }
 
-function sliceProfessionalExperience(resume: string) {
+// ── Slice the experience section (any common header name) ──
+function sliceExperienceSection(resume: string): string {
   const lower = resume.toLowerCase();
-  const start = lower.indexOf("professional experience");
-  if (start === -1) return resume;
-  const edu = lower.indexOf("\neducation", start);
-  return edu !== -1 ? resume.slice(start, edu) : resume.slice(start);
-}
-
-function parseDateRange(text: string) {
-  const s  = normalizeDashes(text);
-  const re = /([A-Za-z]{3,9})\s+(\d{4})\s*(?:-|\sto\s)\s*(present|till\s*date|[A-Za-z]{3,9})\s*(\d{4})?/i;
-  const m  = s.match(re);
-  if (!m) return null;
-  const sm = toMonthNum(m[1]), sy = parseInt(m[2]);
-  if (!sm || !sy) return null;
-  const endToken = (m[3] || "").toLowerCase().replace(/\s+/g, "");
-  let em: number, ey: number;
-  if (endToken === "present" || endToken === "tilldate") { em = NOW_MONTH; ey = NOW_YEAR; }
-  else {
-    const endMonth = toMonthNum(m[3]), endYear = m[4] ? parseInt(m[4]) : NaN;
-    if (!endMonth || !endYear) return null;
-    em = endMonth; ey = endYear;
+  const EXP_HEADERS = [
+    "professional experience", "work experience", "employment history",
+    "career history", "work history", "relevant experience", "experience",
+  ];
+  const END_HEADERS = [
+    "\neducation", "\nskills", "\ncertification", "\nprojects",
+    "\ntraining", "\naccomplishment", "\nachievement", "\nreferences",
+    "\nadditional", "\nlanguage", "\npublication", "\nvolunteer",
+    "\naward", "\nhonor",
+  ];
+  let start = -1;
+  for (const h of EXP_HEADERS) {
+    const idx = lower.indexOf(h);
+    if (idx !== -1) { start = idx; break; }
   }
-  return {
-    sm, sy, em, ey,
-    durationText: `${m[1]} ${m[2]} - ${m[3]}${m[4] ? ` ${m[4]}` : ""}`.replace(/\s+/g, " ").trim(),
-  };
+  if (start === -1) return resume; // no experience section — scan everything
+  let end = -1;
+  for (const e of END_HEADERS) {
+    const idx = lower.indexOf(e, start + 20);
+    if (idx !== -1 && (end === -1 || idx < end)) end = idx;
+  }
+  return end !== -1 ? resume.slice(start, end) : resume.slice(start);
 }
 
+// ── Parse a single date range string into {sm,sy,em,ey} ──
+// Handles: "Jan 2020 - Mar 2022",  "2020 - 2023",  "01/2020 - 03/2022",
+//          "Jan 2020 to Present",  "2020 - current", "May 2021 – Till Date"
+function parseDateRange(text: string): {
+  sm: number; sy: number; em: number; ey: number; durationText: string;
+} | null {
+  const s = normalizeDashes(text);
+  const isPresent = (t: string) =>
+    /^(present|current|now|till\s*date|ongoing|date)$/i.test(t.trim().replace(/\s+/g, " "));
+
+  // ─ Pattern 1: "MonthName YYYY - MonthName YYYY" or "MonthName YYYY - Present"
+  const re1 = /([A-Za-z]{3,9})\s+(\d{4})\s*(?:-|to)\s*([A-Za-z][A-Za-z\s]*?)(\d{4})?(?=\s|$|[,;|])/i;
+  const m1  = s.match(re1);
+  if (m1) {
+    const sm = toMonthNum(m1[1]), sy = parseInt(m1[2]);
+    if (sm && sy && sy >= 1990 && sy <= NOW_YEAR + 1) {
+      const endStr = (m1[3] || "").trim();
+      let em: number | null = null, ey: number | null = null;
+      if (isPresent(endStr)) {
+        em = NOW_MONTH; ey = NOW_YEAR;
+      } else {
+        const endM = toMonthNum(endStr);
+        const endY = m1[4] ? parseInt(m1[4]) : NaN;
+        if (endM && endY && endY >= 1990) { em = endM; ey = endY; }
+      }
+      if (em !== null && ey !== null) {
+        return { sm, sy, em, ey, durationText: m1[0].trim() };
+      }
+    }
+  }
+
+  // ─ Pattern 2: "YYYY - YYYY" or "YYYY - Present"
+  const re2 = /\b((?:19|20)\d{2})\s*[-–]\s*(present|current|now|till\s*date|ongoing|(?:19|20)\d{2})\b/i;
+  const m2  = s.match(re2);
+  if (m2) {
+    const sy = parseInt(m2[1]);
+    let em: number, ey: number;
+    if (isPresent(m2[2])) { em = NOW_MONTH; ey = NOW_YEAR; }
+    else {
+      ey = parseInt(m2[2]);
+      if (ey < 1990 || ey > NOW_YEAR + 1) return null;
+      em = 12;
+    }
+    return { sm: 1, sy, em, ey, durationText: m2[0].trim() };
+  }
+
+  // ─ Pattern 3: "MM/YYYY - MM/YYYY" or "MM/YYYY - Present"
+  const re3 = /(\d{1,2})\/(\d{4})\s*[-–]\s*(present|current|now|\d{1,2}\/\d{4})/i;
+  const m3  = s.match(re3);
+  if (m3) {
+    const sm = parseInt(m3[1]), sy = parseInt(m3[2]);
+    if (sm < 1 || sm > 12 || sy < 1990) return null;
+    let em: number, ey: number;
+    if (isPresent(m3[3])) { em = NOW_MONTH; ey = NOW_YEAR; }
+    else {
+      const ep = m3[3].split("/");
+      em = parseInt(ep[0]); ey = parseInt(ep[1]);
+      if (em < 1 || em > 12 || ey < 1990) return null;
+    }
+    return { sm, sy, em, ey, durationText: m3[0].trim() };
+  }
+
+  return null;
+}
+
+// ── Extract jobs from any resume text ──
 function extractJobs(text: string) {
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const lines  = text.split("\n").map(l => l.trim()).filter(Boolean);
   const jobs: any[] = [];
+  const usedLines = new Set<number>();
+
+  // ── Pass 1: legacy "Client:/Company:/Duration:" format ──
   let lastHeader = "";
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -356,11 +423,11 @@ function extractJobs(text: string) {
       if (p) {
         const sIdx = monthIndex(p.sy, p.sm), eIdx = monthIndex(p.ey, p.em);
         jobs.push({
-          label: normalizeDashes(lastHeader).replace(p.durationText, "").replace(/\s+/g, " ").replace(/[|]+/g, " ").trim(),
+          label: normalizeDashes(lastHeader).replace(p.durationText, "").replace(/[|:]+/g, " ").replace(/\s+/g, " ").trim() || lastHeader,
           durationText: p.durationText, startIdx: sIdx, endIdx: eIdx,
           months: monthsInclusive(sIdx, eIdx),
         });
-        continue;
+        usedLines.add(i); continue;
       }
       const p2 = parseDateRange(lines[i + 1] || "");
       if (p2) {
@@ -370,6 +437,7 @@ function extractJobs(text: string) {
           durationText: p2.durationText, startIdx: sIdx, endIdx: eIdx,
           months: monthsInclusive(sIdx, eIdx),
         });
+        usedLines.add(i); usedLines.add(i + 1); continue;
       }
       continue;
     }
@@ -382,9 +450,46 @@ function extractJobs(text: string) {
         durationText: p.durationText, startIdx: sIdx, endIdx: eIdx,
         months: monthsInclusive(sIdx, eIdx),
       });
+      usedLines.add(i); continue;
     }
   }
-  return jobs;
+
+  // ── Pass 2: broad scan — any line (or adjacent line) with a date range ──
+  // Only runs if pass 1 found nothing
+  if (jobs.length === 0) {
+    for (let i = 0; i < lines.length; i++) {
+      if (usedLines.has(i)) continue;
+      const line = lines[i];
+
+      // Date range IS in this line
+      const p = parseDateRange(line);
+      if (p) {
+        // Label: everything in this line minus the date part, or fall back to prev line
+        const stripped = line.replace(p.durationText, "").replace(/[|·•\-–]+/g, " ").replace(/\s+/g, " ").trim();
+        const label    = stripped.length >= 3 ? stripped : (i > 0 ? lines[i - 1].slice(0, 80) : "Position");
+        const sIdx = monthIndex(p.sy, p.sm), eIdx = monthIndex(p.ey, p.em);
+        jobs.push({ label, durationText: p.durationText, startIdx: sIdx, endIdx: eIdx, months: monthsInclusive(sIdx, eIdx) });
+        usedLines.add(i); continue;
+      }
+
+      // Date range is on the NEXT line (standard resume: title line, then date line)
+      if (i + 1 < lines.length && !usedLines.has(i + 1)) {
+        const p2 = parseDateRange(lines[i + 1]);
+        if (p2) {
+          const sIdx = monthIndex(p2.sy, p2.sm), eIdx = monthIndex(p2.ey, p2.em);
+          jobs.push({ label: line.slice(0, 80), durationText: p2.durationText, startIdx: sIdx, endIdx: eIdx, months: monthsInclusive(sIdx, eIdx) });
+          usedLines.add(i); usedLines.add(i + 1); i++; continue;
+        }
+      }
+    }
+  }
+
+  // Deduplicate by startIdx (keep first occurrence)
+  const seen = new Set<number>();
+  return jobs.filter(j => {
+    if (seen.has(j.startIdx)) return false;
+    seen.add(j.startIdx); return true;
+  });
 }
 
 function mergeIntervals(intervals: any[]) {
@@ -400,24 +505,27 @@ function mergeIntervals(intervals: any[]) {
   return merged;
 }
 
-function verifyResumeDeterministic(resumeRaw: string) {
+function verifyResumeDeterministic(resumeRaw: string): {
+  totalExperience: string; summary: string; hasJobs: boolean;
+} {
   const resume = sanitizeText(resumeRaw ?? "");
   if (!resume || resume.length < 50)
-    return { totalExperience: "0 years 0 months", summary: "Resume text missing/too short." };
-  const jobs = extractJobs(sliceProfessionalExperience(resume));
+    return { totalExperience: "0 years 0 months", summary: "Resume text missing or too short.", hasJobs: false };
+  const jobs = extractJobs(sliceExperienceSection(resume));
   if (!jobs.length) return {
     totalExperience: "0 years 0 months",
-    summary: `Verification Scan (Mar 2026):\n- No job durations found.\nFix: "Client: X || Duration: Nov 2024 - Till Date"`,
+    summary: "Could not parse date ranges automatically.",
+    hasJobs: false,
   };
   const grossMonths = jobs.reduce((s, j) => s + j.months, 0);
   const merged      = mergeIntervals(jobs.map(j => ({ startIdx: j.startIdx, endIdx: j.endIdx })));
   const netMonths   = merged.reduce((s, it) => s + monthsInclusive(it.startIdx, it.endIdx), 0);
-  const lines       = [`Verification Scan (Mar 2026):`, `- Mathematical Audit Result:`];
-  jobs.forEach((j, i) => lines.push(`  ${i + 1}. ${j.label} || ${j.durationText} = ${j.months} months`));
-  lines.push(`- Gross Total: ${grossMonths} months (${formatYearsMonths(grossMonths)})`);
-  lines.push(merged.length !== jobs.length ? `- Merged overlapping intervals.` : `- No overlaps detected.`);
-  lines.push(`- Net Experience: ${netMonths} months (${formatYearsMonths(netMonths)}).`);
-  return { totalExperience: formatYearsMonths(netMonths), summary: lines.join("\n") };
+  const lines       = [`Resume Verification:`];
+  jobs.forEach((j, idx) => lines.push(`  ${idx + 1}. ${j.label} | ${j.durationText} = ${j.months} mos`));
+  lines.push(`Gross total : ${formatYearsMonths(grossMonths)}`);
+  lines.push(merged.length !== jobs.length ? `(overlapping roles merged)` : ``);
+  lines.push(`Net total   : ${formatYearsMonths(netMonths)}`);
+  return { totalExperience: formatYearsMonths(netMonths), summary: lines.filter(Boolean).join("\n"), hasJobs: true };
 }
 
 // ============================================================================
@@ -487,6 +595,32 @@ export async function POST(req: Request) {
     // ── VERIFY RESUME ──
     if (mode === "verify_resume") {
       const result = verifyResumeDeterministic(resume);
+
+      // If the deterministic parser couldn't find any dates, fall back to AI
+      if (!result.hasJobs) {
+        try {
+          const aiRaw = await callLLM(
+            "llama-3.1-8b-instant",
+            `You are a resume parser. Extract all work experience entries with their date ranges and calculate total experience.
+Return ONLY this exact JSON (no markdown):
+{"totalExperience":"X yrs Y mos","jobs":[{"title":"Job Title at Company","duration":"Mon YYYY - Mon YYYY","months":N}],"summary":"one-line plain summary"}`,
+            `Parse this resume:\n\n${sanitizeText(resume).slice(0, 3500)}`,
+            { temperature: 0, max_tokens: 500, json: true }
+          );
+          try {
+            const parsed = JSON.parse(cleanJson(aiRaw));
+            if (parsed && (parsed.jobs?.length > 0 || parsed.totalExperience)) {
+              const jobLines = (parsed.jobs || [])
+                .map((j: any, i: number) => `  ${i + 1}. ${j.title} | ${j.duration}${j.months ? ` = ${j.months} mos` : ""}`)
+                .join("\n");
+              const summary = `Resume Verification (AI scan):\n${jobLines}\nTotal: ${parsed.totalExperience || "See above"}`;
+              await logUsageAndIncrement(userEmail || "Unknown", "Resume-Verify-AI", { mode: "verify_resume", transcript: "", duration: 0 });
+              return NextResponse.json({ totalExperience: parsed.totalExperience || "See summary", summary });
+            }
+          } catch { /* fall through to original result */ }
+        } catch { /* fall through to original result */ }
+      }
+
       await logUsageAndIncrement(
         userEmail || "Unknown", "Resume-Verify",
         { mode: "verify_resume", transcript: "", duration: duration || 0 }
