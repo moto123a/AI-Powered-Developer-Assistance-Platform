@@ -462,7 +462,7 @@ export default function PricingPage() {
                   transition={{ duration: 0.2 }}
                   className="text-xs font-semibold text-violet-600 cursor-pointer hover:text-violet-800 transition-colors"
                   onClick={() => setAnnual(true)}>
-                  Switch to annual — Basic $8/mo · Pro $19/mo
+                  Switch to annual: Basic $8/mo · Pro $19/mo
                 </motion.p>
               )}
             </AnimatePresence>
@@ -615,7 +615,7 @@ export default function PricingPage() {
               className="text-center text-sm mt-5">
               <button onClick={() => setAnnual(true)}
                 className="text-violet-600 font-bold hover:text-violet-800 underline underline-offset-2 transition-colors">
-                Pay annually and save 33% — Basic drops to $8/mo, Pro drops to $19/mo
+                Pay annually and save 33%. Basic drops to $8/mo, Pro drops to $19/mo.
               </button>
             </motion.p>
           )}

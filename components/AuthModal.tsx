@@ -131,7 +131,7 @@ export default function AuthModal({ open, initialMode = "signin", onClose, onSuc
                     </h2>
                     <p className="text-[13px] text-gray-400 mt-0.5">
                       {mode === "signin" ? "Sign in to continue to CoopilotX AI"
-                        : mode === "signup" ? "Start with 100 free AI credits — no card needed"
+                        : mode === "signup" ? "Start with 100 free AI credits. No card needed."
                         : "We'll send a reset link to your inbox"}
                     </p>
                   </motion.div>

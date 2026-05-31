@@ -49,7 +49,7 @@ export default function CreditsBadge() {
           ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 animate-pulse"
           : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
       }`}
-      title={isUnlimited ? "Pro plan — unlimited" : `${credits} credits remaining. Click to upgrade.`}
+      title={isUnlimited ? "Pro plan, unlimited credits" : `${credits} credits remaining. Click to upgrade.`}
     >
       {isUnlimited ? (
         <>

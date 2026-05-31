@@ -288,13 +288,13 @@ export default function RealInterviewPage() {
                         kbd: null,
                       },
                       {
-                        step: "02", title: "SPACE — Start listening",
+                        step: "02", title: "SPACE: Start listening",
                         desc: "Mic turns on. Speak the question aloud or let the interviewer speak.",
                         accentBg: "rgba(124,58,237,0.09)", accentBorder: "rgba(124,58,237,0.2)", accentText: "#6d28d9",
                         kbd: "SPACE",
                       },
                       {
-                        step: "03", title: "SPACE — Get your answer",
+                        step: "03", title: "SPACE: Get your answer",
                         desc: "AI generates a perfect, resume-backed response in under 2 seconds.",
                         accentBg: "rgba(16,185,129,0.09)", accentBorder: "rgba(16,185,129,0.2)", accentText: "#059669",
                         kbd: "SPACE",
@@ -341,7 +341,7 @@ export default function RealInterviewPage() {
                     <button onClick={() => router.push("/pricing")}
                       className="w-full mt-4 py-2.5 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-all"
                       style={{ border: "1px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.07)", color: "#4338ca" }}>
-                      Upgrade to Pro — Unlimited <ArrowRight size={13} />
+                      Upgrade to Pro for unlimited credits <ArrowRight size={13} />
                     </button>
                   )}
                 </div>

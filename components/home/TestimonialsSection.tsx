@@ -20,7 +20,7 @@ export default function TestimonialsSection() {
       <div className="max-w-6xl mx-auto">
         <BlurFade className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Trusted by thousands of professionals.</h2>
-          <p className="text-gray-500 text-lg max-w-lg mx-auto">From fresh graduates to senior engineers. CoopilotX transforms how professionals prepare and perform.</p>
+          <p className="text-gray-500 text-lg max-w-lg mx-auto">Real people. Real prep. Real offer letters.</p>
         </BlurFade>
 
         {/* Auto-cycling featured */}

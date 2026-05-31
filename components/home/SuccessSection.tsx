@@ -44,7 +44,7 @@ export default function SuccessSection() {
         <BlurFade className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Real people. Real offers.</h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
-            Thousands of CoopilotX users have landed dream jobs at top companies, with bigger salaries and more confidence.
+            These aren't projections. These are actual people who used CoopilotX to prepare, showed up ready, and got the offer.
           </p>
         </BlurFade>
 

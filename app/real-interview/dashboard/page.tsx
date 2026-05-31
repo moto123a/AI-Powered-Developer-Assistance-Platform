@@ -158,7 +158,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-[17px] font-black text-slate-700 mb-1.5 tracking-tight">No sessions yet</p>
               <p className="text-[13px] font-medium text-slate-400 max-w-xs leading-relaxed">
-                Start an interview session — your Q&A history will appear here automatically.
+                Start an interview session and your Q&A history will appear here automatically.
               </p>
             </div>
             <button onClick={() => router.push("/real-interview")}

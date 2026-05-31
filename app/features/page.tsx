@@ -19,8 +19,8 @@ const FEATURES = [
     accent: "text-indigo-600",
     title: "Stealth Overlay",
     tagline: "Invisible during screen-share.",
-    desc: "The stealth overlay sits on top of your screen but stays completely hidden from Zoom, Google Meet, Teams, and Webex screen-share. Your interviewer sees only you — not the assistant. Works on any video platform that uses your microphone.",
-    points: ["Undetectable in Zoom, Teams, Meet, Webex", "Works on Windows and macOS native apps", "Screen-share safe — zero detection risk", "Toggle on/off instantly with a hotkey"],
+    desc: "The stealth overlay sits on top of your screen but stays completely hidden from Zoom, Google Meet, Teams, and Webex screen-share. Your interviewer sees only you, not the assistant. Works on any video platform that uses your microphone.",
+    points: ["Undetectable in Zoom, Teams, Meet, Webex", "Works on Windows and macOS native apps", "Screen-share safe, zero detection risk", "Toggle on/off instantly with a hotkey"],
   },
   {
     icon: (
@@ -47,7 +47,7 @@ const FEATURES = [
     accent: "text-amber-600",
     title: "Sub-2-Second Response",
     tagline: "Answer on screen before you even hesitate.",
-    desc: "Powered by Groq's LPU inference engine — the fastest LLM hardware available. From the moment the question ends, CoopilotX transcribes, processes, and streams a tailored answer to your screen in under 2 seconds.",
+    desc: "Powered by Groq's LPU inference engine, the fastest LLM hardware available. From the moment the question ends, CoopilotX transcribes, processes, and streams a tailored answer to your screen in under 2 seconds.",
     points: ["Groq LPU: fastest inference on the market", "Streams token-by-token as it generates", "1.8s average from question end to first word", "No perceptible lag during live conversation"],
   },
   {
@@ -103,7 +103,7 @@ const FEATURES = [
     accent: "text-teal-600",
     title: "100% Private",
     tagline: "Your audio never leaves your device.",
-    desc: "Audio processing happens locally. Raw audio is never sent to any server. Only text prompts — with no personal identifiers — are sent to the LLM for answer generation, and those are discarded immediately. No conversation logs are ever stored.",
+    desc: "Audio processing happens locally. Raw audio is never sent to any server. Only text prompts (no personal identifiers) are sent to the LLM for answer generation, and those are discarded immediately. No conversation logs are ever stored.",
     points: ["Audio stays on your device, always", "No conversation history stored server-side", "Text prompts discarded after each response", "No data sold to third parties, ever"],
   },
   {
@@ -118,7 +118,7 @@ const FEATURES = [
     title: "Native Desktop App",
     tagline: "Windows and macOS apps built for real stealth.",
     desc: "The browser version is great for practice. The desktop app is what you need for real interviews. System audio capture means no browser limitations, no microphone permission popups, and no risk of the overlay appearing in a screen-share.",
-    points: ["Windows 10/11 MSIX installer, auto-updates", "macOS universal app (.pkg, Apple notarized)", "System audio — no browser mic required", "Sub-20ms hotkey toggle for instant hide/show"],
+    points: ["Windows 10/11 MSIX installer, auto-updates", "macOS universal app (.pkg, Apple notarized)", "System audio, no browser mic required", "Sub-20ms hotkey toggle for instant hide/show"],
   },
   {
     icon: (

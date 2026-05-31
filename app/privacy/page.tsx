@@ -38,9 +38,9 @@ export default function PrivacyPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { title: "Account information", body: "Your email address. If you use Google Sign-In, your Google profile name and photo. Managed securely via Firebase Authentication." },
-                { title: "Resume content", body: "Text you paste into the resume builder is processed to generate suggestions. It is not stored permanently — it exists only for your session." },
+                { title: "Resume content", body: "Text you paste into the resume builder is processed to generate suggestions. It is not stored permanently. It exists only for the duration of your session." },
                 { title: "Interview audio", body: "Processed entirely on your device. Raw audio is never sent to our servers. Only the text transcript is used, and it's discarded after the response." },
-                { title: "Payment information", body: "Handled entirely by Stripe. We never see or store your card number, CVV, or bank details — only your subscription status." },
+                { title: "Payment information", body: "Handled entirely by Stripe. We never see or store your card number, CVV, or bank details. Only your subscription status reaches our servers." },
                 { title: "Usage data", body: "Basic usage events (e.g. feature used, session count) using a hashed user ID. No personal identifiers in these logs." },
               ].map((c, i) => (
                 <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-5">
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
 
           <div>
             <h2 className="text-xl font-black text-gray-900 mb-4">8. Security</h2>
-            <p className="text-sm">All data in transit is encrypted via HTTPS. Passwords are never stored — authentication is handled by Firebase and Google OAuth. Payment data is handled exclusively by Stripe and never touches our servers.</p>
+            <p className="text-sm">All data in transit is encrypted via HTTPS. Passwords are never stored. Authentication is handled by Firebase and Google OAuth. Payment data is handled exclusively by Stripe and never touches our servers.</p>
           </div>
 
           <div>

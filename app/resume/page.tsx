@@ -329,7 +329,7 @@ function CreditUsageToast({ action, cost, remaining, isUnlimited, onDone }: Cred
       </div>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:12, fontWeight:700, color:T.textPrimary, marginBottom:2 }}>
-          {isUnlimited ? "Pro — Credits unlimited" : `-${cost} credits used`}
+          {isUnlimited ? "Pro: Credits unlimited" : `-${cost} credits used`}
         </div>
         <div style={{ fontSize:11, color:T.textSecondary, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
           {action} {isUnlimited ? "✓" : `· ${remaining} remaining`}

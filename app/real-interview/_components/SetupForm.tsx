@@ -161,7 +161,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest">
-              Resume <span className="text-slate-400 normal-case font-normal tracking-normal">(optional — better answers with it)</span>
+              Resume <span className="text-slate-400 normal-case font-normal tracking-normal">(optional, better answers with it)</span>
             </label>
           </div>
           <div className="flex gap-1 bg-white border border-slate-200 p-1 rounded-lg">
@@ -180,7 +180,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
           <textarea
             value={cfg.resume}
             onChange={e => update("resume", e.target.value)}
-            placeholder="Paste your full resume text here… (optional — AI gives generic answers without it)"
+            placeholder="Paste your full resume text here… (optional. AI gives more generic answers without it)"
             rows={8}
             className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 font-mono leading-relaxed outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-none placeholder:text-slate-300"
           />
@@ -249,7 +249,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
       >
         <Zap size={18} />
         Start Interview Session
-        {!hasResume && <span className="text-indigo-200 text-sm font-normal ml-1">(no resume — generic mode)</span>}
+        {!hasResume && <span className="text-indigo-200 text-sm font-normal ml-1">(no resume, generic mode)</span>}
       </motion.button>
 
       {!hasResume && (

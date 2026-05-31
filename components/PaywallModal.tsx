@@ -48,7 +48,7 @@ export default function PaywallModal({ onClose, creditsRemaining, action, credit
           <div className="space-y-3 mb-6">
             <div className="bg-blue-950/30 border border-blue-500/20 rounded-xl p-4 flex items-center justify-between">
               <div>
-                <div className="text-sm font-bold text-white">Basic — $12/mo</div>
+                <div className="text-sm font-bold text-white">Basic · $12/mo</div>
                 <div className="text-xs text-slate-400">1,000 credits/month</div>
               </div>
               <button
@@ -62,7 +62,7 @@ export default function PaywallModal({ onClose, creditsRemaining, action, credit
             <div className="bg-purple-950/30 border border-purple-500/20 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold text-white flex items-center gap-2">
-                  Pro — $29/mo <Crown size={14} className="text-purple-400" />
+                  Pro · $29/mo <Crown size={14} className="text-purple-400" />
                 </div>
                 <div className="text-xs text-slate-400">Unlimited credits</div>
               </div>

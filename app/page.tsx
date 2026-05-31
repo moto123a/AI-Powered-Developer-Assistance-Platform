@@ -336,58 +336,6 @@ export default function Home() {
         )}
       </motion.header>
 
-      {/* ── RESUME BUILDER SECTION ── */}
-      {/*
-        In your WhatIsItSection (or wherever "Build My Resume" lives),
-        update the buttons to use these classes:
-
-        PRIMARY — Build My Resume:
-          className="inline-flex items-center gap-2 px-6 py-3 text-[14px] font-bold
-                     bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
-                     text-white rounded-xl transition-all shadow-lg shadow-indigo-500/30"
-
-        SECONDARY — Mock Interview & Real-Time:
-          className="inline-flex items-center gap-2 px-6 py-3 text-[14px] font-bold
-                     border-2 border-indigo-600 text-indigo-600
-                     hover:bg-indigo-50 active:bg-indigo-100
-                     rounded-xl transition-all"
-
-        If the buttons live inline in this file, they are shown below as an example:
-      */}
-
-      {/*
-        EXAMPLE — if you have inline CTA buttons anywhere in this file, replace them like this:
-
-        BEFORE (invisible):
-        <button onClick={() => go("resume")}
-          className="px-6 py-3 text-sm font-semibold border border-gray-300 rounded-lg ...">
-          Build My Resume →
-        </button>
-
-        AFTER (clearly visible primary):
-        <button onClick={() => go("resume")}
-          className="inline-flex items-center gap-2 px-6 py-3 text-[14px] font-bold
-                     bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
-                     text-white rounded-xl transition-all shadow-lg shadow-indigo-500/30">
-          Build My Resume →
-        </button>
-
-        AFTER (clearly visible secondary):
-        <button onClick={() => go("mock-interview")}
-          className="inline-flex items-center gap-2 px-6 py-3 text-[14px] font-bold
-                     border-2 border-indigo-600 text-indigo-600
-                     hover:bg-indigo-50 rounded-xl transition-all">
-          Start Mock Interview →
-        </button>
-
-        <button onClick={() => go("real-interview")}
-          className="inline-flex items-center gap-2 px-6 py-3 text-[14px] font-bold
-                     border-2 border-indigo-600 text-indigo-600
-                     hover:bg-indigo-50 rounded-xl transition-all">
-          Try Real-Time →
-        </button>
-      */}
-
       <HeroSection mounted={mounted} detectedOS={detectedOS} onDownload={download} onNav={go} />
       <TrustedBySection />
       <StatsSection />

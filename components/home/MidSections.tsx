@@ -154,10 +154,10 @@ export function CtaSection({ onNav }: { onNav: (p: string) => void }) {
             <div className="relative z-10">
               <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 mb-6 uppercase tracking-widest hidden">Start Free Today</span>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight leading-tight">
-                Your dream job is<br />one interview away.
+                The interview is the last barrier.<br />Let's make sure you clear it.
               </h2>
               <p className="text-gray-600 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
-                Join 50,000+ job seekers who use CoopilotX to walk into every interview with total confidence.
+                Over 50,000 candidates have used CoopilotX to answer better, stand out clearly, and land offers they thought were a stretch.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.div
