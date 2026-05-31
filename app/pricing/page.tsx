@@ -49,7 +49,7 @@ const PLANS = [
     id: "free" as PlanId,
     name: "Starter",
     emoji: "🚀",
-    tagline: "Try it — no card needed",
+    tagline: "Try it, no card needed",
     monthlyPrice: 0,
     annualPrice: 0,
     cta: "Start for free",
@@ -57,21 +57,63 @@ const PLANS = [
     badge: null,
     popular: false,
     usagePool: "100 one-time credits",
-    usageBreakdown: "≈ 6 mock sessions  ·  ≈ 50 min live help",
-    idealFor: "1–2 upcoming interviews and want to see if CoopilotX gives you a real edge.",
-    unlock: "Try the live copilot in a real interview — completely free.",
+    usageBreakdown: "About 6 mock sessions or 50 minutes of live help",
+    idealFor: "You have interviews coming up and want to see if CoopilotX gives you a real edge.",
+    unlock: "Try the live copilot in a real interview for free.",
     features: [
-      { icon: "🎤", text: "AI listens live, shows your answer in 1.8s — on your screen only", key: false },
-      { icon: "🧠", text: "Upload your resume once — every answer uses your real experience & projects", key: false },
-      { icon: "💬", text: "Practice mock interviews — AI-generated questions for your exact role", key: false },
-      { icon: "📄", text: "Build a professional resume and download it as PDF — free", key: false },
-      { icon: "🌐", text: "Works in any browser, right now — nothing to install", key: false },
-      { icon: "🔒", text: "Audio processed on your device — never stored, never sent anywhere", key: false },
+      {
+        icon: "🎤",
+        title: "Live answers during real interviews",
+        desc: "The AI listens through your mic. When the interviewer finishes talking, you press space. A full answer appears on your screen in under 2 seconds. The interviewer sees nothing on their end.",
+        key: false,
+      },
+      {
+        icon: "🧠",
+        title: "Uses your actual experience",
+        desc: "You upload your resume once. From that point every answer references your real background. Your actual job titles, your actual projects, your real skills. Not made up examples.",
+        key: false,
+      },
+      {
+        icon: "🎯",
+        title: "Knows the role you are going for",
+        desc: "You type in the company and the job title before you start. The AI adjusts every answer to match that specific role. An answer for a senior engineer sounds different to one for a junior.",
+        key: false,
+      },
+      {
+        icon: "🌐",
+        title: "Works on any call or in person",
+        desc: "Zoom, Google Meet, Teams, phone screens, even in person if you have a laptop open. Nothing to install for the browser version. Sign up and use it today.",
+        key: false,
+      },
+      {
+        icon: "💬",
+        title: "Practice before the real interview",
+        desc: "Run a full mock interview. The AI plays the interviewer, asks questions for your exact role, and responds to what you say back. You get a real feel for what to expect before it counts.",
+        key: false,
+      },
+      {
+        icon: "📄",
+        title: "Resume builder included",
+        desc: "Create a clean professional resume and download it as a PDF for free. No watermark, no upgrade wall.",
+        key: false,
+      },
+      {
+        icon: "✅",
+        title: "Check the AI understood your resume",
+        desc: "Before any interview you can run a quick check. The AI tells you what it read from your resume. If anything looks wrong you fix it before it matters. Always free.",
+        key: false,
+      },
+      {
+        icon: "🔒",
+        title: "Your audio stays on your device",
+        desc: "The microphone is processed locally. Nothing is recorded, nothing is sent to a server. No one else can hear your interviews.",
+        key: false,
+      },
     ],
     notIncluded: [
       "Desktop stealth app (screen-share exclusion)",
       "AI resume rewriting for job descriptions",
-      "Session recordings & history",
+      "Session recordings and history",
     ],
   },
   {
@@ -86,20 +128,62 @@ const PLANS = [
     badge: "Most popular",
     popular: true,
     usagePool: "1,000 credits / month",
-    usageBreakdown: "≈ 66 mock sessions  ·  ≈ 500 min live help",
-    idealFor: "Actively applying to multiple roles and need a real advantage in every interview.",
-    unlock: "Desktop app + AI resume tailoring — the two features that change your odds.",
+    usageBreakdown: "About 66 mock sessions or 500 minutes of live help per month",
+    idealFor: "You are actively applying to multiple roles and need a real advantage in every interview.",
+    unlock: "Desktop app plus AI resume tailoring. The two features that change your odds.",
     features: [
-      { icon: "🖥️", text: "Desktop app (Windows & Mac) — overlay is fully excluded from screen share", key: true },
-      { icon: "📋", text: "AI rewrites your resume to match any job description — adds keywords ATS scans for", key: true },
-      { icon: "🎯", text: "Sharper AI model — more natural answers to complex behavioral & technical questions", key: false },
-      { icon: "🔁", text: "1,000 credits reset every month — enough for a full month of daily prep + real interviews", key: false },
-      { icon: "💬", text: "Paste the job description → AI generates questions specific to that company & role", key: false },
-      { icon: "✅", text: "Verify AI reads your resume correctly before every session — free every time", key: false },
+      {
+        icon: "🖥️",
+        title: "The screen share problem is completely solved",
+        desc: "When you share your screen on Zoom or Teams, the AI answer window is excluded at the operating system level. It does not show up in screen recordings. The interviewer cannot see it.",
+        key: true,
+      },
+      {
+        icon: "📋",
+        title: "Your resume gets rewritten for every job",
+        desc: "Paste a job description and your current resume. In about 30 seconds the AI rewrites your resume to match that role. Adds the right keywords and makes you look like the right candidate before a human even reads it.",
+        key: true,
+      },
+      {
+        icon: "💡",
+        title: "Enough for a full month of active interviewing",
+        desc: "1,000 credits a month works out to roughly 8 full hour-long interviews and 30 practice sessions. Resets every billing date. Most people never use all of it.",
+        key: false,
+      },
+      {
+        icon: "🎯",
+        title: "Better answers to harder questions",
+        desc: "This plan uses a stronger AI model. Behavioral questions like tell me about a time you dealt with conflict come out sounding natural and specific. Not like a list from a template.",
+        key: false,
+      },
+      {
+        icon: "🗂️",
+        title: "Practice the actual questions you will be asked",
+        desc: "Paste the job description before a mock session. The AI reads it and generates the specific questions that company typically asks for that role. You are practicing the real thing, not guessing.",
+        key: false,
+      },
+      {
+        icon: "🔁",
+        title: "Credits reset every month",
+        desc: "Your 1,000 credits come back on your billing date every month. Each month is a clean start.",
+        key: false,
+      },
+      {
+        icon: "✅",
+        title: "Resume check is always free",
+        desc: "Verifying that the AI read your resume correctly never costs credits on any plan.",
+        key: false,
+      },
+      {
+        icon: "💬",
+        title: "Remembers what was said earlier in the session",
+        desc: "The AI tracks the full conversation. If the interviewer asked about your database experience 10 minutes ago and asks a follow-up now, the answer connects back to what was already said.",
+        key: false,
+      },
     ],
     notIncluded: [
       "Camera stealth mode (visible on physical screen)",
-      "Session recordings & post-interview review",
+      "Session recordings and post-interview review",
     ],
   },
   {
@@ -113,17 +197,59 @@ const PLANS = [
     ctaNote: "7-day money-back guarantee",
     badge: "Best value",
     popular: false,
-    usagePool: "Unlimited — no credits at all",
+    usagePool: "Unlimited, no credits at all",
     usageBreakdown: "Use it every day, every interview, no counting",
-    idealFor: "Targeting top companies or interviewing weekly — every advantage, no restrictions.",
-    unlock: "Camera stealth + session recordings + unlimited use. The full toolkit.",
+    idealFor: "Targeting top companies or interviewing every week. Every advantage, no restrictions.",
+    unlock: "Camera stealth plus session recordings plus unlimited use. The full toolkit.",
     features: [
-      { icon: "♾️", text: "Unlimited live copilot — run it every interview, every day, no caps ever", key: true },
-      { icon: "👁️", text: "Camera stealth mode — overlay invisible even if interviewer sees your physical screen", key: true },
-      { icon: "📼", text: "Session recordings — review every question asked + your answer after each interview", key: true },
-      { icon: "🧠", text: "Best AI model — handles the hardest FAANG-level technical and behavioral questions", key: false },
-      { icon: "♾️", text: "Unlimited mock sessions — practice the same question 20 times if you need to", key: false },
-      { icon: "🎁", text: "Every new feature we ship — automatically included, no upgrade needed", key: false },
+      {
+        icon: "♾️",
+        title: "No limits at all",
+        desc: "No credits, no timer, no cap. Use it in every interview, every day. There is nothing counting in the background. You never have to think about usage.",
+        key: true,
+      },
+      {
+        icon: "👁️",
+        title: "Hidden even if someone looks at your screen physically",
+        desc: "Camera stealth means the window disappears even if someone walks behind you or the interviewer asks you to show your physical screen. This goes beyond screen share protection which only works during digital sharing.",
+        key: true,
+      },
+      {
+        icon: "📼",
+        title: "Every interview gets saved",
+        desc: "When a session ends it is automatically saved. You can go back to any interview and see every question that was asked and exactly what the AI suggested as an answer.",
+        key: true,
+      },
+      {
+        icon: "🔍",
+        title: "Spot what keeps coming up",
+        desc: "After a few interviews you will notice certain topics come up again and again. Reviewing sessions helps you focus your preparation on what actually matters for the roles you are targeting.",
+        key: false,
+      },
+      {
+        icon: "🧠",
+        title: "Handles the hard questions",
+        desc: "System design rounds, case study interviews, FAANG level technical questions. The Pro model does noticeably better on these. If you are targeting senior roles or competitive companies this difference matters.",
+        key: false,
+      },
+      {
+        icon: "♾️",
+        title: "Unlimited practice",
+        desc: "No limit on mock sessions. Run the same question 20 times if you want. Nobody is counting.",
+        key: false,
+      },
+      {
+        icon: "🖥️",
+        title: "Full desktop app with all protections",
+        desc: "You get the screen share exclusion from Basic and camera stealth on top of it. Both active at the same time.",
+        key: false,
+      },
+      {
+        icon: "🎁",
+        title: "Every new feature is automatically yours",
+        desc: "New things we add show up in your account without any extra charge or upgrade needed.",
+        key: false,
+      },
     ],
     notIncluded: [],
   },
@@ -139,10 +265,10 @@ const ROWS = [
   { cat: "Live Copilot",    label: "Camera stealth (hidden on physical screen)",free: false,             basic: false,           pro: true             },
   { cat: "Mock Practice",   label: "AI mock interview sessions",                free: "~6 total",        basic: "~66/month",     pro: "Unlimited"      },
   { cat: "Mock Practice",   label: "Questions tailored to your role & JD",      free: true,              basic: true,            pro: true             },
-  { cat: "Mock Practice",   label: "Session recordings — review after",         free: false,             basic: false,           pro: true             },
+  { cat: "Mock Practice",   label: "Session recordings, review after",          free: false,             basic: false,           pro: true             },
   { cat: "Resume",          label: "Resume builder + PDF download",             free: true,              basic: true,            pro: true             },
   { cat: "Resume",          label: "Verify AI reads your resume (before session)", free: true,           basic: true,            pro: true             },
-  { cat: "Resume",          label: "AI tailoring — rewrite for any job",        free: false,             basic: true,            pro: true             },
+  { cat: "Resume",          label: "AI tailoring, rewrite for any job",         free: false,             basic: true,            pro: true             },
   { cat: "Apps",            label: "Web browser (no install needed)",           free: true,              basic: true,            pro: true             },
   { cat: "Apps",            label: "Windows desktop app",                       free: false,             basic: true,            pro: true             },
   { cat: "Apps",            label: "macOS desktop app",                         free: false,             basic: true,            pro: true             },
@@ -155,39 +281,39 @@ const ROWS = [
 const FAQS = [
   {
     q: "What exactly is the live copilot?",
-    a: "During your real interview, CoopilotX listens to the interviewer through your microphone, reads your resume, and streams a tailored answer directly to your screen in under 2 seconds — completely invisible to the interviewer. You hear the question, glance at the answer, and respond naturally. It works on Zoom, Google Meet, Teams, phone calls, and in-person interviews.",
+    a: "During your real interview, CoopilotX listens to the interviewer through your microphone, reads your resume, and streams a tailored answer directly to your screen in under 2 seconds. Completely invisible to the interviewer. You hear the question, glance at the answer, and respond naturally. It works on Zoom, Google Meet, Teams, phone calls, and in-person interviews.",
   },
   {
     q: "What are credits and how many do I need?",
-    a: "Credits are a simple usage meter. Live copilot costs 2 credits per minute of active listening. A mock interview session costs 15 credits. Starter gives 100 total (~50 min or ~6 sessions). Basic gives 1,000 fresh credits every month (~500 min or ~66 sessions). Pro skips the credit system entirely — unlimited use, no tracking.",
+    a: "Credits are a simple usage meter. Live copilot costs 2 credits per minute of active listening. A mock interview session costs 15 credits. Starter gives 100 total (about 50 min or 6 sessions). Basic gives 1,000 fresh credits every month (about 500 min or 66 sessions). Pro skips the credit system entirely. Unlimited use, no tracking.",
   },
   {
     q: "Why do I need the desktop app for full stealth?",
-    a: "Browsers have limited ability to exclude windows from screen-share — it depends on the platform and browser version. The desktop app (Windows & Mac) uses OS-level window exclusion that is 100% reliable. Zoom, Teams, Meet, and Webex all respect this flag — they cannot capture the overlay window. Camera stealth (Pro) goes further still: the overlay is hidden even if someone looks at your physical screen.",
+    a: "Browsers have limited ability to exclude windows from screen-share. It depends on the platform and browser version. The desktop app uses OS-level window exclusion that is 100% reliable. Zoom, Teams, Meet, and Webex all respect this flag. They cannot capture the overlay window. Camera stealth on Pro goes further. The overlay is hidden even if someone looks at your physical screen.",
   },
   {
     q: "Do I need to upload a resume to use it?",
-    a: "No — you can start any session without a resume and the AI will still give solid, general answers. But with your resume, every answer references your actual experience, specific projects, and real skills — which sounds far more convincing to interviewers and completely avoids fabricating details.",
+    a: "No. You can start any session without a resume and the AI will still give solid general answers. But with your resume, every answer references your actual experience, specific projects, and real skills. Which sounds far more convincing to interviewers and completely avoids making things up.",
   },
   {
     q: "What does AI resume tailoring actually do?",
-    a: "You paste a job description and your existing resume. The AI rewrites your resume to match the exact keywords, skills, and language in that job posting — the kind an ATS (applicant tracking system) scans for before a human even sees it. Available on Basic and Pro.",
+    a: "You paste a job description and your existing resume. The AI rewrites your resume to match the exact keywords, skills, and language in that job posting. The kind an ATS scans for before a human even sees it. Available on Basic and Pro.",
   },
   {
     q: "What are session recordings?",
-    a: "After every interview session (Pro only), you can go back and see a full log of every question that was asked and the answer CoopilotX suggested. This lets you review what happened, spot patterns, and improve for the next interview.",
+    a: "After every interview session on Pro, you can go back and see a full log of every question that was asked and the answer CoopilotX suggested. This lets you review what happened, spot patterns, and improve for the next interview.",
   },
   {
     q: "Can I cancel or switch plans anytime?",
-    a: "Yes. Cancel from your account settings with one click — you keep full access until the end of your billing period. Upgrades take effect immediately. Downgrades take effect at the next billing cycle.",
+    a: "Yes. Cancel from your account settings with one click. You keep full access until the end of your billing period. Upgrades take effect immediately. Downgrades take effect at the next billing cycle.",
   },
   {
     q: "Is my data private?",
-    a: "Yes. Resume text is used only during your session and is never permanently stored. Interview audio is processed on your device — raw audio is never sent to our servers. We never sell your data or use it to train AI models. Full details in our Privacy Policy.",
+    a: "Yes. Resume text is used only during your session and is never permanently stored. Interview audio is processed on your device. Raw audio is never sent to our servers. We never sell your data or use it to train AI models. Full details in our Privacy Policy.",
   },
   {
     q: "What if I want a refund?",
-    a: "We offer a full refund within 7 days of your first paid subscription — no forms, no questions. Email support@coopilotxai.com and we will sort it out.",
+    a: "We offer a full refund within 7 days of your first paid subscription. No forms, no questions. Email support@coopilotxai.com and we will sort it out.",
   },
 ];
 
@@ -293,7 +419,7 @@ export default function PricingPage() {
 
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
             className="text-gray-500 text-[1.05rem] leading-relaxed mb-8 max-w-xl mx-auto">
-            AI listens during your real interview and shows the perfect answer on your screen in 1.8 seconds — completely invisible to the interviewer. Start free.
+            AI listens during your real interview and shows the perfect answer on your screen in 1.8 seconds. Completely invisible to the interviewer. Start free.
           </motion.p>
 
           {/* Trust bar */}
@@ -381,7 +507,7 @@ export default function PricingPage() {
                       </div>
                       {annual && savings > 0 && (
                         <p className="text-xs mt-0.5 font-semibold text-emerald-600">
-                          ${plan.annualPrice * 12}/yr billed — save ${savings}
+                          ${plan.annualPrice * 12}/yr billed, save ${savings}
                         </p>
                       )}
                       {price === 0 && <p className="text-xs text-gray-400 mt-0.5">No credit card</p>}
@@ -418,7 +544,7 @@ export default function PricingPage() {
                         disabled={!!loading || isCurrent}
                         className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: isCurrent ? "#d1d5db" : "linear-gradient(135deg, #6d28d9, #9333ea, #ea580c)", boxShadow: isCurrent ? "none" : "0 4px 18px rgba(109,40,217,0.28)" }}>
-                        {isCurrent ? "Current plan" : loading === plan.id ? "Redirecting…" : plan.cta}
+                        {isCurrent ? "Current plan" : loading === plan.id ? "Redirecting..." : plan.cta}
                       </button>
                     )}
                     <p className="text-center text-[10px] text-gray-400 mt-1.5">{plan.ctaNote}</p>
@@ -427,15 +553,18 @@ export default function PricingPage() {
                   {/* Features */}
                   <div className="px-6 py-4 flex-1 border-t border-gray-100/80">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">What you get</p>
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-4">
                       {plan.features.map((f, fi) => (
                         <li key={fi} className="flex items-start gap-2.5">
-                          <span className="text-sm flex-shrink-0 mt-[-1px]">{f.icon}</span>
-                          <span className={`text-xs leading-snug ${f.key ? "font-semibold text-gray-800" : "text-gray-600"}`}>
-                            {f.text}
-                            {f.key && (
-                              <span className="ml-1.5 inline-flex items-center text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">KEY</span>
-                            )}
+                          <span className="text-base flex-shrink-0 mt-0.5">{f.icon}</span>
+                          <span className="flex flex-col gap-0.5">
+                            <span className={`text-xs font-semibold leading-snug ${f.key ? "text-gray-900" : "text-gray-800"}`}>
+                              {f.title}
+                              {f.key && (
+                                <span className="ml-1.5 inline-flex items-center text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">KEY</span>
+                              )}
+                            </span>
+                            <span className="text-[11px] text-gray-500 leading-relaxed">{f.desc}</span>
                           </span>
                         </li>
                       ))}
@@ -483,42 +612,42 @@ export default function PricingPage() {
           <div className="grid md:grid-cols-3 gap-5">
             {[
               {
-                plan: "Starter → try it",
+                plan: "Starter, try it free",
                 color: "rgba(99,102,241,0.07)",
                 border: "rgba(99,102,241,0.18)",
                 tc: "#4f46e5",
                 emoji: "🚀",
                 items: [
-                  { e: "🎤", b: "Hear the interviewer, see the answer in 1.8s — in a real interview today" },
-                  { e: "🧠", b: "AI reads your resume so answers sound like YOU, not a template" },
+                  { e: "🎤", b: "Hear the interviewer, see the full answer in 1.8 seconds during a real interview today" },
+                  { e: "🧠", b: "AI reads your resume so answers use your actual experience, not a generic template" },
                   { e: "💬", b: "Practice realistic questions for your exact role before the real thing" },
                   { e: "📄", b: "Walk in with a professional resume you built yourself" },
                 ],
               },
               {
-                plan: "Basic → serious edge",
+                plan: "Basic, serious edge",
                 color: "rgba(109,40,217,0.07)",
                 border: "rgba(109,40,217,0.20)",
                 tc: "#6d28d9",
                 emoji: "⚡",
                 items: [
-                  { e: "🖥️", b: "Desktop app means the overlay CANNOT appear in screen recordings — guaranteed" },
-                  { e: "📋", b: "Paste any job description → AI rewrites your resume for that exact role in seconds" },
-                  { e: "🎯", b: "Smarter AI handles complex 'tell me about a time…' questions much better" },
-                  { e: "🔁", b: "1,000 fresh credits every month — prep daily without worrying about running out" },
+                  { e: "🖥️", b: "Desktop app makes the overlay completely invisible in screen recordings. Zoom cannot capture it." },
+                  { e: "📋", b: "Paste any job description and the AI rewrites your resume to match that exact role in 30 seconds" },
+                  { e: "🎯", b: "Stronger AI model handles behavioral questions and complex multi-part answers naturally" },
+                  { e: "🔁", b: "1,000 fresh credits every month. Enough to prep daily and still have plenty left for real interviews." },
                 ],
               },
               {
-                plan: "Pro → no limits",
+                plan: "Pro, no limits",
                 color: "rgba(234,88,12,0.07)",
                 border: "rgba(234,88,12,0.18)",
                 tc: "#ea580c",
                 emoji: "👑",
                 items: [
-                  { e: "♾️", b: "No limits — run the copilot in every interview, every day, as long as you want" },
-                  { e: "👁️", b: "Camera stealth hides the overlay even if someone looks at your physical laptop screen" },
-                  { e: "📼", b: "After each interview, replay every question + answer to learn and improve" },
-                  { e: "🧠", b: "Best AI model — handles FAANG system design, case interviews, and senior-level behavioral questions" },
+                  { e: "♾️", b: "No credits at all. Run the copilot in every interview, every day, with nothing counting in the background." },
+                  { e: "👁️", b: "Camera stealth hides the overlay even if someone physically looks at your laptop screen" },
+                  { e: "📼", b: "After each interview, every question asked and every answer the AI gave is saved for you to review" },
+                  { e: "🧠", b: "Best AI model that handles FAANG system design, case interviews and senior level behavioral questions" },
                 ],
               },
             ].map((col, ci) => (
@@ -549,7 +678,7 @@ export default function PricingPage() {
         <div className="max-w-4xl mx-auto">
           <FadeUp className="text-center mb-12">
             <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Exactly what each thing costs</h2>
-            <p className="text-gray-500 text-sm">No surprises. Here's the full cost breakdown for Starter and Basic users.</p>
+            <p className="text-gray-500 text-sm">No surprises. Here is the full cost breakdown for Starter and Basic users.</p>
           </FadeUp>
 
           <FadeUp delay={0.1}>
@@ -576,7 +705,7 @@ export default function PricingPage() {
                 style={{ background: "linear-gradient(135deg, rgba(109,40,217,0.1), rgba(234,88,12,0.08))" }}>⚡</div>
               <div className="flex-1 text-center sm:text-left">
                 <p className="font-bold text-gray-900 text-sm">Pro skips the credit system entirely</p>
-                <p className="text-xs text-gray-500 mt-0.5">No credits, no tracking, no caps. Use the live copilot, mock interviews, and resume tools as much as you want — unlimited.</p>
+                <p className="text-xs text-gray-500 mt-0.5">No credits, no tracking, no caps. Use the live copilot, mock interviews and resume tools as much as you want. Unlimited.</p>
               </div>
               <button onClick={() => handleCheckout("pro")}
                 className="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
@@ -593,7 +722,7 @@ export default function PricingPage() {
         <div className="max-w-5xl mx-auto">
           <FadeUp className="text-center mb-12">
             <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Full plan comparison</h2>
-            <p className="text-gray-500 text-sm">Every feature side by side — no surprises, no small print.</p>
+            <p className="text-gray-500 text-sm">Every feature side by side. No surprises, no small print.</p>
           </FadeUp>
 
           <FadeUp delay={0.1}>
@@ -671,7 +800,7 @@ export default function PricingPage() {
                   <a href="mailto:support@coopilotxai.com" className="font-semibold hover:underline" style={{ color: "#6d28d9" }}>
                     support@coopilotxai.com
                   </a>{" "}
-                  and we'll refund you in full — no questions, no forms, no waiting.
+                  and we will refund you in full. No questions, no forms, no waiting.
                 </p>
               </div>
             </div>
@@ -693,7 +822,7 @@ export default function PricingPage() {
             <p className="text-center text-sm text-gray-400 mt-6">
               Something else?{" "}
               <a href="mailto:support@coopilotxai.com" className="text-violet-600 font-semibold hover:underline">Email us</a>
-              {" "}— we reply same day.
+              {" "}and we reply same day.
             </p>
           </FadeUp>
         </div>
@@ -718,7 +847,7 @@ export default function PricingPage() {
               </span>
             </h2>
             <p className="text-gray-500 text-sm mb-8">
-              Start free — no card, no commitment. See it work in your next interview, then decide.
+              Start free. No card, no commitment. See it work in your next interview, then decide.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => !user && setShowAuth(true)}
@@ -728,7 +857,7 @@ export default function PricingPage() {
               </button>
               <Link href="/real-interview"
                 className="px-8 py-3.5 rounded-xl border border-gray-200 bg-white hover:border-violet-300 text-gray-700 hover:text-violet-700 font-semibold text-sm transition-all">
-                Try live copilot now →
+                Try live copilot now
               </Link>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-5 mt-8 text-[11px] text-gray-400">
