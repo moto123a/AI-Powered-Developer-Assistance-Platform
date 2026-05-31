@@ -9,7 +9,6 @@ import AuthModal from "../../components/AuthModal";
 import Link from "next/link";
 import { PageHeader, PageFooter } from "../../components/PageShell";
 
-// ─── Fade-in-up helper (same as homepage) ────────────────────────────────────
 function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
@@ -25,152 +24,178 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
 }
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
-function Check({ className = "" }) {
+function CheckIcon({ accent = false }) {
   return (
-    <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${className}`} viewBox="0 0 20 20" fill="currentColor">
+    <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${accent ? "text-violet-600" : "text-emerald-500"}`}
+      viewBox="0 0 20 20" fill="currentColor">
       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15 3.293 9.879a1 1 0 111.414-1.414L8.414 12.172l6.879-6.879a1 1 0 011.414 0z" clipRule="evenodd" />
     </svg>
   );
 }
-function Dash() {
-  return <span className="w-4 h-4 flex-shrink-0 mt-0.5 flex items-center justify-center text-gray-300 text-sm">–</span>;
+function StarIcon() {
+  return (
+    <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+    </svg>
+  );
+}
+function DashIcon() {
+  return <span className="w-4 h-4 flex-shrink-0 flex items-center justify-center text-gray-300">–</span>;
 }
 
-// ─── PLAN DATA (real features from codebase) ──────────────────────────────────
+// ─── PLANS ────────────────────────────────────────────────────────────────────
 const PLANS = [
   {
     id: "free" as PlanId,
     name: "Starter",
-    tagline: "Try it risk-free",
+    emoji: "🚀",
+    tagline: "Try it — no card needed",
     monthlyPrice: 0,
     annualPrice: 0,
     cta: "Start for free",
-    ctaSecondary: "No credit card",
+    ctaNote: "No credit card required",
     badge: null,
     popular: false,
-    gradient: false,
-    usageNote: "100 one-time credits — never expires",
-    forWho: "Perfect to try every feature and get a feel for how CoopilotX works in a real interview.",
+    usagePool: "100 one-time credits",
+    usageBreakdown: "≈ 6 mock sessions  ·  ≈ 50 min live help",
+    idealFor: "1–2 upcoming interviews and want to see if CoopilotX gives you a real edge.",
+    unlock: "Try the live copilot in a real interview — completely free.",
     features: [
-      { text: "Live interview copilot — real-time AI answers", highlight: false },
-      { text: "Listen via mic, answer in under 2 seconds", highlight: false },
-      { text: "Resume builder — build & download your resume", highlight: false },
-      { text: "Mock interview practice — AI-generated questions", highlight: false },
-      { text: "Works in any browser — no download needed", highlight: false },
-      { text: "~6 mock sessions or ~50 min live help total", highlight: false, dimNote: true },
+      { icon: "🎤", text: "AI listens live, shows your answer in 1.8s — on your screen only", key: false },
+      { icon: "🧠", text: "Upload your resume once — every answer uses your real experience & projects", key: false },
+      { icon: "💬", text: "Practice mock interviews — AI-generated questions for your exact role", key: false },
+      { icon: "📄", text: "Build a professional resume and download it as PDF — free", key: false },
+      { icon: "🌐", text: "Works in any browser, right now — nothing to install", key: false },
+      { icon: "🔒", text: "Audio processed on your device — never stored, never sent anywhere", key: false },
+    ],
+    notIncluded: [
+      "Desktop stealth app (screen-share exclusion)",
+      "AI resume rewriting for job descriptions",
+      "Session recordings & history",
     ],
   },
   {
     id: "basic" as PlanId,
     name: "Basic",
-    tagline: "For active job seekers",
+    emoji: "⚡",
+    tagline: "For active job hunters",
     monthlyPrice: 12,
     annualPrice: 8,
     cta: "Get Basic",
-    ctaSecondary: "Cancel anytime",
+    ctaNote: "Cancel anytime",
     badge: "Most popular",
     popular: true,
-    gradient: true,
-    usageNote: "1,000 credits refreshed every month",
-    forWho: "You're actively interviewing and need a reliable edge — enough credits for a full month of serious prep.",
+    usagePool: "1,000 credits / month",
+    usageBreakdown: "≈ 66 mock sessions  ·  ≈ 500 min live help",
+    idealFor: "Actively applying to multiple roles and need a real advantage in every interview.",
+    unlock: "Desktop app + AI resume tailoring — the two features that change your odds.",
     features: [
-      { text: "Everything in Starter", highlight: false },
-      { text: "1,000 credits/month — about 66 mock sessions", highlight: true },
-      { text: "Or ~500 minutes of live copilot time per month", highlight: true },
-      { text: "AI resume tailoring — rewrite to match any job description", highlight: false },
-      { text: "Windows & Mac desktop app — works off-screen", highlight: false },
-      { text: "Sharper AI model — more detailed, natural-sounding answers", highlight: false },
-      { text: "Credits reset every month", highlight: false },
+      { icon: "🖥️", text: "Desktop app (Windows & Mac) — overlay is fully excluded from screen share", key: true },
+      { icon: "📋", text: "AI rewrites your resume to match any job description — adds keywords ATS scans for", key: true },
+      { icon: "🎯", text: "Sharper AI model — more natural answers to complex behavioral & technical questions", key: false },
+      { icon: "🔁", text: "1,000 credits reset every month — enough for a full month of daily prep + real interviews", key: false },
+      { icon: "💬", text: "Paste the job description → AI generates questions specific to that company & role", key: false },
+      { icon: "✅", text: "Verify AI reads your resume correctly before every session — free every time", key: false },
+    ],
+    notIncluded: [
+      "Camera stealth mode (visible on physical screen)",
+      "Session recordings & post-interview review",
     ],
   },
   {
     id: "pro" as PlanId,
     name: "Pro",
-    tagline: "No limits, ever",
+    emoji: "👑",
+    tagline: "No limits. No compromises.",
     monthlyPrice: 29,
     annualPrice: 19,
     cta: "Get Pro",
-    ctaSecondary: "7-day refund",
+    ctaNote: "7-day money-back guarantee",
     badge: "Best value",
     popular: false,
-    gradient: false,
-    usageNote: "Unlimited — no credit tracking at all",
-    forWho: "You're targeting top companies, interviewing every week, and want total confidence with zero restrictions.",
+    usagePool: "Unlimited — no credits at all",
+    usageBreakdown: "Use it every day, every interview, no counting",
+    idealFor: "Targeting top companies or interviewing weekly — every advantage, no restrictions.",
+    unlock: "Camera stealth + session recordings + unlimited use. The full toolkit.",
     features: [
-      { text: "Everything in Basic", highlight: false },
-      { text: "Unlimited live copilot — use it as much as you want", highlight: true },
-      { text: "Unlimited mock interview sessions — practice every day", highlight: true },
-      { text: "Camera stealth mode — overlay invisible even on camera", highlight: true },
-      { text: "Session recordings — review every Q&A after the interview", highlight: true },
-      { text: "Best AI model — most human-sounding, senior-level answers", highlight: false },
-      { text: "Every future feature included automatically", highlight: false },
+      { icon: "♾️", text: "Unlimited live copilot — run it every interview, every day, no caps ever", key: true },
+      { icon: "👁️", text: "Camera stealth mode — overlay invisible even if interviewer sees your physical screen", key: true },
+      { icon: "📼", text: "Session recordings — review every question asked + your answer after each interview", key: true },
+      { icon: "🧠", text: "Best AI model — handles the hardest FAANG-level technical and behavioral questions", key: false },
+      { icon: "♾️", text: "Unlimited mock sessions — practice the same question 20 times if you need to", key: false },
+      { icon: "🎁", text: "Every new feature we ship — automatically included, no upgrade needed", key: false },
     ],
+    notIncluded: [],
   },
 ];
 
-// ─── COMPARISON (real features only) ─────────────────────────────────────────
+// ─── COMPARISON ROWS ──────────────────────────────────────────────────────────
 const ROWS = [
-  { cat: "Live Copilot",    label: "Real-time AI answers during interview", free: true,           basic: true,                  pro: true                  },
-  { cat: "Live Copilot",    label: "Answer speed",                          free: "< 2 seconds",  basic: "< 2 seconds",         pro: "< 2 seconds"         },
-  { cat: "Live Copilot",    label: "Live copilot allowance",                free: "~50 min total",basic: "~500 min / month",    pro: "Unlimited"           },
-  { cat: "Live Copilot",    label: "Works on Zoom, Teams, Meet, any call",  free: true,           basic: true,                  pro: true                  },
-  { cat: "Live Copilot",    label: "Camera stealth (invisible on camera)",  free: false,          basic: false,                 pro: true                  },
-  { cat: "Mock Interviews", label: "AI mock interview sessions",            free: "~6 total",     basic: "~66 / month",         pro: "Unlimited"           },
-  { cat: "Mock Interviews", label: "Questions tailored to your role & JD",  free: true,           basic: true,                  pro: true                  },
-  { cat: "Mock Interviews", label: "Session recordings & review",           free: false,          basic: false,                 pro: true                  },
-  { cat: "Resume",          label: "Resume builder",                        free: true,           basic: true,                  pro: true                  },
-  { cat: "Resume",          label: "AI resume tailoring for job description",free: false,         basic: true,                  pro: true                  },
-  { cat: "App",             label: "Web browser (no install)",              free: true,           basic: true,                  pro: true                  },
-  { cat: "App",             label: "Windows desktop app",                   free: false,          basic: true,                  pro: true                  },
-  { cat: "App",             label: "macOS desktop app",                     free: false,          basic: true,                  pro: true                  },
-  { cat: "AI Quality",      label: "AI model quality",                      free: "Standard",     basic: "Enhanced",            pro: "Best"                },
-  { cat: "Support",         label: "Email support",                         free: true,           basic: true,                  pro: true                  },
-  { cat: "Support",         label: "Priority support + new features",       free: false,          basic: false,                 pro: true                  },
+  { cat: "Live Copilot",    label: "AI answers streamed in real-time",          free: true,              basic: true,            pro: true             },
+  { cat: "Live Copilot",    label: "Answer speed",                              free: "< 2 seconds",     basic: "< 2 seconds",   pro: "< 2 seconds"    },
+  { cat: "Live Copilot",    label: "Monthly live copilot allowance",            free: "~50 min (total)", basic: "~500 min/mo",   pro: "Unlimited"      },
+  { cat: "Live Copilot",    label: "Works on Zoom, Teams, Meet, any call",      free: true,              basic: true,            pro: true             },
+  { cat: "Live Copilot",    label: "Fully excluded from screen share",          free: "Browser only",    basic: "Desktop app ✓", pro: "Desktop app ✓"  },
+  { cat: "Live Copilot",    label: "Camera stealth (hidden on physical screen)",free: false,             basic: false,           pro: true             },
+  { cat: "Mock Practice",   label: "AI mock interview sessions",                free: "~6 total",        basic: "~66/month",     pro: "Unlimited"      },
+  { cat: "Mock Practice",   label: "Questions tailored to your role & JD",      free: true,              basic: true,            pro: true             },
+  { cat: "Mock Practice",   label: "Session recordings — review after",         free: false,             basic: false,           pro: true             },
+  { cat: "Resume",          label: "Resume builder + PDF download",             free: true,              basic: true,            pro: true             },
+  { cat: "Resume",          label: "Verify AI reads your resume (before session)", free: true,           basic: true,            pro: true             },
+  { cat: "Resume",          label: "AI tailoring — rewrite for any job",        free: false,             basic: true,            pro: true             },
+  { cat: "Apps",            label: "Web browser (no install needed)",           free: true,              basic: true,            pro: true             },
+  { cat: "Apps",            label: "Windows desktop app",                       free: false,             basic: true,            pro: true             },
+  { cat: "Apps",            label: "macOS desktop app",                         free: false,             basic: true,            pro: true             },
+  { cat: "AI Quality",      label: "AI model",                                  free: "Standard",        basic: "Enhanced",      pro: "Best"           },
+  { cat: "Billing",         label: "Credits reset",                             free: "One-time 100",    basic: "Monthly 1,000", pro: "No credits"     },
+  { cat: "Billing",         label: "Future features included",                  free: false,             basic: false,           pro: true             },
 ];
 
 // ─── FAQ ──────────────────────────────────────────────────────────────────────
 const FAQS = [
   {
-    q: "What is the live copilot, exactly?",
-    a: "During your real interview, CoopilotX listens to the interviewer through your mic, reads your resume, and streams a suggested answer to your screen in under 2 seconds — completely invisible to them. You hear the question, glance at the answer, and respond naturally. It works on Zoom, Google Meet, Teams, phone calls, and even in-person.",
+    q: "What exactly is the live copilot?",
+    a: "During your real interview, CoopilotX listens to the interviewer through your microphone, reads your resume, and streams a tailored answer directly to your screen in under 2 seconds — completely invisible to the interviewer. You hear the question, glance at the answer, and respond naturally. It works on Zoom, Google Meet, Teams, phone calls, and in-person interviews.",
   },
   {
-    q: "What are credits and how do they work?",
-    a: "Credits are how usage is measured. Every action has a small cost: live copilot costs 2 credits per minute, a mock interview session costs 15 credits. Starter gets 100 one-time credits (~50 min live help or ~6 sessions). Basic gets 1,000 credits refreshed every month. Pro has no credit limit at all — just use it.",
+    q: "What are credits and how many do I need?",
+    a: "Credits are a simple usage meter. Live copilot costs 2 credits per minute of active listening. A mock interview session costs 15 credits. Starter gives 100 total (~50 min or ~6 sessions). Basic gives 1,000 fresh credits every month (~500 min or ~66 sessions). Pro skips the credit system entirely — unlimited use, no tracking.",
   },
   {
-    q: "Is it detectable on screen-share?",
-    a: "No. The app runs as a separate window that is excluded from screen-share. On Zoom, Teams, Meet, and similar platforms, it is completely invisible to the interviewer. Pro's camera stealth mode goes further — the overlay is hidden even if the interviewer can see your physical screen.",
+    q: "Why do I need the desktop app for full stealth?",
+    a: "Browsers have limited ability to exclude windows from screen-share — it depends on the platform and browser version. The desktop app (Windows & Mac) uses OS-level window exclusion that is 100% reliable. Zoom, Teams, Meet, and Webex all respect this flag — they cannot capture the overlay window. Camera stealth (Pro) goes further still: the overlay is hidden even if someone looks at your physical screen.",
   },
   {
-    q: "Do I need to upload a resume?",
-    a: "No — you can start any session without a resume. Without one, the AI gives solid general answers. With your resume, every answer references your real experience, projects, and skills — which is far more convincing to interviewers.",
+    q: "Do I need to upload a resume to use it?",
+    a: "No — you can start any session without a resume and the AI will still give solid, general answers. But with your resume, every answer references your actual experience, specific projects, and real skills — which sounds far more convincing to interviewers and completely avoids fabricating details.",
   },
   {
-    q: "Can I cancel or change plans anytime?",
-    a: "Yes. Cancel from your account settings with one click. You keep full access until the end of your billing period. Upgrades take effect immediately. Downgrades take effect next cycle.",
+    q: "What does AI resume tailoring actually do?",
+    a: "You paste a job description and your existing resume. The AI rewrites your resume to match the exact keywords, skills, and language in that job posting — the kind an ATS (applicant tracking system) scans for before a human even sees it. Available on Basic and Pro.",
   },
   {
-    q: "Is my resume and interview data private?",
-    a: "Yes. Your resume text is only used during your session and is never stored permanently on our servers. Interview audio is processed on your device — raw audio is never sent anywhere. We do not sell your data or use it to train AI models.",
+    q: "What are session recordings?",
+    a: "After every interview session (Pro only), you can go back and see a full log of every question that was asked and the answer CoopilotX suggested. This lets you review what happened, spot patterns, and improve for the next interview.",
+  },
+  {
+    q: "Can I cancel or switch plans anytime?",
+    a: "Yes. Cancel from your account settings with one click — you keep full access until the end of your billing period. Upgrades take effect immediately. Downgrades take effect at the next billing cycle.",
+  },
+  {
+    q: "Is my data private?",
+    a: "Yes. Resume text is used only during your session and is never permanently stored. Interview audio is processed on your device — raw audio is never sent to our servers. We never sell your data or use it to train AI models. Full details in our Privacy Policy.",
   },
   {
     q: "What if I want a refund?",
-    a: "We offer a full 7-day refund on your first paid subscription. Email support@coopilotxai.com and we will sort it out — no forms, no questions.",
+    a: "We offer a full refund within 7 days of your first paid subscription — no forms, no questions. Email support@coopilotxai.com and we will sort it out.",
   },
 ];
 
 // ─── Cell ─────────────────────────────────────────────────────────────────────
 function Cell({ val, accent }: { val: boolean | string; accent?: boolean }) {
-  if (val === false) return <div className="flex justify-center"><Dash /></div>;
-  if (val === true) return (
-    <div className="flex justify-center">
-      <Check className={accent ? "text-violet-600" : "text-emerald-500"} />
-    </div>
-  );
-  return (
-    <p className={`text-center text-xs font-semibold ${accent ? "text-violet-700" : "text-gray-600"}`}>{val}</p>
-  );
+  if (val === false) return <div className="flex justify-center"><DashIcon /></div>;
+  if (val === true) return <div className="flex justify-center"><CheckIcon accent={accent} /></div>;
+  return <p className={`text-center text-xs font-semibold ${accent ? "text-violet-700" : "text-gray-700"}`}>{val}</p>;
 }
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
@@ -198,7 +223,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function PricingPage() {
   const [user,     setUser]     = useState<any>(null);
   const [profile,  setProfile]  = useState<any>(null);
@@ -231,24 +256,20 @@ export default function PricingPage() {
   };
 
   const currentPlan = profile?.plan as PlanId | undefined;
-  const visibleRows = showAll ? ROWS : ROWS.slice(0, 9);
+  const visibleRows = showAll ? ROWS : ROWS.slice(0, 10);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       {showAuth && <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />}
       <PageHeader />
 
-      {/* ══════════ HERO ══════════════════════════════════════════════════════ */}
+      {/* ══ HERO ═══════════════════════════════════════════════════════════════ */}
       <section className="relative pt-20 pb-16 px-6 text-center overflow-hidden"
         style={{ background: "linear-gradient(150deg, #faf8ff 0%, #f4edff 40%, #fff4ec 75%, #fdf8ff 100%)" }}>
-
-        {/* Ambient blobs — same as homepage */}
         <div className="absolute pointer-events-none top-0 left-1/4 w-[500px] h-[500px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 65%)", filter: "blur(80px)", transform: "translateX(-50%)" }} />
         <div className="absolute pointer-events-none top-0 right-0 w-[400px] h-[400px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(234,88,12,0.10) 0%, transparent 65%)", filter: "blur(70px)" }} />
-
-        {/* Dot grid */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle, rgba(124,58,237,0.05) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
@@ -259,7 +280,7 @@ export default function PricingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-60" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
             </span>
-            <span className="text-[11px] font-semibold text-gray-600 tracking-wide">Simple pricing · Cancel anytime</span>
+            <span className="text-[11px] font-semibold text-gray-600 tracking-wide">Simple pricing · No hidden fees · Cancel anytime</span>
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.05 }}
@@ -272,18 +293,13 @@ export default function PricingPage() {
 
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
             className="text-gray-500 text-[1.05rem] leading-relaxed mb-8 max-w-xl mx-auto">
-            CoopilotX listens during your real interview and streams the perfect answer to your screen in under 2 seconds — completely invisible to the interviewer.
+            AI listens during your real interview and shows the perfect answer on your screen in 1.8 seconds — completely invisible to the interviewer. Start free.
           </motion.p>
 
           {/* Trust bar */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
             className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-400 mb-10">
-            {[
-              "Secure checkout via Stripe",
-              "Cancel anytime",
-              "7-day money-back guarantee",
-              "Audio never stored",
-            ].map((t, i) => (
+            {["Secure checkout via Stripe", "Cancel anytime", "7-day money-back", "Audio never stored"].map((t, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 <svg className="w-3 h-3 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15 3.293 9.879a1 1 0 111.414-1.414L8.414 12.172l6.879-6.879a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -297,193 +313,273 @@ export default function PricingPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
             className="inline-flex items-center bg-white/70 backdrop-blur-sm border border-gray-200 rounded-full p-1 shadow-sm gap-1">
             <button onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
               Monthly
             </button>
             <button onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
               Annual
-              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-                Save 33%
-              </span>
+              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">Save 33%</span>
             </button>
           </motion.div>
         </div>
       </section>
 
-      {/* ══════════ PLAN CARDS ════════════════════════════════════════════════ */}
-      <section className="relative px-6 pb-24"
-        style={{ background: "linear-gradient(180deg, #fdf8ff 0%, #ffffff 40%)" }}>
-        <div className="max-w-6xl mx-auto -mt-4">
+      {/* ══ PLAN CARDS ══════════════════════════════════════════════════════════ */}
+      <section className="relative px-6 pb-20"
+        style={{ background: "linear-gradient(180deg, #fdf8ff 0%, #ffffff 35%)" }}>
+        <div className="max-w-6xl mx-auto -mt-2">
           <div className="grid md:grid-cols-3 gap-6 items-start">
             {PLANS.map((plan, i) => {
-              const price = annual ? plan.annualPrice : plan.monthlyPrice;
+              const price    = annual ? plan.annualPrice : plan.monthlyPrice;
               const isCurrent = currentPlan === plan.id;
-              const savings = plan.monthlyPrice > 0
-                ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
-
+              const savings  = plan.monthlyPrice > 0 ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
               return (
                 <motion.div key={plan.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className={`relative rounded-2xl flex flex-col ${
-                    plan.popular
-                      ? "shadow-2xl shadow-violet-200/60 ring-2 ring-violet-500/20"
-                      : "shadow-sm"
-                  }`}
+                  transition={{ delay: i * 0.09, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                  className={`relative rounded-2xl flex flex-col overflow-hidden ${plan.popular ? "shadow-2xl shadow-violet-200/50" : "shadow-sm"}`}
                   style={plan.popular
-                    ? { background: "linear-gradient(160deg, #faf7ff 0%, #f3ecff 50%, #fff7f3 100%)", border: "1px solid rgba(124,58,237,0.2)" }
-                    : { background: "#fff", border: "1px solid #e5e7eb" }
-                  }
+                    ? { background: "linear-gradient(160deg, #faf7ff 0%, #f3ecff 55%, #fff7f3 100%)", border: "1.5px solid rgba(124,58,237,0.22)" }
+                    : { background: "#fff", border: "1px solid #e5e7eb" }}
                 >
+                  {/* Gradient top stripe */}
+                  <div className="h-1 w-full"
+                    style={{ background: plan.popular
+                      ? "linear-gradient(90deg, #6d28d9, #9333ea, #ea580c)"
+                      : plan.id === "pro"
+                      ? "linear-gradient(90deg, #9333ea, #ea580c)"
+                      : "#e5e7eb" }} />
+
                   {/* Badge */}
                   {plan.badge && (
-                    <div className={`absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold px-4 py-1 rounded-full text-white shadow-sm`}
+                    <div className="absolute top-3 right-4 text-[10px] font-black px-3 py-1 rounded-full text-white"
                       style={{ background: "linear-gradient(135deg, #6d28d9, #ea580c)" }}>
                       {plan.badge}
                     </div>
                   )}
 
-                  {/* Top gradient line */}
-                  {plan.popular && (
-                    <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
-                      style={{ background: "linear-gradient(90deg, #6d28d9, #9333ea, #ea580c)" }} />
-                  )}
-
-                  <div className="p-7 pb-5">
-                    {/* Name + tagline */}
-                    <p className="text-[11px] font-bold uppercase tracking-widest mb-1"
+                  <div className="p-6 pb-4">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{plan.emoji}</span>
+                      <h2 className="text-xl font-black text-gray-900">{plan.name}</h2>
+                    </div>
+                    <p className="text-xs font-semibold mb-4"
                       style={{ background: "linear-gradient(135deg, #6d28d9, #ea580c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                       {plan.tagline}
                     </p>
-                    <h2 className="text-2xl font-black text-gray-900 mb-5">{plan.name}</h2>
 
                     {/* Price */}
-                    <div className="mb-2">
+                    <div className="mb-3">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-black text-gray-900 tracking-tight">
+                        <span className="text-4xl font-black text-gray-900 tracking-tight">
                           {price === 0 ? "Free" : `$${price}`}
                         </span>
-                        {price > 0 && (
-                          <span className="text-sm text-gray-400">/ month</span>
-                        )}
+                        {price > 0 && <span className="text-sm text-gray-400">/ mo</span>}
                       </div>
                       {annual && savings > 0 && (
-                        <p className="text-xs mt-1 font-semibold text-emerald-600">
-                          Billed ${plan.annualPrice * 12}/yr — you save ${savings}
+                        <p className="text-xs mt-0.5 font-semibold text-emerald-600">
+                          ${plan.annualPrice * 12}/yr billed — save ${savings}
                         </p>
                       )}
-                      {price === 0 && (
-                        <p className="text-xs mt-1 text-gray-400">No credit card required</p>
-                      )}
+                      {price === 0 && <p className="text-xs text-gray-400 mt-0.5">No credit card</p>}
                     </div>
 
-                    {/* Usage note */}
-                    <div className="mt-3 mb-4 px-3 py-2 rounded-lg text-[11px] font-semibold"
-                      style={{ background: "rgba(109,40,217,0.06)", border: "1px solid rgba(109,40,217,0.12)", color: "#6d28d9" }}>
-                      {plan.usageNote}
+                    {/* Usage pool */}
+                    <div className="rounded-xl px-3 py-2.5 mb-3"
+                      style={{ background: "rgba(109,40,217,0.06)", border: "1px solid rgba(109,40,217,0.12)" }}>
+                      <p className="text-xs font-black text-violet-700">{plan.usagePool}</p>
+                      <p className="text-[10px] text-violet-500 mt-0.5">{plan.usageBreakdown}</p>
                     </div>
 
-                    {/* Who it's for */}
-                    <p className="text-sm text-gray-500 leading-relaxed mb-6 pt-3 border-t border-gray-100">
-                      {plan.forWho}
+                    {/* Ideal for */}
+                    <p className="text-xs text-gray-500 leading-relaxed mb-1">
+                      <span className="font-semibold text-gray-700">Best for: </span>{plan.idealFor}
                     </p>
+
+                    {/* Unlock line */}
+                    <div className="rounded-xl px-3 py-2 mb-4 mt-2"
+                      style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                      <p className="text-[11px] font-semibold text-emerald-700">✦ {plan.unlock}</p>
+                    </div>
 
                     {/* CTA */}
                     {plan.id === "free" ? (
                       <button onClick={() => !user && setShowAuth(true)}
                         className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
-                          isCurrent || user
-                            ? "bg-gray-100 text-gray-400 cursor-default"
-                            : "bg-gray-900 hover:bg-gray-700 text-white"
+                          isCurrent || user ? "bg-gray-100 text-gray-400 cursor-default" : "bg-gray-900 hover:bg-gray-700 text-white"
                         }`}>
-                        {isCurrent ? "Current plan" : user ? "You're on this plan" : plan.cta}
+                        {isCurrent ? "Current plan" : user ? "You're on Starter" : plan.cta}
                       </button>
                     ) : (
                       <button onClick={() => handleCheckout(plan.id as "basic" | "pro")}
                         disabled={!!loading || isCurrent}
-                        className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white shadow-lg"
-                        style={{ background: isCurrent ? "#d1d5db" : "linear-gradient(135deg, #6d28d9, #9333ea, #ea580c)", boxShadow: isCurrent ? "none" : "0 4px 20px rgba(109,40,217,0.3)" }}>
+                        className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ background: isCurrent ? "#d1d5db" : "linear-gradient(135deg, #6d28d9, #9333ea, #ea580c)", boxShadow: isCurrent ? "none" : "0 4px 18px rgba(109,40,217,0.28)" }}>
                         {isCurrent ? "Current plan" : loading === plan.id ? "Redirecting…" : plan.cta}
                       </button>
                     )}
-                    <p className="text-center text-[10px] text-gray-400 mt-2">{plan.ctaSecondary}</p>
+                    <p className="text-center text-[10px] text-gray-400 mt-1.5">{plan.ctaNote}</p>
                   </div>
 
-                  {/* Feature list */}
-                  <div className="px-7 py-5 flex-1 border-t border-gray-100">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">What's included</p>
-                    <ul className="space-y-3">
+                  {/* Features */}
+                  <div className="px-6 py-4 flex-1 border-t border-gray-100/80">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">What you get</p>
+                    <ul className="space-y-2.5">
                       {plan.features.map((f, fi) => (
-                        <li key={fi} className={`flex items-start gap-2.5 ${(f as any).dimNote ? "opacity-60" : ""}`}>
-                          <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${f.highlight ? "text-violet-600" : "text-gray-400"}`}
-                            viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15 3.293 9.879a1 1 0 111.414-1.414L8.414 12.172l6.879-6.879a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          <span className={`text-sm leading-snug ${f.highlight ? "font-semibold text-gray-800" : "text-gray-600"}`}>
+                        <li key={fi} className="flex items-start gap-2.5">
+                          <span className="text-sm flex-shrink-0 mt-[-1px]">{f.icon}</span>
+                          <span className={`text-xs leading-snug ${f.key ? "font-semibold text-gray-800" : "text-gray-600"}`}>
                             {f.text}
+                            {f.key && (
+                              <span className="ml-1.5 inline-flex items-center text-[9px] font-black text-violet-600 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">KEY</span>
+                            )}
                           </span>
                         </li>
                       ))}
                     </ul>
+
+                    {/* Not included */}
+                    {plan.notIncluded.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">Not included</p>
+                        <ul className="space-y-1.5">
+                          {plan.notIncluded.map((t, ti) => (
+                            <li key={ti} className="flex items-start gap-2 opacity-50">
+                              <DashIcon />
+                              <span className="text-xs text-gray-400">{t}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                  <div className="h-6" />
+                  <div className="h-5" />
                 </motion.div>
               );
             })}
           </div>
 
-          {/* Annual note */}
           {!annual && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-              className="text-center text-sm text-gray-400 mt-6">
-              Save 33% with annual billing —{" "}
-              <button onClick={() => setAnnual(true)} className="text-violet-600 font-semibold hover:underline">switch to annual</button>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+              className="text-center text-sm text-gray-400 mt-5">
+              Switch to annual and save 33% —{" "}
+              <button onClick={() => setAnnual(true)} className="text-violet-600 font-semibold hover:underline">pay yearly</button>
             </motion.p>
           )}
         </div>
       </section>
 
-      {/* ══════════ HOW CREDITS WORK ══════════════════════════════════════════ */}
+      {/* ══ WHAT CHANGES AT EACH LEVEL ═════════════════════════════════════════ */}
       <section className="py-20 px-6 bg-gray-50 border-y border-gray-100">
         <div className="max-w-4xl mx-auto">
           <FadeUp className="text-center mb-12">
-            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">How your credits work</h2>
-            <p className="text-gray-500 text-sm max-w-lg mx-auto">Credits are just a simple way to measure usage — here's exactly what each thing costs.</p>
+            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">What you unlock at each level</h2>
+            <p className="text-gray-500 text-sm">Every upgrade adds one thing that genuinely changes how your interviews go.</p>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                plan: "Starter → try it",
+                color: "rgba(99,102,241,0.07)",
+                border: "rgba(99,102,241,0.18)",
+                tc: "#4f46e5",
+                emoji: "🚀",
+                items: [
+                  { e: "🎤", b: "Hear the interviewer, see the answer in 1.8s — in a real interview today" },
+                  { e: "🧠", b: "AI reads your resume so answers sound like YOU, not a template" },
+                  { e: "💬", b: "Practice realistic questions for your exact role before the real thing" },
+                  { e: "📄", b: "Walk in with a professional resume you built yourself" },
+                ],
+              },
+              {
+                plan: "Basic → serious edge",
+                color: "rgba(109,40,217,0.07)",
+                border: "rgba(109,40,217,0.20)",
+                tc: "#6d28d9",
+                emoji: "⚡",
+                items: [
+                  { e: "🖥️", b: "Desktop app means the overlay CANNOT appear in screen recordings — guaranteed" },
+                  { e: "📋", b: "Paste any job description → AI rewrites your resume for that exact role in seconds" },
+                  { e: "🎯", b: "Smarter AI handles complex 'tell me about a time…' questions much better" },
+                  { e: "🔁", b: "1,000 fresh credits every month — prep daily without worrying about running out" },
+                ],
+              },
+              {
+                plan: "Pro → no limits",
+                color: "rgba(234,88,12,0.07)",
+                border: "rgba(234,88,12,0.18)",
+                tc: "#ea580c",
+                emoji: "👑",
+                items: [
+                  { e: "♾️", b: "No limits — run the copilot in every interview, every day, as long as you want" },
+                  { e: "👁️", b: "Camera stealth hides the overlay even if someone looks at your physical laptop screen" },
+                  { e: "📼", b: "After each interview, replay every question + answer to learn and improve" },
+                  { e: "🧠", b: "Best AI model — handles FAANG system design, case interviews, and senior-level behavioral questions" },
+                ],
+              },
+            ].map((col, ci) => (
+              <FadeUp key={ci} delay={ci * 0.1}>
+                <div className="rounded-2xl p-6 h-full"
+                  style={{ background: col.color, border: `1px solid ${col.border}` }}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-lg">{col.emoji}</span>
+                    <p className="text-xs font-black uppercase tracking-widest" style={{ color: col.tc }}>{col.plan}</p>
+                  </div>
+                  <ul className="space-y-3">
+                    {col.items.map((item, ii) => (
+                      <li key={ii} className="flex items-start gap-2.5">
+                        <span className="text-sm flex-shrink-0">{item.e}</span>
+                        <span className="text-xs text-gray-700 leading-snug">{item.b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ CREDIT COSTS ═══════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <FadeUp className="text-center mb-12">
+            <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Exactly what each thing costs</h2>
+            <p className="text-gray-500 text-sm">No surprises. Here's the full cost breakdown for Starter and Basic users.</p>
           </FadeUp>
 
           <FadeUp delay={0.1}>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
               {[
-                { action: "Live copilot", cost: "2 credits / min", note: "AI listens & answers in real-time", icon: "🎤", color: "rgba(109,40,217,0.07)", border: "rgba(109,40,217,0.15)", textColor: "#6d28d9" },
-                { action: "Mock interview session", cost: "15 credits", note: "Full AI-powered practice session", icon: "💬", color: "rgba(234,88,12,0.07)", border: "rgba(234,88,12,0.15)", textColor: "#ea580c" },
-                { action: "AI resume tailoring", cost: "20 credits", note: "Rewrite resume for a specific job", icon: "📄", color: "rgba(16,185,129,0.07)", border: "rgba(16,185,129,0.15)", textColor: "#059669" },
-                { action: "Resume verification", cost: "Free", note: "Check AI reads your resume correctly", icon: "✅", color: "rgba(99,102,241,0.07)", border: "rgba(99,102,241,0.15)", textColor: "#4f46e5" },
+                { e: "🎤", action: "Live copilot", cost: "2 credits / min", note: "AI listens live and answers in real-time during your interview", tc: "#6d28d9", bg: "rgba(109,40,217,0.06)", bd: "rgba(109,40,217,0.14)" },
+                { e: "💬", action: "Mock interview session", cost: "15 credits", note: "Full AI-powered practice with questions tailored to your role", tc: "#ea580c", bg: "rgba(234,88,12,0.06)", bd: "rgba(234,88,12,0.14)" },
+                { e: "📋", action: "AI resume tailoring", cost: "20 credits", note: "Rewrite your resume to match any specific job description", tc: "#059669", bg: "rgba(16,185,129,0.06)", bd: "rgba(16,185,129,0.14)" },
+                { e: "✅", action: "Resume verification", cost: "Free always", note: "Check the AI reads your resume correctly before you start", tc: "#4f46e5", bg: "rgba(99,102,241,0.06)", bd: "rgba(99,102,241,0.14)" },
               ].map((item, i) => (
-                <div key={i} className="rounded-2xl p-5"
-                  style={{ background: item.color, border: `1px solid ${item.border}` }}>
-                  <div className="text-2xl mb-3">{item.icon}</div>
+                <div key={i} className="rounded-2xl p-5" style={{ background: item.bg, border: `1px solid ${item.bd}` }}>
+                  <div className="text-2xl mb-2">{item.e}</div>
                   <p className="text-sm font-bold text-gray-800 mb-1">{item.action}</p>
-                  <p className="text-lg font-black mb-1" style={{ color: item.textColor }}>{item.cost}</p>
+                  <p className="text-base font-black mb-2" style={{ color: item.tc }}>{item.cost}</p>
                   <p className="text-xs text-gray-500 leading-relaxed">{item.note}</p>
                 </div>
               ))}
             </div>
           </FadeUp>
 
-          <FadeUp delay={0.15} className="mt-6">
-            <div className="rounded-2xl bg-white border border-gray-200 p-5 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, rgba(109,40,217,0.1), rgba(234,88,12,0.08))" }}>
-                <span className="text-lg">⚡</span>
-              </div>
+          <FadeUp delay={0.15}>
+            <div className="rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 shadow-sm border border-gray-200 bg-white">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
+                style={{ background: "linear-gradient(135deg, rgba(109,40,217,0.1), rgba(234,88,12,0.08))" }}>⚡</div>
               <div className="flex-1 text-center sm:text-left">
-                <p className="font-bold text-gray-900 text-sm">Pro plan: no credits, no limits</p>
-                <p className="text-xs text-gray-500 mt-0.5">Pro users bypass the credit system entirely. Use the live copilot, mock interviews, and resume tools as much as you want — no tracking, no caps.</p>
+                <p className="font-bold text-gray-900 text-sm">Pro skips the credit system entirely</p>
+                <p className="text-xs text-gray-500 mt-0.5">No credits, no tracking, no caps. Use the live copilot, mock interviews, and resume tools as much as you want — unlimited.</p>
               </div>
               <button onClick={() => handleCheckout("pro")}
-                className="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
+                className="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold text-white"
                 style={{ background: "linear-gradient(135deg, #6d28d9, #ea580c)", boxShadow: "0 4px 16px rgba(109,40,217,0.25)" }}>
                 Get Pro
               </button>
@@ -492,32 +588,30 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* ══════════ COMPARISON TABLE ══════════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-white">
+      {/* ══ COMPARISON TABLE ════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-gray-50 border-y border-gray-100">
         <div className="max-w-5xl mx-auto">
           <FadeUp className="text-center mb-12">
             <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Full plan comparison</h2>
-            <p className="text-gray-500 text-sm">Every feature, side by side — no surprises.</p>
+            <p className="text-gray-500 text-sm">Every feature side by side — no surprises, no small print.</p>
           </FadeUp>
 
           <FadeUp delay={0.1}>
             <div className="rounded-2xl border border-gray-200 overflow-hidden shadow-sm bg-white">
-              {/* Header */}
               <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
                 <div className="px-6 py-4" />
                 {[
-                  { name: "Starter", price: "Free", accent: false },
-                  { name: "Basic", price: annual ? "$8/mo" : "$12/mo", accent: true },
-                  { name: "Pro", price: annual ? "$19/mo" : "$29/mo", accent: false },
+                  { name: "Starter", price: "Free",                             accent: false },
+                  { name: "Basic",   price: annual ? "$8/mo" : "$12/mo",        accent: true  },
+                  { name: "Pro",     price: annual ? "$19/mo" : "$29/mo",       accent: false },
                 ].map(({ name, price, accent }, i) => (
                   <div key={i} className={`px-4 py-4 text-center border-l border-gray-200 ${accent ? "bg-violet-50/60" : ""}`}>
                     <p className={`text-sm font-black ${accent ? "text-violet-700" : "text-gray-900"}`}>{name}</p>
-                    <p className={`text-xs mt-0.5 font-semibold ${accent ? "text-violet-500" : "text-gray-400"}`}>{price}</p>
+                    <p className={`text-xs mt-0.5 font-semibold ${accent ? "text-violet-400" : "text-gray-400"}`}>{price}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Rows */}
               {(() => {
                 let lastCat = "";
                 return visibleRows.map((row, i) => {
@@ -532,26 +626,17 @@ export default function PricingPage() {
                           </div>
                         </div>
                       )}
-                      <div className={`grid grid-cols-4 border-b border-gray-50 hover:bg-gray-50/40 transition-colors ${i === visibleRows.length - 1 && showAll ? "border-0" : ""}`}>
-                        <div className="px-6 py-3.5">
-                          <span className="text-sm text-gray-600">{row.label}</span>
-                        </div>
-                        <div className="px-4 py-3.5 border-l border-gray-100 flex items-center justify-center">
-                          <Cell val={row.free} />
-                        </div>
-                        <div className="px-4 py-3.5 border-l border-gray-100 bg-violet-50/25 flex items-center justify-center">
-                          <Cell val={row.basic} accent />
-                        </div>
-                        <div className="px-4 py-3.5 border-l border-gray-100 flex items-center justify-center">
-                          <Cell val={row.pro} />
-                        </div>
+                      <div className={`grid grid-cols-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors`}>
+                        <div className="px-6 py-3.5"><span className="text-sm text-gray-600">{row.label}</span></div>
+                        <div className="px-4 py-3.5 border-l border-gray-100 flex items-center justify-center"><Cell val={row.free} /></div>
+                        <div className="px-4 py-3.5 border-l border-gray-100 bg-violet-50/20 flex items-center justify-center"><Cell val={row.basic} accent /></div>
+                        <div className="px-4 py-3.5 border-l border-gray-100 flex items-center justify-center"><Cell val={row.pro} /></div>
                       </div>
                     </div>
                   );
                 });
               })()}
 
-              {/* Show more */}
               <div className="border-t border-gray-100">
                 <button onClick={() => setShowAll(!showAll)}
                   className="w-full py-4 text-sm font-semibold text-violet-600 hover:text-violet-800 hover:bg-violet-50/40 transition-colors flex items-center justify-center gap-2">
@@ -567,68 +652,60 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* ══════════ GUARANTEE ═════════════════════════════════════════════════ */}
-      <section className="py-16 px-6 bg-gray-50 border-y border-gray-100">
+      {/* ══ GUARANTEE ══════════════════════════════════════════════════════════ */}
+      <section className="py-16 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
           <FadeUp>
-            <div className="rounded-2xl overflow-hidden shadow-sm"
+            <div className="rounded-2xl px-8 py-7 flex flex-col sm:flex-row items-center gap-6 shadow-sm"
               style={{ background: "linear-gradient(135deg, rgba(109,40,217,0.05), rgba(234,88,12,0.04))", border: "1px solid rgba(109,40,217,0.12)" }}>
-              <div className="px-8 py-8 flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
-                  style={{ background: "linear-gradient(135deg, #6d28d9, #ea580c)" }}>
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-gray-900 mb-1">7-day money-back guarantee</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Not satisfied within 7 days? Email{" "}
-                    <a href="mailto:support@coopilotxai.com" className="font-semibold hover:underline" style={{ color: "#6d28d9" }}>
-                      support@coopilotxai.com
-                    </a>{" "}
-                    and we'll refund you in full — no questions, no forms, no waiting.
-                  </p>
-                </div>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg"
+                style={{ background: "linear-gradient(135deg, #6d28d9, #ea580c)" }}>
+                <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 mb-1">7-day money-back guarantee</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Not satisfied within 7 days of your first paid subscription? Email{" "}
+                  <a href="mailto:support@coopilotxai.com" className="font-semibold hover:underline" style={{ color: "#6d28d9" }}>
+                    support@coopilotxai.com
+                  </a>{" "}
+                  and we'll refund you in full — no questions, no forms, no waiting.
+                </p>
               </div>
             </div>
           </FadeUp>
         </div>
       </section>
 
-      {/* ══════════ FAQ ═══════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-white">
+      {/* ══ FAQ ════════════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-gray-50 border-t border-gray-100">
         <div className="max-w-2xl mx-auto">
           <FadeUp className="text-center mb-12">
             <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Common questions</h2>
-            <p className="text-gray-500 text-sm">Everything you need to know before signing up.</p>
+            <p className="text-gray-500 text-sm">Everything you need to know before you sign up.</p>
           </FadeUp>
-
           <FadeUp delay={0.1}>
             <div className="bg-white rounded-2xl border border-gray-200 px-8 shadow-sm">
               {FAQS.map((f, i) => <FaqItem key={i} q={f.q} a={f.a} />)}
             </div>
             <p className="text-center text-sm text-gray-400 mt-6">
-              Still have questions?{" "}
-              <a href="mailto:support@coopilotxai.com" className="text-violet-600 font-semibold hover:underline">
-                Email us
-              </a>{" "}
-              — we reply same day.
+              Something else?{" "}
+              <a href="mailto:support@coopilotxai.com" className="text-violet-600 font-semibold hover:underline">Email us</a>
+              {" "}— we reply same day.
             </p>
           </FadeUp>
         </div>
       </section>
 
-      {/* ══════════ BOTTOM CTA ════════════════════════════════════════════════ */}
+      {/* ══ BOTTOM CTA ══════════════════════════════════════════════════════════ */}
       <section className="py-24 px-6 text-center relative overflow-hidden"
         style={{ background: "linear-gradient(150deg, #faf8ff 0%, #f4edff 40%, #fff4ec 75%, #fdf8ff 100%)" }}>
-
-        {/* Blobs */}
         <div className="absolute pointer-events-none inset-0 flex items-center justify-center">
           <div className="w-[600px] h-[300px] rounded-full"
             style={{ background: "radial-gradient(ellipse, rgba(109,40,217,0.10) 0%, transparent 70%)", filter: "blur(60px)" }} />
         </div>
-        {/* Dot grid */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle, rgba(124,58,237,0.05) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
@@ -641,9 +718,8 @@ export default function PricingPage() {
               </span>
             </h2>
             <p className="text-gray-500 text-sm mb-8">
-              Start for free. No credit card. No commitment. See exactly how it works — then decide.
+              Start free — no card, no commitment. See it work in your next interview, then decide.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button onClick={() => !user && setShowAuth(true)}
                 className="px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg"
@@ -655,9 +731,8 @@ export default function PricingPage() {
                 Try live copilot now →
               </Link>
             </div>
-
             <div className="flex flex-wrap items-center justify-center gap-5 mt-8 text-[11px] text-gray-400">
-              {["50,000+ interviews assisted", "87% offer rate", "< 2s answer speed", "100% private"].map((s, i) => (
+              {["50,000+ interviews assisted", "87% offer rate", "1.8s answer speed", "100% private"].map((s, i) => (
                 <span key={i} className="flex items-center gap-1.5">
                   <span className="w-1 h-1 rounded-full bg-violet-400" />
                   {s}
