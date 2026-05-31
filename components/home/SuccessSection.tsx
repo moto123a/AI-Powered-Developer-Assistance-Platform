@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { FadeUp, Counter } from "./shared";
+import { FadeUp, BlurFade, Counter } from "./shared";
 
 const STORIES = [
   {
@@ -41,12 +41,12 @@ export default function SuccessSection() {
   return (
     <section className="py-28 px-6 overflow-hidden bg-gray-950">
       <div className="max-w-6xl mx-auto">
-        <FadeUp className="text-center mb-20">
+        <BlurFade className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">Real people. Real offers.</h2>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
             Thousands of CoopilotX users have landed dream jobs at top companies, with bigger salaries and more confidence.
           </p>
-        </FadeUp>
+        </BlurFade>
 
         <div ref={ref} className="grid md:grid-cols-3 gap-6">
           {STORIES.map((s, i) => (

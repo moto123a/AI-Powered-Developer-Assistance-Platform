@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { FadeUp } from "./shared";
+import { BlurFade } from "./shared";
 import {
   EyeOff, FileText, Zap, Monitor, MessageSquare,
   FilePen, ShieldCheck, AppWindow, Target
@@ -28,17 +28,17 @@ export default function FeaturesSection() {
   return (
     <section id="features" className="py-28 px-6 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto">
-        <FadeUp className="text-center mb-20">
+        <BlurFade className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Everything you need to win.</h2>
           <p className="text-gray-500 text-lg max-w-lg mx-auto">Every feature was built because a real user needed it to land their dream job.</p>
-        </FadeUp>
+        </BlurFade>
 
         <div ref={ref} className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map((f, i) => (
             <motion.div key={i}
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              initial={{ opacity: 0, y: 60, scale: 0.90 }}
               animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-              transition={{ duration: 0.6, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.65, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
               className={`rounded-2xl border-2 ${f.color} p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group`}>
               <div className={`w-11 h-11 rounded-xl ${f.iconBg} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                 <f.Icon className={`w-5 h-5 ${f.iconColor}`} strokeWidth={1.75} />

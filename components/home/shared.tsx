@@ -42,6 +42,34 @@ export function SlideIn({ children, from = "left", delay = 0, className = "" }: 
   );
 }
 
+export function ScaleIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={inView ? { opacity: 1, scale: 1 } : {}}
+      transition={{ duration: 0.65, delay, ease: [0.34, 1.56, 0.64, 1] }}
+      className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
+export function BlurFade({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div ref={ref}
+      initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+      animate={inView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}>
+      {children}
+    </motion.div>
+  );
+}
+
 export function ParallaxSection({ children, speed = 0.15, className = "" }: { children: React.ReactNode; speed?: number; className?: string }) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });

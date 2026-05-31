@@ -1,4 +1,6 @@
 "use client";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { FadeUp } from "./shared";
 import { OSDownloadButtons } from "./HeroSection";
 
@@ -16,6 +18,9 @@ function MacIcon({ className = "" }: { className?: string }) {
 }
 
 export default function DownloadSection({ mounted, detectedOS, onDownload }: Props) {
+  const badgesRef = useRef(null);
+  const badgesInView = useInView(badgesRef, { once: true, margin: "-40px" });
+
   const heading =
     mounted && detectedOS === "win" ? "Made for Windows. Ready now." :
     mounted && detectedOS === "mac" ? "Made for Mac. Ready now." :
@@ -81,11 +86,15 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
               </div>
             )}
 
-            <div className="flex flex-wrap justify-center gap-5 text-[12px] text-gray-400 border-t border-gray-100 pt-6">
+            <div ref={badgesRef} className="flex flex-wrap justify-center gap-5 text-[12px] border-t border-gray-100 pt-6">
               {["Free to start", "No credit card", "Audio stays on device", "Invisible to screen-share", "Auto-updates"].map((t, i) => (
-                <span key={i} className="flex items-center gap-1.5 text-gray-500">
+                <motion.span key={i}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={badgesInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: i * 0.09, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center gap-1.5 text-gray-500">
                   <span className="text-emerald-500 font-bold">✓</span> {t}
-                </span>
+                </motion.span>
               ))}
             </div>
           </div>

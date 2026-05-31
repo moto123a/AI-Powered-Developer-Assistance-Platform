@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { FadeUp, TESTIMONIALS } from "./shared";
+import { FadeUp, BlurFade, TESTIMONIALS } from "./shared";
 
 export default function TestimonialsSection() {
   const [active, setActive] = useState(0);
@@ -18,10 +18,10 @@ export default function TestimonialsSection() {
   return (
     <section className="py-28 px-6 overflow-hidden bg-gray-50">
       <div className="max-w-6xl mx-auto">
-        <FadeUp className="text-center mb-16">
+        <BlurFade className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">Trusted by thousands of professionals.</h2>
           <p className="text-gray-500 text-lg max-w-lg mx-auto">From fresh graduates to senior engineers. CoopilotX transforms how professionals prepare and perform.</p>
-        </FadeUp>
+        </BlurFade>
 
         {/* Auto-cycling featured */}
         <FadeUp delay={0.1} className="mb-12">
