@@ -7,7 +7,6 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { doc, updateDoc, arrayUnion, collection, addDoc } from "firebase/firestore";
 import CreditsBadge from "../components/CreditsBadge";
-import Footer from "../components/Footer";
 import AuthModal from "../components/AuthModal";
 
 import HeroSection from "../components/home/HeroSection";
@@ -355,7 +354,6 @@ export default function Home() {
       <TestimonialsSection />
       <DownloadSection mounted={mounted} detectedOS={detectedOS} onDownload={download} />
       <CtaSection onNav={go} />
-      <Footer />
 
       {/* ── Auth modal — opens on Log in / Get started, never leaves the page ── */}
       <AuthModal
