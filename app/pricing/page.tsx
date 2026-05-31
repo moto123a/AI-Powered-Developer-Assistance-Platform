@@ -437,16 +437,35 @@ export default function PricingPage() {
 
           {/* Billing toggle */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-            className="inline-flex items-center bg-white/70 backdrop-blur-sm border border-gray-200 rounded-full p-1 shadow-sm gap-1">
-            <button onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${!annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-              Monthly
-            </button>
-            <button onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${annual ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-              Annual
-              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">Save 33%</span>
-            </button>
+            className="flex flex-col items-center gap-2.5">
+            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Billing period</p>
+            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm border-2 border-violet-200/70 rounded-full p-1.5 shadow-md gap-1">
+              <button onClick={() => setAnnual(false)}
+                className={`px-6 py-2.5 rounded-full text-sm font-black transition-all ${!annual ? "bg-gray-900 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                Monthly
+              </button>
+              <button onClick={() => setAnnual(true)}
+                className={`px-6 py-2.5 rounded-full text-sm font-black transition-all flex items-center gap-2 ${annual ? "text-white" : "text-violet-700 hover:text-violet-900"}`}
+                style={annual ? { background: "linear-gradient(135deg, #6d28d9, #9333ea, #ea580c)", boxShadow: "0 2px 12px rgba(109,40,217,0.3)" } : {}}>
+                Annual
+                <span
+                  className={`text-[11px] font-black px-2.5 py-0.5 rounded-full text-white`}
+                  style={{ background: annual ? "rgba(255,255,255,0.2)" : "linear-gradient(135deg, #6d28d9, #ea580c)" }}>
+                  Save 33%
+                </span>
+              </button>
+            </div>
+            <AnimatePresence>
+              {!annual && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold text-violet-600 cursor-pointer hover:text-violet-800 transition-colors"
+                  onClick={() => setAnnual(true)}>
+                  Switch to annual — Basic $8/mo · Pro $19/mo
+                </motion.p>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </section>
@@ -593,9 +612,11 @@ export default function PricingPage() {
 
           {!annual && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-              className="text-center text-sm text-gray-400 mt-5">
-              Switch to annual and save 33% —{" "}
-              <button onClick={() => setAnnual(true)} className="text-violet-600 font-semibold hover:underline">pay yearly</button>
+              className="text-center text-sm mt-5">
+              <button onClick={() => setAnnual(true)}
+                className="text-violet-600 font-bold hover:text-violet-800 underline underline-offset-2 transition-colors">
+                Pay annually and save 33% — Basic drops to $8/mo, Pro drops to $19/mo
+              </button>
             </motion.p>
           )}
         </div>
