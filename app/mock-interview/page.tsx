@@ -648,7 +648,7 @@ export default function MockInterviewPage() {
         if (!smStartedRef.current) {
           wsClosedPrematurely = true;
           ws.close();
-          setRecordingError("Speechmatics rejected the token — your API key quota may be exhausted or the key is revoked. Go to speechmatics.com → API Keys to generate a new one.");
+          setRecordingError("Speechmatics rejected the token. Your API key quota may be exhausted or the key is revoked. Go to speechmatics.com and generate a new one.");
           isRecordingRef.current = false; setIsRecording(false); wsRef.current = null;
         }
       }, 5000);
@@ -750,7 +750,7 @@ export default function MockInterviewPage() {
         setFeedback({
           score:              0,
           strengths:          [],
-          improvements:       ["Your answer was too short. Aim for 2–3 full sentences with specific examples."],
+          improvements:       ["Your answer was too short. Aim for 2 to 3 full sentences with specific examples."],
           betterAnswerExample: res?.betterAnswerExample ?? "",
         });
       } else {
@@ -1055,7 +1055,7 @@ export default function MockInterviewPage() {
                   <textarea
                     value={resumeText}
                     onChange={e => setResumeText(e.target.value)}
-                    placeholder="Paste your complete resume here — work experience, skills, education, achievements..."
+                    placeholder="Paste your complete resume here: work experience, skills, education, achievements..."
                     style={{ width: "100%", height: 200, padding: "16px 18px", fontSize: 13, color: T.text,
                       background: "transparent", border: "none", outline: "none", resize: "none",
                       lineHeight: 1.65, boxSizing: "border-box", caretColor: T.accent }}
@@ -1179,8 +1179,8 @@ export default function MockInterviewPage() {
                   <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {[
                       "Use a quiet environment for best transcription accuracy",
-                      "Answer in 1–3 minutes using the STAR method when relevant",
-                      "Auto-submits after 3.5 seconds of silence — pause naturally",
+                      "Answer in 1 to 3 minutes using the STAR method when relevant",
+                      "Auto-submits after 3.5 seconds of silence. Pause naturally.",
                     ].map((tip, i) => (
                       <li key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: T.textMid, lineHeight: 1.55 }}>
                         <span style={{ marginTop: 1, width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
@@ -1307,7 +1307,7 @@ export default function MockInterviewPage() {
                         <p style={{ fontSize: 20, fontWeight: 900, color: T.warn, lineHeight: 1.1, marginTop: 2 }}>
                           {loadingCredits
                             ? <Loader2 size={15} style={{ display: "inline", animation: "spin 1s linear infinite" }} />
-                            : credits !== null ? credits.toLocaleString() : "—"}
+                            : credits !== null ? credits.toLocaleString() : "0"}
                         </p>
                       </div>
                     </div>
