@@ -719,13 +719,13 @@ export default function InterviewPage() {
             style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.07), rgba(124,58,237,0.07))", borderColor: "rgba(99,102,241,0.18)" }}>
             <div className="flex justify-between mb-2.5">
               <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">Progress</p>
-              <p className="text-[11px] font-mono text-indigo-500 font-black">{qCount}/10</p>
+              <p className="text-[11px] font-mono text-indigo-500 font-black">{qCount} {qCount === 1 ? "Q" : "Qs"}</p>
             </div>
             <div className="h-2 rounded-full overflow-hidden" style={{ background: C.cardBg, border: `1px solid ${C.border}` }}>
               <motion.div
                 className="h-full rounded-full"
                 style={{ background: "linear-gradient(90deg, #4f46e5, #7c3aed)" }}
-                animate={{ width: `${Math.min((qCount / 10) * 100, 100)}%` }}
+                animate={{ width: `${Math.min(qCount * 10, 100)}%` }}
                 transition={{ duration: 0.5 }}
               />
             </div>

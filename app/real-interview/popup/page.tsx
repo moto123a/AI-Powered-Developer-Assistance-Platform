@@ -11,11 +11,12 @@
 
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { auth } from "../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 import { useInterview } from "../_hooks/useInterview";
 import AnswerDisplay   from "../_components/AnswerDisplay";
 import TranscriptBar   from "../_components/TranscriptBar";
@@ -33,13 +34,22 @@ export default function PopupPage() {
     if (raw) stored = JSON.parse(raw);
   } catch {}
 
+  // userEmail must come from onAuthStateChanged, not auth.currentUser (which is
+  // null synchronously on first render because Firebase auth initialises async).
+  const [userEmail, setUserEmail] = useState("");
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUserEmail(u?.email ?? "");
+    });
+    return () => unsub();
+  }, []);
+
   const config = {
     resume:         stored.resume         ?? params.get("resume")  ?? "",
     jobDescription: stored.jobDescription ?? params.get("jd")      ?? "",
     companyName:    stored.companyName    ?? params.get("company") ?? "",
     role:           stored.role           ?? params.get("role")    ?? "",
-    // Read authenticated user's email so popup sessions are saved to Firestore.
-    userEmail:      auth.currentUser?.email ?? "",
+    userEmail,
   };
 
   const {

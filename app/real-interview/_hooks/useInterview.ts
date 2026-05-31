@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { SpeechmaticsClient }  from "../_lib/stt-client";
+import { auth }                from "../../firebaseConfig";
 import { buildMessages }       from "../_lib/promptBuilder";
 import { cleanAnswer, formatForReading } from "../_lib/formatAnswer";
 import {
@@ -173,6 +174,10 @@ export function useInterview(config: {
     const cleanJd     = sanitizeResume(config.jobDescription);
 
     try {
+      // Get Firebase ID token for authenticated API call
+      let authToken = "";
+      try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
+
       // Pass history WITHOUT the just-added interviewer turn —
       // buildMessages() receives it separately as `currentQuestion`.
       const messages = buildMessages(
@@ -183,7 +188,10 @@ export function useInterview(config: {
 
       const res = await fetch("/api/stt/tokens", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify({
           messages,
           transcript: fullText,
@@ -231,7 +239,11 @@ export function useInterview(config: {
   }, [config]);
 
   // ── START MIC ──────────────────────────────────────────────────
-  const startMic = useCallback(() => {
+  const startMic = useCallback(async () => {
+    // Get Firebase ID token before starting so STT token endpoint can verify auth
+    let authToken = "";
+    try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
+
     setIsRecording(true);
     setTranscript("");
     setPartial("");
@@ -241,6 +253,7 @@ export function useInterview(config: {
 
     sttClient.current = new SpeechmaticsClient();
     sttClient.current.start({
+      authToken,
       maxDelay:       config.maxDelay       ?? 0.3,
       operatingPoint: config.operatingPoint || "enhanced",
       onStatus:  (s) => setMicStatus(s),

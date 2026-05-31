@@ -7,6 +7,7 @@ type StartOptions = {
   onError:         (err: string) => void;
   maxDelay?:       number;
   operatingPoint?: "enhanced" | "standard";
+  authToken?:      string;   // Firebase ID token — sent as Authorization header
 };
 
 const WORKLET_CODE = `
@@ -34,7 +35,9 @@ export class SpeechmaticsClient {
     try {
       opts.onStatus("Requesting token...");
 
-      const tr = await fetch("/api/stt/tokens", { cache: "no-store" });
+      const tokenHeaders: Record<string, string> = {};
+      if (opts.authToken) tokenHeaders["Authorization"] = `Bearer ${opts.authToken}`;
+      const tr = await fetch("/api/stt/tokens", { cache: "no-store", headers: tokenHeaders });
       if (!tr.ok) throw new Error(`Token API error (${tr.status})`);
 
       const data = await tr.json();

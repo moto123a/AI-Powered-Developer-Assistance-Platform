@@ -6,8 +6,26 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { NextResponse } from "next/server";
+import admin from "firebase-admin";
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || "";
+
+// ── Firebase Admin init (shared singleton) ──────────────────────
+function ensureAdminInit() {
+  if (admin.apps.length) return;
+  const projectId       = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail     = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKeyInput = process.env.FIREBASE_PRIVATE_KEY;
+  if (!projectId || !clientEmail || !privateKeyInput) return;
+  try {
+    let key = privateKeyInput;
+    if (!key.includes("-----BEGIN")) key = Buffer.from(key, "base64").toString("utf8");
+    key = key.replace(/^"/, "").replace(/"$/, "").replace(/\\n/g, "\n").trim();
+    admin.initializeApp({ credential: admin.credential.cert({ projectId, clientEmail, privateKey: key }) });
+  } catch (e) {
+    console.error("[checkout] Firebase Admin init error:", e);
+  }
+}
 
 // ── STRIPE PRICE IDS — create these in Stripe Dashboard ──
 // Go to: dashboard.stripe.com → Products → Create Product
@@ -25,7 +43,24 @@ const PRICE_IDS: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
-    const { plan, annual, uid, email } = await req.json();
+    // ── VERIFY FIREBASE ID TOKEN ──────────────────────────────────
+    const authHeader = req.headers.get("authorization") ?? "";
+    const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!idToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    ensureAdminInit();
+    let verifiedUid: string;
+    let verifiedEmail: string | undefined;
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      verifiedUid   = decoded.uid;
+      verifiedEmail = decoded.email;
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { plan, annual, uid } = await req.json();
 
     if (!STRIPE_SECRET || STRIPE_SECRET.length < 10) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
@@ -37,10 +72,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    // uid is required to link the payment to a Firestore user doc.
-    if (!uid || typeof uid !== "string" || uid.trim().length === 0) {
-      return NextResponse.json({ error: "Missing uid" }, { status: 400 });
+    // Verify the requested uid matches the authenticated user
+    if (!uid || uid !== verifiedUid) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+
+    // Always use server-verified email, not client-supplied value
+    const email = verifiedEmail ?? "";
 
     const priceKey = `${plan}_${annual ? "annual" : "monthly"}`;
     const priceId = PRICE_IDS[priceKey];

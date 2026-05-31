@@ -65,13 +65,31 @@ const CREDIT_COSTS: Record<string, number> = {
 
 export async function POST(req: Request) {
   try {
+    // ── VERIFY FIREBASE ID TOKEN ──────────────────────────────────
+    const authHeader = req.headers.get("authorization") ?? "";
+    const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!idToken) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const db = getDb(); // ensures admin is initialised before auth() call
+    let verifiedUid: string;
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      verifiedUid   = decoded.uid;
+    } catch {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const { uid, action } = await req.json();
 
     if (!uid || !action) {
       return NextResponse.json({ success: false, error: "Missing uid or action" }, { status: 400 });
     }
 
-    const db = getDb();
+    // Ensure the token owner matches the requested uid
+    if (uid !== verifiedUid) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
 
     if (!db) {
       return NextResponse.json({ success: false, error: "Database not initialized" }, { status: 500 });

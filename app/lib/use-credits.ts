@@ -76,9 +76,14 @@ export function useCredits() {
   const deductOnServer = useCallback(async (action: CreditAction): Promise<boolean> => {
     if (!uid) return false;
     try {
+      let authToken = "";
+      try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
       const res = await fetch("/api/credits/deduct", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify({ uid, action }),
       });
       const data = await res.json();

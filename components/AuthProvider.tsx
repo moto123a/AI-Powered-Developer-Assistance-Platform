@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Effect 1: Auth listener — runs ONCE only (never re-subscribes on nav)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
@@ -30,21 +31,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         // Keep session cookie fresh so middleware can verify auth
         const token = await firebaseUser.getIdToken();
-        document.cookie = `coopilotx_session=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+        const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `coopilotx_session=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${secure}`;
       } else {
         // Clear session cookie on logout
         document.cookie = "coopilotx_session=; path=/; max-age=0";
-
-        // Only redirect away from protected routes — home page stays public
-        const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-        if (isProtected) {
-          router.replace("/");
-        }
       }
     });
 
     return () => unsubscribe();
-  }, [pathname, router]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect 2: Route protection — watches pathname separately to avoid re-subscribing auth
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+      if (isProtected) router.replace("/");
+    }
+  }, [user, loading, pathname, router]);
 
   if (loading) {
     return (

@@ -149,14 +149,19 @@ const buildContextBlock = (history: InterviewTurn[]): string => {
     if (q && a) pairs.push(`Q: ${q}\nA: ${a}`);
   }
   return pairs.length > 0
-    ? `\n\n[CONVERSATION CONTEXT — previous ${pairs.length} exchange(s)]:\n${pairs.join("\n\n")}\n\nUse this context to give continuity-aware, non-repetitive feedback.`
+    ? `\n\n[CONVERSATION CONTEXT: previous ${pairs.length} exchange(s)]:\n${pairs.join("\n\n")}\n\nUse this context to give continuity-aware, non-repetitive feedback.`
     : "";
 };
 
 async function fetchAi(payload: Record<string, unknown>) {
+  let authToken = "";
+  try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
   const res = await fetch("/api/stt/tokens", {
     method:  "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+    },
     body:    JSON.stringify({ ...payload, userEmail: getEmail() }),
     signal:  AbortSignal.timeout(35_000),
   });

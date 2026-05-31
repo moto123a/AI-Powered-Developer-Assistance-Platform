@@ -533,9 +533,22 @@ function verifyResumeDeterministic(resumeRaw: string): {
 // ============================================================================
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userEmail        = searchParams.get("email") || "Unknown User";
-    const apiKey           = process.env.SPEECHMATICS_API_KEY;
+    // Verify Firebase ID token
+    const authHeader = req.headers.get("authorization") ?? "";
+    const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    let verifiedEmail = "Unknown User";
+    if (idToken && admin.apps.length) {
+      try {
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        verifiedEmail = decoded.email ?? "Unknown User";
+      } catch {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    } else if (idToken === "") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const apiKey = process.env.SPEECHMATICS_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "Key missing" }, { status: 500 });
     const response = await fetch("https://mp.speechmatics.com/v1/api_keys?type=rt", {
       method:  "POST",
@@ -550,12 +563,12 @@ export async function GET(req: Request) {
         : response.status === 403
           ? "Speechmatics key has no permissions for real-time"
           : response.status === 429
-            ? "Speechmatics quota exhausted — upgrade your plan at speechmatics.com"
+            ? "Speechmatics quota exhausted, upgrade your plan at speechmatics.com"
             : `Speechmatics returned ${response.status}`;
       return NextResponse.json({ error: detail }, { status: response.status });
     }
     const data = await response.json();
-    await logUsageAndIncrement(userEmail, "Speechmatics", { action: "Token Requested" });
+    await logUsageAndIncrement(verifiedEmail, "Speechmatics", { action: "Token Requested" });
     return NextResponse.json({ token: data.key_value });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -567,26 +580,31 @@ export async function GET(req: Request) {
 // ============================================================================
 export async function POST(req: Request) {
   try {
+    // ── VERIFY FIREBASE ID TOKEN ──────────────────────────────────
+    const authHeader = req.headers.get("authorization") ?? "";
+    const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    let verifiedEmail: string | undefined;
+    if (idToken && admin.apps.length) {
+      try {
+        const decoded = await admin.auth().verifyIdToken(idToken);
+        verifiedEmail = decoded.email ?? undefined;
+      } catch {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    } else if (!idToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       transcript, resume, jd,
-      userEmail, duration,
+      userEmail: bodyEmail, duration,
       mode, question, answer,
       model, messages, context,
     } = body;
 
-    // ── TOKEN INTERCEPTOR ──
-    if (!transcript && !resume && !mode && !question && !answer && !messages) {
-      const apiKey = process.env.SPEECHMATICS_API_KEY;
-      if (apiKey) {
-        const smRes = await fetch("https://mp.speechmatics.com/v1/api_keys?type=rt", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-          body:    JSON.stringify({ ttl: 60 }),
-        });
-        if (smRes.ok) return NextResponse.json({ token: (await smRes.json()).key_value });
-      }
-    }
+    // Always use the server-verified email, never trust the body
+    const userEmail = verifiedEmail ?? bodyEmail ?? "";
 
     const selectedModel    = model || "llama-3.1-8b";
     const { provider }     = resolveModel(selectedModel);

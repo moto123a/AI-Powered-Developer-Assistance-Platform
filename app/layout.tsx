@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import ActivityTracker from "../components/ActivityTracker";
+import ClientLayout from "./client-layout";
 import { AuthProvider } from "../components/AuthProvider";
 
 const inter = Inter({ 
@@ -12,12 +12,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'CoopilotX AI - Master Every Interview',
-  description: 'Enterprise-grade AI interview assistant that processes speech in real-time and delivers human-quality responses during live interviews.',
-  keywords: ['AI interview', 'interview assistant', 'job interview', 'AI coaching', 'career'],
+  description: 'CoopilotX listens to your interview in real time and streams tailored answers in under 2 seconds, grounded in your resume. Used by 50,000+ candidates to land offers at Google, Meta, Microsoft and more.',
+  keywords: ['AI interview assistant', 'interview copilot', 'real-time interview help', 'mock interview AI', 'job interview preparation', 'AI coaching', 'career'],
   authors: [{ name: 'CoopilotX AI' }],
   openGraph: {
     title: 'CoopilotX AI - Master Every Interview',
-    description: 'Enterprise-grade AI interview assistant with real-time speech processing',
+    description: 'Real-time AI interview assistant that streams resume-grounded answers in under 2 seconds. Invisible to screen-share. Used by 50,000+ candidates.',
     type: 'website',
   },
 }
@@ -42,8 +42,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AuthProvider>
-          <ActivityTracker />
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </AuthProvider>
       </body>
     </html>
