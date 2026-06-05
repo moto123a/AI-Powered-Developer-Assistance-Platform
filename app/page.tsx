@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -22,7 +22,7 @@ import {
 } from "../components/home/MidSections";
 
 const WINDOWS_DOWNLOAD = "/app.msixbundle";
-const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/latest/download/InterviewCopilot-mac.pkg";
+const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/download/v1.0.12/InterviewCopilot-mac.dmg";
 
 export default function Home() {
   const router       = useRouter();
@@ -81,7 +81,7 @@ export default function Home() {
   }, []);
 
   const go = (path: string) => {
-    // Only pricing is public — everything else requires sign-in
+    // Only pricing is public  -  everything else requires sign-in
     if (!user && path !== "pricing") {
       setAuthModal({ open: true, mode: "signin" }); return;
     }
@@ -97,7 +97,7 @@ export default function Home() {
   const download = async (os: "win" | "mac") => {
     const a = document.createElement("a");
     a.href     = os === "win" ? WINDOWS_DOWNLOAD : MAC_DOWNLOAD;
-    a.download = os === "win" ? "app.msixbundle" : "InterviewCopilot-mac.pkg";
+    a.download = os === "win" ? "app.msixbundle" : "InterviewCopilot-mac.dmg";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     const entry = { os, at: new Date().toISOString(), email: user?.email || "anonymous" };
     try {
@@ -135,7 +135,7 @@ export default function Home() {
           {/* ── Divider ── */}
           <div className="hidden lg:block w-px h-5 bg-gray-200 mx-1 flex-shrink-0" />
 
-          {/* ── Nav links — desktop (lg+) ── */}
+          {/* ── Nav links  -  desktop (lg+) ── */}
           <nav className="hidden lg:flex items-center gap-0 flex-1">
             {[
               { label: "Resume",         path: "resume" },
@@ -153,7 +153,7 @@ export default function Home() {
           {/* Spacer (md, no nav links) */}
           <div className="flex-1 lg:hidden" />
 
-          {/* ── Download pills — md+ ── */}
+          {/* ── Download pills  -  md+ ── */}
           <div className="hidden md:flex items-center gap-2 mr-1">
             <button onClick={() => download("win")}
               className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
@@ -175,19 +175,19 @@ export default function Home() {
           {/* ── Thin separator ── */}
           <div className="hidden md:block w-px h-5 bg-gray-200 flex-shrink-0" />
 
-          {/* ── Auth cluster — always visible ── */}
+          {/* ── Auth cluster  -  always visible ── */}
           <div className="flex items-center gap-2">
             <CreditsBadge />
 
             {!user ? (
               <>
-                {/* Log in — always visible on all screen sizes */}
+                {/* Log in  -  always visible on all screen sizes */}
                 <button onClick={() => setAuthModal({ open: true, mode: "signin" })}
                   className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-600 hover:text-violet-700 transition-colors whitespace-nowrap rounded-lg hover:bg-violet-50/70">
                   Log in
                 </button>
 
-                {/* Get started — primary CTA */}
+                {/* Get started  -  primary CTA */}
                 <button onClick={() => setAuthModal({ open: true, mode: "signup" })}
                   className="px-4 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
                   style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.30)" }}>
@@ -261,7 +261,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* ── Hamburger — < lg only ── */}
+            {/* ── Hamburger  -  < lg only ── */}
             <button onClick={() => setShowMobile(v => !v)}
               className="lg:hidden flex items-center justify-center w-8 h-8 rounded-lg text-gray-600 hover:text-violet-700 hover:bg-violet-50 transition-all">
               {showMobile ? (
@@ -277,7 +277,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ══ Mobile drawer — slides down from nav ══ */}
+        {/* ══ Mobile drawer  -  slides down from nav ══ */}
         {showMobile && (
           <motion.div ref={mobileRef}
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
@@ -303,7 +303,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Download — only on < md (md+ already shows pills in navbar) */}
+            {/* Download  -  only on < md (md+ already shows pills in navbar) */}
             <div className="px-4 pb-3 md:hidden">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Download App</p>
               <div className="grid grid-cols-2 gap-2">
@@ -355,7 +355,7 @@ export default function Home() {
       <DownloadSection mounted={mounted} detectedOS={detectedOS} onDownload={download} />
       <CtaSection onNav={go} />
 
-      {/* ── Auth modal — opens on Log in / Get started, never leaves the page ── */}
+      {/* ── Auth modal  -  opens on Log in / Get started, never leaves the page ── */}
       <AuthModal
         open={authModal.open}
         initialMode={authModal.mode}

@@ -67,7 +67,7 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
                   <MacIcon className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-2">CoopilotX for macOS</h3>
-                <p className="text-gray-500 mb-7">.pkg installer · macOS 12 and above · Apple Silicon</p>
+                <p className="text-gray-500 mb-7">.dmg · macOS 12 and above · Apple Silicon</p>
                 <button onClick={() => onDownload("mac")}
                   className="inline-flex items-center gap-3 px-10 py-5 bg-gray-900 hover:bg-black text-white font-black text-lg rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.45)] transition-all active:scale-[0.97]">
                   <MacIcon className="w-6 h-6" /> Download for macOS, Free
