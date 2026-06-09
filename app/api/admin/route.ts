@@ -1,6 +1,6 @@
-// app/api/admin/route.ts
+﻿// app/api/admin/route.ts
 // ═══════════════════════════════════════════════════════════════
-// Server-side admin API — all operations verified by Firebase Admin.
+// Server-side admin API  -  all operations verified by Firebase Admin.
 // Only the account matching ADMIN_EMAIL (server-side env var) is
 // allowed to call any of these endpoints.
 // ═══════════════════════════════════════════════════════════════
@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 
-// Admin email is kept server-side only — never exposed in the client bundle
+// Admin email is kept server-side only  -  never exposed in the client bundle
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "krishnapk288@gmail.com").toLowerCase();
 
 // ── Firebase Admin init (shared singleton) ──────────────────────
@@ -62,12 +62,13 @@ async function verifyAdmin(req: Request): Promise<string | null> {
     const email   = (decoded.email ?? "").toLowerCase();
     if (email !== ADMIN_EMAIL) return null;
     return decoded.email ?? null;
-  } catch {
+  } catch (e: any) {
+    console.error("[admin] verifyAdmin error:", e?.message ?? e);
     return null;
   }
 }
 
-// ── GET /api/admin — list all users + downloads ──────────────────
+// ── GET /api/admin  -  list all users + downloads ──────────────────
 export async function GET(req: Request) {
   const adminEmail = await verifyAdmin(req);
   if (!adminEmail) {
@@ -95,11 +96,11 @@ export async function GET(req: Request) {
   }
 }
 
-// ── POST /api/admin — mutate user records ────────────────────────
+// ── POST /api/admin  -  mutate user records ────────────────────────
 // Actions:
-//   updatePlan    — { action, userId, plan, credits }
-//   updateCredits — { action, userId, credits }
-//   deleteUser    — { action, userId }
+//   updatePlan     -  { action, userId, plan, credits }
+//   updateCredits  -  { action, userId, credits }
+//   deleteUser     -  { action, userId }
 export async function POST(req: Request) {
   const adminEmail = await verifyAdmin(req);
   if (!adminEmail) {
