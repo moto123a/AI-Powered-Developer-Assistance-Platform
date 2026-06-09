@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
@@ -32,7 +32,7 @@ export default function AdminPage() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchAll(); // Server will verify admin status — no client-side email check
+        fetchAll(); // Server will verify admin status  -  no client-side email check
       } else {
         setIsAdmin(false);
         setLoading(false);
@@ -128,7 +128,14 @@ export default function AdminPage() {
     <div className="p-20 text-white text-center animate-pulse">Accessing Secure Database...</div>
   );
   if (!isAdmin) return (
-    <div className="p-20 text-red-500 font-bold text-center">403: Forbidden - Admin Only</div>
+    <div className="p-20 text-center">
+      <p className="text-red-500 font-bold text-xl mb-4">403: Forbidden - Admin Only</p>
+      <p className="text-gray-400 mb-6">You must be signed in as admin to view this page.</p>
+      <a href="/?auth=required&next=/admin"
+         className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+        Sign In
+      </a>
+    </div>
   );
 
   const liveCount = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < 300).length;
@@ -328,8 +335,8 @@ function UserRow({
         <td className="p-4 text-center">
           {(winDl || macDl) ? (
             <div className="flex flex-col items-center gap-1">
-              {winDl && <div className="flex items-center gap-1 text-[9px] text-cyan-400"><Monitor size={9} /> Win — {fmtIso(winDl.at)}</div>}
-              {macDl && <div className="flex items-center gap-1 text-[9px] text-gray-300"><Apple size={9} /> Mac — {fmtIso(macDl.at)}</div>}
+              {winDl && <div className="flex items-center gap-1 text-[9px] text-cyan-400"><Monitor size={9} /> Win  -  {fmtIso(winDl.at)}</div>}
+              {macDl && <div className="flex items-center gap-1 text-[9px] text-gray-300"><Apple size={9} /> Mac  -  {fmtIso(macDl.at)}</div>}
             </div>
           ) : (
             <span className="text-[9px] text-gray-800 italic">None</span>
