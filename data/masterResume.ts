@@ -1,4 +1,4 @@
-export const MASTER_RESUME = {
+﻿export const MASTER_RESUME = {
   personalInfo: {
     name: "Your Full Name",
     headline: "Software Engineer | Full Stack Developer | Cloud & DevOps",
@@ -69,7 +69,7 @@ export const MASTER_RESUME = {
     { school: "University Name", degree: "Bachelor of Science - Computer Science", period: "Aug 2014 - May 2018", gpa: "3.7" },
   ],
   certifications: [
-    "AWS Certified Solutions Architect — Amazon Web Services (2024)",
-    "Google Professional Cloud Developer — Google Cloud (2023)",
+    "AWS Certified Solutions Architect  -  Amazon Web Services (2024)",
+    "Google Professional Cloud Developer  -  Google Cloud (2023)",
   ],
 };

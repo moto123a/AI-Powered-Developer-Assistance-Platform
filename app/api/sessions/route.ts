@@ -1,4 +1,4 @@
-// app/api/sessions/route.ts
+﻿// app/api/sessions/route.ts
 // Handles session save (POST) and load (GET) via Firebase Admin SDK,
 // bypassing Firestore client security rules entirely.
 //
@@ -113,7 +113,7 @@ export async function GET(req: Request) {
           _createdAtSeconds: data.createdAt?._seconds ?? data.createdAt?.seconds ?? 0,
         };
       })
-      // Sort newest-first — no composite index needed
+      // Sort newest-first  -  no composite index needed
       .sort((a, b) => b._createdAtSeconds - a._createdAtSeconds);
 
     return NextResponse.json({ sessions });
@@ -167,7 +167,7 @@ export async function POST(req: Request) {
 
   try {
     if (sessionId) {
-      // ── Update existing session — verify ownership first ──
+      // ── Update existing session  -  verify ownership first ──
       const existingDoc = await db.collection("interview_sessions").doc(sessionId).get();
       if (!existingDoc.exists) {
         return NextResponse.json({ error: "Session not found" }, { status: 404 });

@@ -1,4 +1,4 @@
-// frontend/app/lib/useCredits.ts
+﻿// frontend/app/lib/useCredits.ts
 // ═══════════════════════════════════════════════════════════════
 // React hook for credit checking on frontend pages
 // Usage: const { checkAndDeduct, credits, plan, showPaywall } = useCredits();
@@ -54,7 +54,7 @@ export function useCredits() {
     return () => unsub();
   }, [uid]);
 
-  // Check if user can afford action — returns true/false
+  // Check if user can afford action  -  returns true/false
   // If false, opens paywall modal
   const canAfford = useCallback((action: CreditAction): boolean => {
     const cost = CREDIT_COSTS[action];
@@ -72,7 +72,7 @@ export function useCredits() {
     return true;
   }, [credits, plan]);
 
-  // Server-side deduction — call your API route which deducts in Firestore
+  // Server-side deduction  -  call your API route which deducts in Firestore
   const deductOnServer = useCallback(async (action: CreditAction): Promise<boolean> => {
     if (!uid) return false;
     try {
@@ -102,7 +102,7 @@ export function useCredits() {
     setServerError(null);
     const ok = await deductOnServer(action);
     if (!ok) {
-      setServerError("Could not deduct credits — please refresh and try again.");
+      setServerError("Could not deduct credits  -  please refresh and try again.");
     }
     return ok;
   }, [canAfford, deductOnServer]);

@@ -1,4 +1,4 @@
-// frontend/app/api/stripe/checkout/route.ts
+﻿// frontend/app/api/stripe/checkout/route.ts
 // ═══════════════════════════════════════════════════════════════
 // Creates Stripe Checkout session for Basic ($12) or Pro ($29)
 // After payment, Stripe redirects to /pricing?success=true
@@ -27,7 +27,7 @@ function ensureAdminInit() {
   }
 }
 
-// ── STRIPE PRICE IDS — create these in Stripe Dashboard ──
+// ── STRIPE PRICE IDS  -  create these in Stripe Dashboard ──
 // Go to: dashboard.stripe.com → Products → Create Product
 // Create "Basic Monthly" → $12/mo → copy price ID (price_xxxx)
 // Create "Basic Annual" → $96/yr → copy price ID
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
     }
 
-    // Reject unknown plans — prevents crafted requests from creating
+    // Reject unknown plans  -  prevents crafted requests from creating
     // checkout sessions with arbitrary metadata values.
     if (!plan || !["basic", "pro"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });

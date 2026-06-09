@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FadeUp } from "./shared";
@@ -23,7 +23,7 @@ export default function DemoSection({ onNav }: { onNav: (p: string) => void }) {
               <div className="w-3 h-3 rounded-full bg-yellow-400" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
               <div className="flex-1 mx-4 bg-gray-700 rounded h-5 flex items-center px-3">
-                <span className="text-[10px] text-gray-400 font-medium">CoopilotX — Stealth Overlay Active</span>
+                <span className="text-[10px] text-gray-400 font-medium">CoopilotX  -  Stealth Overlay Active</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse block" />

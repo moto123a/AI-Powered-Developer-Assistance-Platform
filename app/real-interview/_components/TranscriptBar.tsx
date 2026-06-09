@@ -1,4 +1,4 @@
-// app/real-interview/_components/TranscriptBar.tsx
+﻿// app/real-interview/_components/TranscriptBar.tsx
 // Single responsibility: show live interviewer transcript only
 
 "use client";
@@ -79,7 +79,7 @@ export default function TranscriptBar({
         {/* Transcript text */}
         <div className="flex-1 overflow-hidden">
           <p className="text-sm text-slate-300 truncate leading-none">
-            {/* Confirmed transcript — dimmed */}
+            {/* Confirmed transcript  -  dimmed */}
             {transcript && (
               <span className="opacity-40">
                 {transcript.length > 100
@@ -88,7 +88,7 @@ export default function TranscriptBar({
               </span>
             )}
 
-            {/* Live partial — bright blue */}
+            {/* Live partial  -  bright blue */}
             {partial && (
               <motion.span
                 animate={{ opacity: [1, 0.6, 1] }}

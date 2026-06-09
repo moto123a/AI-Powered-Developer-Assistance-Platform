@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 export type TemplateId =
   | "cornerstone"
@@ -487,8 +487,8 @@ export interface TemplateSections {
      "projects:0"
      ...
    
-   This lets the packer break mid-section — e.g. put job 0 on page 1
-   and job 1 on page 2 — instead of moving the entire section when
+   This lets the packer break mid-section  -  e.g. put job 0 on page 1
+   and job 1 on page 2  -  instead of moving the entire section when
    even one entry overflows, which caused the huge gaps.
 ================================================================ */
 function buildGranularSections(
@@ -552,7 +552,7 @@ function buildGranularSections(
           : (
             <div style={{ marginTop: isFirst ? 0 : 12, marginBottom: i === data.experience.length - 1 ? sg : 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}{exp.role ? ` — ${exp.role}` : ""}</span>
+                <span style={tx(fs, "#111827", { fontWeight: 700 })}>{exp.company}{exp.role ? `  -  ${exp.role}` : ""}</span>
                 <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{exp.period}</span>
               </div>
               {exp.location && <div style={tx(8.5, "#9ca3af", { fontStyle: "italic", marginTop: 1, marginBottom: 3 })}>{exp.location}</div>}
@@ -599,7 +599,7 @@ function buildGranularSections(
             <div style={{ marginTop: isFirst ? 0 : 10, marginBottom: i === data.education.length - 1 ? sg : 0, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={tx(fs, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution || "Unknown School"}</div>
-                <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree || ""}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}</div>
+                <div style={tx(fs - 0.5, "#374151", { marginTop: 2 })}>{edu.degree || ""}{edu.gpa ? `  -  GPA: ${edu.gpa}` : ""}</div>
               </div>
               <span style={tx(8.5, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year || ""}</span>
             </div>
@@ -621,7 +621,7 @@ function buildGranularSections(
               <ul style={{ margin: "5px 0 0", paddingLeft: 16, listStyle: "disc" }}>
                 {valid.map((cert: any, i: number) => (
                   <li key={i} style={liSt}>
-                    {typeof cert === "string" ? cert : `${cert.name ?? ""}${cert.issuer ? ` — ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
+                    {typeof cert === "string" ? cert : `${cert.name ?? ""}${cert.issuer ? `  -  ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
                   </li>
                 ))}
               </ul>
@@ -636,7 +636,7 @@ function buildGranularSections(
 }
 
 /* ================================================================
-   renderPreviewSections — main export used by ResumePreview
+   renderPreviewSections  -  main export used by ResumePreview
 ================================================================ */
 export function renderPreviewSections(templateId: TemplateId, ctx: StyleCtx): TemplateSections {
   const { ff, ac, fs, lh, sg, pagePad, data, sectionOrder } = ctx;
@@ -1043,7 +1043,7 @@ export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
       (data.experience?.length ?? 0) > 0
         ? `<div class="r-sec">${SHfn("Work Experience")}${(data.experience || []).map((e: any, i: number) =>
             `<div class="${i ? "r-entry-gap" : ""}">
-              <div class="r-row"><span class="r-bold">${e.company || ""}${e.role ? ` — ${e.role}` : ""}</span><span class="r-meta">${e.period ?? ""}</span></div>
+              <div class="r-row"><span class="r-bold">${e.company || ""}${e.role ? `  -  ${e.role}` : ""}</span><span class="r-meta">${e.period ?? ""}</span></div>
               ${e.location ? `<div class="r-location">${e.location}</div>` : ""}
               <ul class="r-list">${bul(e.bullets)}</ul>
             </div>`
@@ -1073,7 +1073,7 @@ export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
       (data.education?.length ?? 0) > 0
         ? `<div class="r-sec">${SHfn("Education")}${(data.education || []).map((e: any, i: number) =>
             `<div class="r-row ${i ? "r-edu-gap" : ""}">
-              <div><div class="r-bold">${e.school || e.institution || ""}</div><div class="r-body r-sm">${e.degree ?? ""}${e.gpa ? ` — GPA: ${e.gpa}` : ""}</div></div>
+              <div><div class="r-bold">${e.school || e.institution || ""}</div><div class="r-body r-sm">${e.degree ?? ""}${e.gpa ? `  -  GPA: ${e.gpa}` : ""}</div></div>
               <span class="r-meta">${e.period || e.year || ""}</span>
             </div>`
           ).join("")}</div>` : "",
@@ -1084,7 +1084,7 @@ export function buildPrintHTML(templateId: TemplateId, ctx: PrintCtx): string {
       );
       return valid.length > 0
         ? `<div class="r-sec">${SHfn("Certifications")}<ul class="r-list r-cert-list">${valid.map((c: any) =>
-            `<li class="r-bullet">${typeof c === "string" ? c : `${c.name ?? ""}${c.issuer ? ` — ${c.issuer}` : ""}${c.year ? ` (${c.year})` : ""}`}</li>`
+            `<li class="r-bullet">${typeof c === "string" ? c : `${c.name ?? ""}${c.issuer ? `  -  ${c.issuer}` : ""}${c.year ? ` (${c.year})` : ""}`}</li>`
           ).join("")}</ul></div>` : "";
     },
   };

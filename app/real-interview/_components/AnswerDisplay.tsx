@@ -1,4 +1,4 @@
-// app/real-interview/_components/AnswerDisplay.tsx
+﻿// app/real-interview/_components/AnswerDisplay.tsx
 // Single responsibility: render bullet point answers only
 
 "use client";
@@ -36,7 +36,7 @@ export default function AnswerDisplay({
     );
   }
 
-  // ── RECORDING STATE — show thinking animation ──
+  // ── RECORDING STATE  -  show thinking animation ──
   if (isRecording && !answer) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -65,7 +65,7 @@ export default function AnswerDisplay({
     );
   }
 
-  // ── MICRO ANSWER — short direct answer, no bullets ──
+  // ── MICRO ANSWER  -  short direct answer, no bullets ──
   if (isMicroAnswer(answer)) {
     return (
       <AnimatePresence mode="wait">
@@ -88,7 +88,7 @@ export default function AnswerDisplay({
     );
   }
 
-  // ── BULLET ANSWER — parsed bullet points ──
+  // ── BULLET ANSWER  -  parsed bullet points ──
   const lines = parseAnswer(answer);
 
   return (

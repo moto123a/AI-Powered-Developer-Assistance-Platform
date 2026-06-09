@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 
@@ -40,7 +40,7 @@ export default function Footer({ isDark = true }) {
       className="relative bg-[#06060f] text-white py-16 border-t border-white/[0.04] overflow-hidden"
       style={{ fontFamily: "'Sora', system-ui, sans-serif" }}
     >
-      {/* ── Ambient glows — exact same as page.tsx ── */}
+      {/* ── Ambient glows  -  exact same as page.tsx ── */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-0 left-1/4 w-[500px] h-[400px] bg-indigo-600/[0.07] rounded-full blur-[150px]" />
         <div className="absolute top-0 right-1/4 w-[400px] h-[300px] bg-violet-600/[0.05] rounded-full blur-[120px]" />

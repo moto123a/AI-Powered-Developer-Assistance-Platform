@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 export default function ResumeTemplate({ data }: { data: any }) {
   if (!data || !data.personalInfo) {
@@ -36,7 +36,7 @@ export default function ResumeTemplate({ data }: { data: any }) {
         {data.experience?.map((exp: any, i: number) => (
           <div key={i} className="mb-3">
             <div className="flex justify-between font-bold">
-              <span>{exp.company} — {exp.role}</span>
+              <span>{exp.company}  -  {exp.role}</span>
               <span>{exp.period}</span>
             </div>
             <p className="italic text-gray-600 mb-1">{exp.location}</p>

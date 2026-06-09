@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FadeUp, FadeIn, BlurFade, Counter, COMPANIES_ROW1, COMPANIES_ROW2 } from "./shared";
@@ -34,7 +34,7 @@ export function TrustedBySection() {
 
       <FadeUp delay={0.1}>
         <div className="relative space-y-3">
-          {/* Row 1 — left (global tech) */}
+          {/* Row 1  -  left (global tech) */}
           <div className="flex ticker-left gap-3 w-max">
             {row1.map((c, i) => (
               <span key={i} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-500 whitespace-nowrap flex-shrink-0 hover:border-violet-200 hover:text-violet-700 hover:shadow-sm transition-all cursor-default select-none">
@@ -44,7 +44,7 @@ export function TrustedBySection() {
             ))}
           </div>
 
-          {/* Row 2 — right (startups & Indian tech) */}
+          {/* Row 2  -  right (startups & Indian tech) */}
           <div className="flex ticker-right gap-3 w-max">
             {row2.map((c, i) => (
               <span key={i} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 bg-white text-sm font-semibold text-gray-500 whitespace-nowrap flex-shrink-0 hover:border-indigo-200 hover:text-indigo-700 hover:shadow-sm transition-all cursor-default select-none">

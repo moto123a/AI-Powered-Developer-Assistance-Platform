@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy — CoopilotX AI",
+  title: "Cookie Policy  -  CoopilotX AI",
   description: "What cookies CoopilotX sets and why.",
 };
 

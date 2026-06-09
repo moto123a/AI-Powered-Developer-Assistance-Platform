@@ -1,6 +1,6 @@
-// app/real-interview/popup/page.tsx
-// Stealth popup window — survives main tab closing
-// Opens via window.open() — no browser UI, stays on top
+﻿// app/real-interview/popup/page.tsx
+// Stealth popup window  -  survives main tab closing
+// Opens via window.open()  -  no browser UI, stays on top
 //
 // Config is read from localStorage ("interviewConfig") first, then falls back
 // to URL search params.  This avoids the ~2000-char URL length limit which
@@ -77,10 +77,10 @@ export default function PopupPage() {
 
   // ── Mic indicator color ──
   const micColor = isGenerating
-    ? "#f97316"  // orange — thinking
+    ? "#f97316"  // orange  -  thinking
     : isRecording
-    ? "#22c55e"  // green  — listening
-    : "#ef4444"; // red    — ready
+    ? "#22c55e"  // green   -  listening
+    : "#ef4444"; // red     -  ready
 
   const micLabel = isGenerating
     ? "THINKING"
@@ -128,7 +128,7 @@ export default function PopupPage() {
       </div>
 
       {/* ══════════════════════════════════════
-          ANSWER AREA — takes all space
+          ANSWER AREA  -  takes all space
           ══════════════════════════════════════ */}
       <div className="flex flex-col"
         style={{ height: "calc(100vh - 36px - 44px - 52px)" }}>
@@ -181,7 +181,7 @@ export default function PopupPage() {
       </div>
 
       {/* ══════════════════════════════════════
-          FOOTER — mic button
+          FOOTER  -  mic button
           ══════════════════════════════════════ */}
       <div className="h-[52px] border-t border-white/8 bg-black/60 flex items-center justify-center gap-6 px-5">
 
@@ -193,7 +193,7 @@ export default function PopupPage() {
           ESC Clear
         </button>
 
-        {/* Mic button — desktop circular style */}
+        {/* Mic button  -  desktop circular style */}
         <MicButton
           isRecording={isRecording}
           isGenerating={isGenerating}

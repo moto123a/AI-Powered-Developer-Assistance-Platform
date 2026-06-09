@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +20,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 // ═══════════════════════════════════════════════════════════════
-// DESIGN TOKENS — light matte (matches real-interview)
+// DESIGN TOKENS  -  light matte (matches real-interview)
 // ═══════════════════════════════════════════════════════════════
 const T = {
   bg:        "#dde3ed",        // page background
@@ -71,6 +71,13 @@ type AiModel = {
   color:        string;  // accent hex for the model
 };
 
+type Difficulty = "easy" | "medium" | "hard" | "behavioral" | "mixed";
+interface TaggedQuestion {
+  text:       string;
+  difficulty: Exclude<Difficulty, "mixed">;
+  category:   string;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════
@@ -79,8 +86,30 @@ const AI_MODELS: AiModel[] = [
   { id: "llama-3.3-70b", name: "Llama 3.3 70B", provider: "Groq",   badge: "Instant",     speed: "~0.3s", quality: "Great", creditsPerQ: 2, icon: "🦙", color: "#7c3aed" },
 ];
 
-const QUESTION_COUNTS = [5, 10, 15, 20];
-const SILENCE_DELAY_MS = 3500;
+const MIN_QUESTIONS          = 5;
+const MAX_QUESTIONS_FREE     = 10;
+const MAX_QUESTIONS_BASIC    = 20;
+const MAX_QUESTIONS_PRO      = 50;
+const SILENCE_DELAY_MS       = 3500;
+
+const PLAN_MAX_QUESTIONS: Record<string, number> = {
+  free: MAX_QUESTIONS_FREE, basic: MAX_QUESTIONS_BASIC, pro: MAX_QUESTIONS_PRO,
+};
+const PLAN_DIFFICULTY_ACCESS: Record<string, Difficulty[]> = {
+  free:  ["easy", "behavioral", "mixed"],
+  basic: ["easy", "medium", "behavioral", "mixed"],
+  pro:   ["easy", "medium", "hard", "behavioral", "mixed"],
+};
+const DIFFICULTY_OPTIONS: {
+  id: Difficulty; label: string; sub: string; color: string;
+  bg: string; brd: string; planRequired: "free" | "basic" | "pro";
+}[] = [
+  { id: "easy",       label: "Easy",       sub: "Fundamentals and basics",         color: "#059669", bg: "rgba(5,150,105,0.08)",  brd: "rgba(5,150,105,0.22)",  planRequired: "free"  },
+  { id: "medium",     label: "Medium",     sub: "Situational and problem-solving", color: "#d97706", bg: "rgba(217,119,6,0.08)",  brd: "rgba(217,119,6,0.22)",  planRequired: "basic" },
+  { id: "hard",       label: "Hard",       sub: "System design and leadership",    color: "#dc2626", bg: "rgba(220,38,38,0.08)",  brd: "rgba(220,38,38,0.22)",  planRequired: "pro"   },
+  { id: "behavioral", label: "Behavioral", sub: "STAR, culture fit, teamwork",     color: "#0891b2", bg: "rgba(8,145,178,0.08)",  brd: "rgba(8,145,178,0.22)",  planRequired: "free"  },
+  { id: "mixed",      label: "Mixed",      sub: "Full distribution across levels", color: "#4f46e5", bg: "rgba(79,70,229,0.08)",  brd: "rgba(79,70,229,0.22)",  planRequired: "free"  },
+];
 const CONTEXT_HISTORY_TURNS = 4; // last N turns injected into AI memory
 
 // ═══════════════════════════════════════════════════════════════
@@ -115,6 +144,24 @@ const shuffle = <T,>(arr: T[]): T[] => {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+};
+
+const tagQuestions = (qs: string[], diff: Difficulty): TaggedQuestion[] => {
+  const MIXED_CYCLE: Array<Exclude<Difficulty, "mixed">> = [
+    "easy", "behavioral", "medium", "easy", "hard", "behavioral",
+    "medium", "easy", "behavioral", "hard",
+  ];
+  const CATEGORIES: Record<Exclude<Difficulty, "mixed">, string[]> = {
+    easy:       ["Personal Background", "Basic Technical",   "Self-Assessment",    "Career Goals",      "Role Fit"          ],
+    medium:     ["Problem Solving",     "Situational",       "Competency",         "Technical Depth",   "Process & Design"  ],
+    hard:       ["System Design",       "Advanced Technical","Leadership",         "Strategic Thinking","Scalability"       ],
+    behavioral: ["Culture Fit",         "Teamwork",          "Conflict Resolution","Leadership Style",  "EQ & Adaptability" ],
+  };
+  return qs.map((text, i) => {
+    const d    = diff === "mixed" ? MIXED_CYCLE[i % MIXED_CYCLE.length] : (diff as Exclude<Difficulty, "mixed">);
+    const cats = CATEGORIES[d];
+    return { text, difficulty: d, category: cats[i % cats.length] };
+  });
 };
 
 const normalizeQuestions = (res: unknown): string[] => {
@@ -460,6 +507,100 @@ function AuthGate({ onSignIn }: { onSignIn: () => void }) {
   );
 }
 
+// ── Difficulty Card ───────────────────────────────────────────
+function DifficultyCard({ opt, selected, onSelect, locked }: {
+  opt: (typeof DIFFICULTY_OPTIONS)[0];
+  selected: boolean;
+  onSelect: () => void;
+  locked: boolean;
+}) {
+  const intensityWidths: Record<string, string> = {
+    easy: "28%", medium: "58%", hard: "92%", behavioral: "46%", mixed: "70%",
+  };
+  const questionTypes: Record<string, [string, string, string]> = {
+    easy:       ["Background, strengths, career story",   "Basic technical concepts",          "Simple situational scenarios"],
+    medium:     ["Competency and judgment questions",     "Intermediate technical depth",      "Priority and tradeoff decisions"],
+    hard:       ["System design at scale",                "Architecture and tradeoff analysis", "Leadership under pressure"],
+    behavioral: ["Tell me about a time...",               "Conflict, failure, and growth",      "Culture fit and team dynamics"],
+    mixed:      ["Opener + technical + behavioral",       "Mirrors a real interview flow",      "Full distribution across levels"],
+  };
+  const types   = questionTypes[opt.id] ?? ["", "", ""];
+  const barWidth = intensityWidths[opt.id] ?? "50%";
+  return (
+    <motion.button
+      onClick={() => { if (!locked) onSelect(); }}
+      whileHover={!locked ? { scale: 1.01 } : {}}
+      whileTap={!locked ? { scale: 0.98 } : {}}
+      style={{
+        width: "100%", textAlign: "left", padding: 0, display: "flex", alignItems: "stretch",
+        borderRadius: 12, border: `1.5px solid ${selected ? opt.color + "55" : T.border}`,
+        background: selected ? opt.color + "0a" : T.card,
+        transition: "all 0.15s",
+        cursor: locked ? "default" : "pointer", opacity: locked ? 0.48 : 1,
+      }}
+    >
+      {/* Left accent bar — flex child, no overflow:hidden needed */}
+      <div style={{
+        width: 3, flexShrink: 0, borderRadius: "10px 0 0 10px",
+        background: selected ? opt.color : "transparent",
+        transition: "background 0.15s",
+      }} />
+
+      {/* Card content */}
+      <div style={{ flex: 1, padding: "12px 14px 12px 11px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+          {/* Dot — fixed width, aligned with first line of text */}
+          <span style={{
+            width: 7, height: 7, borderRadius: "50%", background: opt.color,
+            display: "block", flexShrink: 0, marginTop: 4,
+          }} />
+          {/* Label + descriptions — single column, perfectly aligned */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{opt.label}</span>
+              {locked && (
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
+                  border: `1px solid ${T.border}`, color: T.textFaint }}>
+                  {opt.planRequired === "basic" ? "Basic" : "Pro"}
+                </span>
+              )}
+            </div>
+            {types.map((t, i) => (
+              <p key={i} style={{ fontSize: 10.5, color: T.textFaint, lineHeight: 1.5, margin: "0 0 2px 0" }}>{t}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Intensity bar */}
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flex: 1, height: 3, borderRadius: 3, background: T.border, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: barWidth, background: opt.color, borderRadius: 3 }} />
+          </div>
+          <span style={{ fontSize: 9, color: T.textFaint, fontWeight: 600, flexShrink: 0 }}>Intensity</span>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
+// ── Difficulty Badge ──────────────────────────────────────────
+function DifficultyBadge({ diff, category }: { diff?: Exclude<Difficulty, "mixed">; category?: string }) {
+  if (!diff) return null;
+  const opt = DIFFICULTY_OPTIONS.find(o => o.id === diff);
+  if (!opt) return null;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 4,
+      background: opt.bg, border: `1px solid ${opt.brd}`, color: opt.color,
+      letterSpacing: "0.04em", whiteSpace: "nowrap",
+    }}>
+      <span style={{ width: 5, height: 5, borderRadius: "50%", background: opt.color, display: "inline-block", flexShrink: 0 }} />
+      {opt.label}{category ? ` / ${category}` : ""}
+    </span>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
@@ -487,7 +628,11 @@ export default function MockInterviewPage() {
   const [jdText,       setJdText]       = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const [questionCount, setQuestionCount] = useState(10);
-  const [showModelPicker, setShowModelPicker] = useState(false);
+  const [showModelPicker,  setShowModelPicker]  = useState(false);
+  const [showDiffPicker,   setShowDiffPicker]   = useState(false);
+  const [difficulty, setDifficulty]             = useState<Difficulty>("mixed");
+  const [taggedQuestions, setTaggedQuestions] = useState<TaggedQuestion[]>([]);
+  const [userPlan, setUserPlan]               = useState<string>("free");
 
   // ── Interview State ──────────────────────────────────────────
   const [questions,    setQuestions]    = useState<string[]>([]);
@@ -531,13 +676,16 @@ export default function MockInterviewPage() {
 
   // ── Derived ──────────────────────────────────────────────────
   const activeModel       = AI_MODELS.find(m => m.id === selectedModel) ?? AI_MODELS[0];
+  const activeDiff        = DIFFICULTY_OPTIONS.find(o => o.id === difficulty) ?? DIFFICULTY_OPTIONS[4];
   const estimatedCredits  = activeModel.creditsPerQ * questionCount;
+  const maxQ              = PLAN_MAX_QUESTIONS[userPlan] ?? MAX_QUESTIONS_FREE;
+  const sliderPct         = Math.round(((questionCount - MIN_QUESTIONS) / Math.max(maxQ - MIN_QUESTIONS, 1)) * 100);
   const currentQ          = questions[index] ?? "Tell me about yourself.";
   const totalQ            = questions.length || 1;
   const progress          = ((index + 1) / totalQ) * 100;
   const avgScore          = scores.length > 0
     ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
-    : "—";
+    : " - ";
 
   // ── Sync refs ────────────────────────────────────────────────
   useEffect(() => { isRecordingRef.current  = isRecording;  }, [isRecording]);
@@ -549,10 +697,31 @@ export default function MockInterviewPage() {
     setLoadingCredits(true);
     fetch(`/api/credits?email=${encodeURIComponent(getEmail())}`)
       .then(r => r.json())
-      .then(d => setCredits(d?.credits ?? d?.balance ?? null))
+      .then(d => { setCredits(d?.credits ?? d?.balance ?? null); if (d?.plan) setUserPlan(d.plan); })
       .catch(() => setCredits(null))
       .finally(() => setLoadingCredits(false));
   }, [phase]);
+
+  // ── User plan (for difficulty / count gating) ────────────
+  useEffect(() => {
+    if (!user) return;
+    fetch(`/api/credits?email=${encodeURIComponent(getEmail())}`)
+      .then(r => r.json())
+      .then(d => { if (d?.plan) setUserPlan(d.plan); })
+      .catch(() => {});
+  }, [user]);
+
+  // ── Clamp question count when plan is known ───────────────
+  useEffect(() => {
+    const max = PLAN_MAX_QUESTIONS[userPlan] ?? MAX_QUESTIONS_FREE;
+    if (questionCount > max) setQuestionCount(max);
+  }, [userPlan]);
+
+  // ── Reset difficulty if no longer accessible ──────────────
+  useEffect(() => {
+    const accessible = PLAN_DIFFICULTY_ACCESS[userPlan] ?? PLAN_DIFFICULTY_ACCESS["free"];
+    if (!accessible.includes(difficulty)) setDifficulty("mixed");
+  }, [userPlan]);
 
   // ── Session timer ─────────────────────────────────────────
   useEffect(() => {
@@ -800,6 +969,7 @@ export default function MockInterviewPage() {
         mode: "generate_questions",
         resume: resumeText, jd: jdText, model: selectedModel,
         count: questionCount, num_questions: questionCount,
+        difficulty,
       });
       const qs = normalizeQuestions(res);
       if (qs.length === 0) {
@@ -810,6 +980,7 @@ export default function MockInterviewPage() {
       const shuffled = shuffle(deduped.filter(q => q.toLowerCase() !== "tell me about yourself."));
       const final    = ["Tell me about yourself.", ...shuffled].slice(0, questionCount);
       setQuestions(final);
+      setTaggedQuestions(tagQuestions(final, difficulty));
       setPhase("ready");
     } catch (err) {
       if (String(err) !== "Error: insufficient_credits")
@@ -1014,22 +1185,12 @@ export default function MockInterviewPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 {/* Header */}
                 <div style={{ marginBottom: 4 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px",
-                    borderRadius: 20, marginBottom: 14, background: T.accentBg,
-                    border: `1px solid ${T.accentBrd}`, fontSize: 10, fontWeight: 800,
-                    color: T.accent, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                    <Sparkles size={9} /> AI-Powered Session
-                  </div>
-                  <h1 style={{ fontSize: 32, fontWeight: 900, color: T.text, lineHeight: 1.1,
-                    letterSpacing: "-0.03em", marginBottom: 10 }}>
-                    Configure Your<br />
-                    <span style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                      Interview Session
-                    </span>
+                  <h1 style={{ fontSize: 28, fontWeight: 800, color: T.text, lineHeight: 1.15,
+                    letterSpacing: "-0.025em", marginBottom: 8 }}>
+                    Mock Interview
                   </h1>
-                  <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.65, maxWidth: 440 }}>
-                    Provide your professional context for a precision-tailored interview with role-specific questions and AI-powered evaluation.
+                  <p style={{ fontSize: 13.5, color: T.textMid, lineHeight: 1.6, maxWidth: 420 }}>
+                    Paste your resume and optionally a job description. The interviewer will ask questions drawn from your actual experience.
                   </p>
                 </div>
 
@@ -1119,7 +1280,7 @@ export default function MockInterviewPage() {
                       <div style={{ textAlign: "left" }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: T.text }}>AI Model</p>
                         <p style={{ fontSize: 11, color: T.textFaint }}>
-                          {activeModel.icon} {activeModel.name} · {activeModel.speed}
+                          {activeModel.name} · {activeModel.speed}
                         </p>
                       </div>
                     </div>
@@ -1143,53 +1304,120 @@ export default function MockInterviewPage() {
                   </AnimatePresence>
                 </div>
 
-                {/* Question count */}
+                {/* Difficulty picker - same accordion style as AI Model */}
+                <div style={{ borderRadius: 16, border: `1px solid ${T.border}`, background: T.panel, overflow: "hidden" }}>
+                  <button onClick={() => setShowDiffPicker(v => !v)}
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "14px 16px", background: "none", border: "none", cursor: "pointer" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ padding: "7px 8px", borderRadius: 10, background: activeDiff.bg, border: `1px solid ${activeDiff.brd}` }}>
+                        <Target size={14} style={{ color: activeDiff.color }} />
+                      </div>
+                      <div style={{ textAlign: "left" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Difficulty</p>
+                        <p style={{ fontSize: 11, color: T.textFaint }}>
+                          {activeDiff.label} · {activeDiff.sub}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown size={15} style={{ color: T.textFaint,
+                      transform: showDiffPicker ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                  </button>
+                  <AnimatePresence>
+                    {showDiffPicker && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }}
+                        style={{ overflow: "hidden", borderTop: `1px solid ${T.border}` }}>
+                        <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 6,
+                          maxHeight: 380, overflowY: "auto" }} className="light-scrollbar">
+                          {DIFFICULTY_OPTIONS.map(opt => {
+                            const planOrder: Record<string, number> = { free: 0, basic: 1, pro: 2 };
+                            const locked = (planOrder[userPlan] ?? 0) < (planOrder[opt.planRequired] ?? 0);
+                            return (
+                              <DifficultyCard key={opt.id} opt={opt} selected={difficulty === opt.id} locked={locked}
+                                onSelect={() => { setDifficulty(opt.id); setShowDiffPicker(false); }} />
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Question count slider */}
                 <div style={{ borderRadius: 16, border: `1px solid ${T.border}`, background: T.panel, padding: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                     <div style={{ padding: "7px 8px", borderRadius: 10, background: "rgba(217,119,6,0.08)", border: "1px solid rgba(217,119,6,0.2)" }}>
                       <Gauge size={14} style={{ color: T.warn }} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Question Count</p>
-                      <p style={{ fontSize: 11, color: T.textFaint }}>Session depth</p>
+                      <p style={{ fontSize: 11, color: T.textFaint }}>Drag to set session depth</p>
+                    </div>
+                    <div style={{
+                      minWidth: 42, textAlign: "center", padding: "4px 10px",
+                      background: T.accentBg, border: `1px solid ${T.accentBrd}`,
+                      borderRadius: 8, fontSize: 18, fontWeight: 900, color: T.accent, lineHeight: 1.2,
+                    }}>
+                      {questionCount}
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-                    {QUESTION_COUNTS.map(c => (
-                      <button key={c} onClick={() => setQuestionCount(c)}
-                        style={{
-                          padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 800,
-                          border: `1.5px solid ${questionCount === c ? T.accent : T.border}`,
-                          background: questionCount === c ? T.accentBg : T.card,
-                          color: questionCount === c ? T.accent : T.textMid,
-                          cursor: "pointer", transition: "all 0.15s",
-                        }}>
-                        {c}
-                      </button>
+
+                  {/* Slider */}
+                  <div style={{ padding: "2px 0 4px" }}>
+                    <input
+                      type="range"
+                      min={MIN_QUESTIONS}
+                      max={maxQ}
+                      value={questionCount}
+                      onChange={e => setQuestionCount(Number(e.target.value))}
+                      className="cx-slider"
+                      style={{
+                        width: "100%",
+                        background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${sliderPct}%, ${T.border} ${sliderPct}%, ${T.border} 100%)`,
+                      }}
+                    />
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
+                      <span style={{ fontSize: 9.5, color: T.textFaint, fontWeight: 600 }}>{MIN_QUESTIONS}</span>
+                      {userPlan !== "pro" && (
+                        <span style={{ fontSize: 9, color: T.textFaint, fontWeight: 500 }}>
+                          {userPlan === "free" ? "Basic: up to 20, Pro: up to 50" : "Pro: up to 50"}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 9.5, color: T.textFaint, fontWeight: 600 }}>{maxQ}</span>
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    padding: "11px 0 0", borderTop: `1px solid ${T.border}`, marginTop: 10,
+                  }}>
+                    {[
+                      { label: "Est. Time", value: `~${Math.round(questionCount * 2.5)} min` },
+                      { label: "Questions", value: `${questionCount}`                        },
+                      { label: "Credits",   value: `~${estimatedCredits}`                   },
+                    ].map(({ label, value }) => (
+                      <div key={label} style={{ textAlign: "center" }}>
+                        <p style={{ fontSize: 15, fontWeight: 900, color: T.text, lineHeight: 1 }}>{value}</p>
+                        <p style={{ fontSize: 9.5, color: T.textFaint, marginTop: 3 }}>{label}</p>
+                      </div>
                     ))}
                   </div>
-                  <p style={{ fontSize: 10.5, color: T.textFaint, marginTop: 10, textAlign: "center" }}>
-                    ~{Math.round(questionCount * 2.5)} min session · ~{estimatedCredits} credits
-                  </p>
                 </div>
 
                 {/* Tips */}
-                <div style={{ borderRadius: 16, border: `1px solid ${T.border}`, background: T.panel, padding: 16 }}>
-                  <p style={{ fontSize: 10.5, fontWeight: 800, color: T.textFaint, textTransform: "uppercase",
-                    letterSpacing: "0.1em", marginBottom: 12 }}>Session Tips</p>
-                  <ul style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ borderRadius: 12, border: `1px solid ${T.border}`, background: T.panel, padding: "12px 14px" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: T.textFaint, textTransform: "uppercase",
+                    letterSpacing: "0.08em", marginBottom: 10 }}>Before you start</p>
+                  <ul style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                     {[
-                      "Use a quiet environment for best transcription accuracy",
-                      "Answer in 1 to 3 minutes using the STAR method when relevant",
-                      "Auto-submits after 3.5 seconds of silence. Pause naturally.",
+                      "Quiet room gives better transcription results",
+                      "Keep answers to 1-3 minutes; use STAR for behavioral questions",
+                      "3.5 s of silence auto-submits your answer",
                     ].map((tip, i) => (
-                      <li key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: T.textMid, lineHeight: 1.55 }}>
-                        <span style={{ marginTop: 1, width: 18, height: 18, borderRadius: "50%", flexShrink: 0,
-                          background: T.accentBg, border: `1px solid ${T.accentBrd}`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 9, fontWeight: 900, color: T.accent }}>
-                          {i + 1}
-                        </span>
+                      <li key={i} style={{ display: "flex", gap: 8, fontSize: 11.5, color: T.textMid, lineHeight: 1.5 }}>
+                        <span style={{ marginTop: 2, width: 4, height: 4, borderRadius: "50%", flexShrink: 0, background: T.textFaint, display: "inline-block" }} />
                         {tip}
                       </li>
                     ))}
@@ -1200,25 +1428,24 @@ export default function MockInterviewPage() {
                 <motion.button
                   onClick={handleGenerate}
                   disabled={isGenerating || !resumeText.trim()}
-                  whileHover={!isGenerating && resumeText.trim() ? { scale: 1.02 } : {}}
-                  whileTap={!isGenerating && resumeText.trim() ? { scale: 0.98 } : {}}
+                  whileHover={!isGenerating && resumeText.trim() ? { scale: 1.01 } : {}}
+                  whileTap={!isGenerating && resumeText.trim() ? { scale: 0.99 } : {}}
                   style={{
-                    width: "100%", padding: "14px 0", borderRadius: 14,
-                    fontSize: 14, fontWeight: 800, border: "none", cursor: resumeText.trim() ? "pointer" : "not-allowed",
+                    width: "100%", padding: "13px 0", borderRadius: 12,
+                    fontSize: 13.5, fontWeight: 700, border: "none", cursor: resumeText.trim() ? "pointer" : "not-allowed",
                     background: !resumeText.trim() || isGenerating
                       ? T.border
-                      : "linear-gradient(135deg, #4f46e5, #7c3aed)",
+                      : "#4f46e5",
                     color: !resumeText.trim() || isGenerating ? T.textFaint : "white",
-                    boxShadow: !resumeText.trim() || isGenerating ? "none" : "0 6px 24px rgba(79,70,229,0.28)",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    transition: "all 0.2s",
+                    transition: "background 0.15s",
                   }}>
                   {isGenerating
-                    ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Generating {questionCount} Questions...</>
-                    : <><Zap size={16} /> Launch Session <ArrowRight size={14} /></>}
+                    ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Building {questionCount} questions...</>
+                    : <>Start session</>}
                 </motion.button>
-                <p style={{ textAlign: "center", fontSize: 10.5, color: T.textFaint }}>
-                  Secured by enterprise-grade encryption · Data not stored
+                <p style={{ textAlign: "center", fontSize: 10, color: T.textFaint }}>
+                  Audio stays on your device. Transcripts are not stored.
                 </p>
               </div>
             </motion.div>
@@ -1234,21 +1461,12 @@ export default function MockInterviewPage() {
               style={{ maxWidth: 940, margin: "0 auto" }}>
 
               {/* Header */}
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px",
-                  borderRadius: 20, marginBottom: 14, background: T.successBg,
-                  border: `1px solid ${T.success}40`, fontSize: 10, fontWeight: 800,
-                  color: T.success, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.success, animation: "pulse 1.5s infinite" }} />
-                  System Ready
-                </div>
-                <h2 style={{ fontSize: 34, fontWeight: 900, color: T.text, letterSpacing: "-0.03em", marginBottom: 8 }}>
-                  Preflight Check
+              <div style={{ textAlign: "center", marginBottom: 28 }}>
+                <h2 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: "-0.02em", marginBottom: 6 }}>
+                  Ready to start
                 </h2>
                 <p style={{ fontSize: 13, color: T.textMid }}>
-                  Your AI prepared{" "}
-                  <strong style={{ color: T.text, fontWeight: 800 }}>{questions.length}</strong> personalized questions using{" "}
-                  <strong style={{ color: T.accent }}>{activeModel.icon} {activeModel.name}</strong>
+                  {questions.length} questions prepared with {activeModel.name}. Check your camera and mic below.
                 </p>
               </div>
 
@@ -1333,13 +1551,14 @@ export default function MockInterviewPage() {
                       </p>
                     </div>
                     {[
-                      { label: "AI Model",    value: `${activeModel.icon} ${activeModel.name}`, sub: activeModel.provider, ok: true },
-                      { label: "Speed",       value: activeModel.speed,  sub: "avg response",   ok: true },
-                      { label: "Questions",   value: `${questions.length} prepared`, sub: `of ${questionCount} requested`, ok: questions.length >= questionCount * 0.8 },
-                      { label: "Camera",      value: cameraOn ? "Connected" : "Disabled", ok: cameraOn },
-                      { label: "AI Voice",    value: ttsEnabled ? "Enabled" : "Muted",   ok: ttsEnabled },
-                      { label: "Microphone",  value: "Ready",    ok: true },
-                      { label: "Memory AI",   value: `Last ${CONTEXT_HISTORY_TURNS} turns`, sub: "context-aware", ok: true },
+                      { label: "AI Model",   value: `${activeModel.name}`, sub: activeModel.provider, ok: true },
+                      { label: "Speed",      value: activeModel.speed,  sub: "avg response",   ok: true },
+                      { label: "Difficulty", value: DIFFICULTY_OPTIONS.find(d => d.id === difficulty)?.label ?? "Mixed", sub: undefined, ok: true },
+                      { label: "Questions",  value: `${questions.length} prepared`, sub: `of ${questionCount} requested`, ok: questions.length >= questionCount * 0.8 },
+                      { label: "Camera",     value: cameraOn ? "Connected" : "Disabled", ok: cameraOn },
+                      { label: "AI Voice",   value: ttsEnabled ? "Enabled" : "Muted",   ok: ttsEnabled },
+                      { label: "Microphone", value: "Ready",    ok: true },
+                      { label: "Memory AI",  value: `Last ${CONTEXT_HISTORY_TURNS} turns`, sub: "context-aware", ok: true },
                     ].map(({ label, value, sub, ok }) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
                         padding: "10px 16px", borderBottom: `1px solid ${T.border}` }}>
@@ -1356,8 +1575,8 @@ export default function MockInterviewPage() {
                   {/* Mini stats */}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
                     {[
-                      { label: "Questions", value: questions.length.toString(), color: T.accent },
-                      { label: "Est. Time",  value: `~${Math.round(questions.length * 2.5)}m`, color: "#7c3aed" },
+                      { label: "Questions",  value: questions.length.toString(), color: T.accent },
+                      { label: "Difficulty", value: DIFFICULTY_OPTIONS.find(d => d.id === difficulty)?.label ?? "Mixed", color: DIFFICULTY_OPTIONS.find(d => d.id === difficulty)?.color ?? T.accent },
                       { label: "AI Speed",   value: activeModel.speed, color: "#0891b2" },
                     ].map(({ label, value, color }) => (
                       <div key={label} style={{ padding: "12px 8px", borderRadius: 12, textAlign: "center",
@@ -1404,7 +1623,7 @@ export default function MockInterviewPage() {
                       ))}
                     </div>
                     <span style={{ fontSize: 11.5, fontWeight: 600, color: T.textFaint }}>
-                      Interview Room · {activeModel.icon} {activeModel.name}
+                      Interview · {activeModel.name}
                     </span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1590,10 +1809,16 @@ export default function MockInterviewPage() {
                 <div style={{ borderRadius: 14, border: `1px solid ${T.border}`, background: T.panel,
                   padding: "14px 16px", flexShrink: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 10, fontWeight: 800, color: T.accent, textTransform: "uppercase", letterSpacing: "0.1em" }}>
                         Question {index + 1} of {totalQ}
                       </span>
+                      {taggedQuestions[index] && (
+                        <DifficultyBadge
+                          diff={taggedQuestions[index].difficulty}
+                          category={taggedQuestions[index].category}
+                        />
+                      )}
                       {jdText && (
                         <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 5,
                           background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.2)", color: "#7c3aed",
@@ -1709,20 +1934,12 @@ export default function MockInterviewPage() {
               style={{ maxWidth: 800, margin: "0 auto", paddingTop: 8 }}>
 
               {/* Header */}
-              <div style={{ textAlign: "center", marginBottom: 36 }}>
-                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1, type: "spring" }}
-                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 64, height: 64, borderRadius: 18, marginBottom: 18,
-                    background: T.accentBg, border: `1.5px solid ${T.accentBrd}`,
-                    boxShadow: "0 8px 32px rgba(79,70,229,0.18)" }}>
-                  <Award size={28} style={{ color: T.accent }} />
-                </motion.div>
-                <h2 style={{ fontSize: 34, fontWeight: 900, color: T.text, letterSpacing: "-0.03em", marginBottom: 8 }}>
-                  Session Complete
+              <div style={{ textAlign: "center", marginBottom: 32 }}>
+                <h2 style={{ fontSize: 26, fontWeight: 800, color: T.text, letterSpacing: "-0.02em", marginBottom: 6 }}>
+                  Results
                 </h2>
                 <p style={{ fontSize: 13, color: T.textMid }}>
-                  Comprehensive performance report · {activeModel.icon} {activeModel.name}
+                  {scores.length} of {questions.length} questions answered · {activeModel.name}
                 </p>
               </div>
 
@@ -1781,8 +1998,11 @@ export default function MockInterviewPage() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {scores.map((s, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: T.textFaint, width: 20 }}>Q{i + 1}</span>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: T.textFaint, width: 20, flexShrink: 0 }}>Q{i + 1}</span>
+                        {taggedQuestions[i] && (
+                          <DifficultyBadge diff={taggedQuestions[i].difficulty} />
+                        )}
                         <div style={{ flex: 1, height: 8, borderRadius: 6, background: T.card, overflow: "hidden" }}>
                           <motion.div initial={{ width: 0 }}
                             animate={{ width: `${s * 10}%` }}
@@ -1807,7 +2027,7 @@ export default function MockInterviewPage() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
                 paddingTop: 20, borderTop: `1px solid ${T.border}` }}>
                 <button
-                  onClick={() => { setPhase("setup"); setQuestions([]); setScores([]); setIndex(0); setSessionTime(0); setHistory([]); }}
+                  onClick={() => { setPhase("setup"); setQuestions([]); setTaggedQuestions([]); setScores([]); setIndex(0); setSessionTime(0); setHistory([]); }}
                   style={{ display: "flex", alignItems: "center", gap: 7, padding: "12px 22px",
                     borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: "pointer",
                     border: `1.5px solid ${T.border}`, background: T.panel, color: T.textMid,
@@ -1838,6 +2058,10 @@ export default function MockInterviewPage() {
         .light-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .light-scrollbar::-webkit-scrollbar-thumb { background: #d4dae6; border-radius: 8px; }
         .light-scrollbar::-webkit-scrollbar-thumb:hover { background: #b8c2d4; }
+        .cx-slider { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 4px; outline: none; cursor: pointer; }
+        .cx-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #4f46e5; border: 2px solid white; box-shadow: 0 0 0 3px rgba(79,70,229,0.18), 0 2px 8px rgba(79,70,229,0.28); cursor: pointer; }
+        .cx-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; background: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.18); cursor: pointer; }
+        .cx-slider:focus::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(79,70,229,0.28), 0 2px 8px rgba(79,70,229,0.3); }
         @media (max-width: 900px) {
           .setup-grid     { grid-template-columns: 1fr !important; }
           .preflight-grid { grid-template-columns: 1fr !important; }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 // app/real-interview/interview/page.tsx
 
@@ -269,7 +269,7 @@ function AnswerRenderer({
     </div>
   );
 
-  // Short MICRO answer — big teleprompter style
+  // Short MICRO answer  -  big teleprompter style
   if (isMicroAnswer(answer)) return (
     <motion.div key={answer}
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -354,7 +354,7 @@ export default function InterviewPage() {
   try {
     if (raw) config = { ...config, ...JSON.parse(raw) };
   } catch {
-    // corrupted sessionStorage — use safe defaults, redirect effect above will fire
+    // corrupted sessionStorage  -  use safe defaults, redirect effect above will fire
   }
 
   const userEmail = user?.email || "";
@@ -432,7 +432,7 @@ export default function InterviewPage() {
     setTimeout(() => setCopied(false), 1500);
   }, [answer]);
 
-  // End session — session is already saved in real-time, just clean up
+  // End session  -  session is already saved in real-time, just clean up
   const endSession = useCallback(async () => {
     // Final update to capture latest duration, then navigate
     if (history.length > 0) {
@@ -552,7 +552,7 @@ export default function InterviewPage() {
             </span>
           </div>
 
-          {/* Auto-save indicator — flashes green after every Q&A is saved */}
+          {/* Auto-save indicator  -  flashes green after every Q&A is saved */}
           <AnimatePresence>
             {autoSaved && (
               <motion.div
@@ -755,7 +755,7 @@ export default function InterviewPage() {
           </div>
         </aside>
 
-        {/* ── CENTER — ANSWER AREA ── */}
+        {/* ── CENTER  -  ANSWER AREA ── */}
         <main className="flex-1 flex flex-col overflow-hidden p-4 gap-3">
 
           {/* Tab switcher */}
@@ -780,7 +780,7 @@ export default function InterviewPage() {
           <div className="flex-1 rounded-2xl border shadow-sm overflow-hidden flex flex-col"
             style={{ background: C.panelBg, borderColor: C.border }}>
 
-            {/* Minimal header — only shows copy when there's an answer */}
+            {/* Minimal header  -  only shows copy when there's an answer */}
             {answer && activeTab === "response" && (
               <div className="h-10 flex items-center justify-end px-4 shrink-0"
                 style={{ borderBottom: `1px solid ${C.border}`, background: C.cardBg }}>
@@ -839,7 +839,7 @@ export default function InterviewPage() {
           </div>
         </main>
 
-        {/* ── RIGHT SIDEBAR — RESUME ── */}
+        {/* ── RIGHT SIDEBAR  -  RESUME ── */}
         <aside className="w-56 border-l p-4 hidden xl:flex flex-col gap-3 shrink-0"
           style={{ borderColor: C.border, background: C.panelBg }}>
           <div className="flex items-center gap-2">
@@ -884,7 +884,7 @@ export default function InterviewPage() {
         </aside>
       </div>
 
-      {/* ═══════════════ FOOTER — MIC CONTROLS ═══════════════ */}
+      {/* ═══════════════ FOOTER  -  MIC CONTROLS ═══════════════ */}
       <footer className="shrink-0 border-t px-5 py-4"
         style={{ background: C.panelBg, borderColor: C.border }}>
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">

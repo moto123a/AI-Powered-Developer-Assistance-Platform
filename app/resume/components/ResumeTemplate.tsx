@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
 
 /**
- * ResumeTemplate — Legacy standalone component
+ * ResumeTemplate  -  Legacy standalone component
  * Note: The main resume editor now uses templates.tsx via renderPreview().
  * This component is kept for backward-compatibility. It renders the "cornerstone" style by default.
  */
@@ -120,7 +120,7 @@ export default function ResumeTemplate({ data, styles }: any) {
             <div key={i} style={{ marginTop: i === 0 ? 5 : 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                 <span style={t(fs + 0.5, "#111827", { fontWeight: 700 })}>
-                  {exp.company}{exp.role ? ` — ${exp.role}` : ""}
+                  {exp.company}{exp.role ? `  -  ${exp.role}` : ""}
                 </span>
                 <span style={t(9, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{exp.period}</span>
               </div>
@@ -159,7 +159,7 @@ export default function ResumeTemplate({ data, styles }: any) {
               <div>
                 <div style={t(fs + 0.5, "#111827", { fontWeight: 700 })}>{edu.school || edu.institution || "Unknown School"}</div>
                 <div style={t(fs, "#374151", { marginTop: 2 })}>
-                  {edu.degree || ""}{edu.gpa ? ` — GPA: ${edu.gpa}` : ""}
+                  {edu.degree || ""}{edu.gpa ? `  -  GPA: ${edu.gpa}` : ""}
                 </div>
               </div>
               <span style={t(9, "#6b7280", { whiteSpace: "nowrap", marginLeft: 10 })}>{edu.period || edu.year || ""}</span>
@@ -175,7 +175,7 @@ export default function ResumeTemplate({ data, styles }: any) {
               <li key={i} style={liStyle}>
                 {typeof cert === "string"
                   ? cert
-                  : `${cert.name ?? ""}${cert.issuer ? ` — ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
+                  : `${cert.name ?? ""}${cert.issuer ? `  -  ${cert.issuer}` : ""}${cert.year ? ` (${cert.year})` : ""}`}
               </li>
             ))}
           </ul>

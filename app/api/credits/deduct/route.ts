@@ -1,4 +1,4 @@
-// frontend/app/api/credits/deduct/route.ts
+﻿// frontend/app/api/credits/deduct/route.ts
 
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
@@ -30,7 +30,7 @@ function getDb() {
       // Not JSON, fall through to raw key handling
     }
 
-    // Old format — raw private key string
+    // Old format  -  raw private key string
     let formattedKey = privateKeyInput;
     if (!formattedKey.includes("-----BEGIN")) {
       formattedKey = Buffer.from(formattedKey, "base64").toString("utf8");

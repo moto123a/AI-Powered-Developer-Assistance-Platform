@@ -1,6 +1,6 @@
-// frontend/app/lib/credits.ts
+﻿// frontend/app/lib/credits.ts
 // ═══════════════════════════════════════════════════════════════
-// CREDIT SYSTEM — Single source of truth for all usage tracking
+// CREDIT SYSTEM  -  Single source of truth for all usage tracking
 // Reads/writes Firestore. Used by API routes + frontend pages.
 // ═══════════════════════════════════════════════════════════════
 
@@ -92,7 +92,7 @@ export type UserProfile = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// GET USER PROFILE — returns plan + credits
+// GET USER PROFILE  -  returns plan + credits
 // ═══════════════════════════════════════════════════════════════
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   try {
@@ -106,14 +106,14 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// INITIALIZE USER — called on signup/first login
+// INITIALIZE USER  -  called on signup/first login
 // ═══════════════════════════════════════════════════════════════
 export async function initializeUserCredits(uid: string, email: string, displayName: string) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
-    // Brand new user — give free credits
+    // Brand new user  -  give free credits
     await setDoc(ref, {
       uid,
       email,
@@ -124,17 +124,17 @@ export async function initializeUserCredits(uid: string, email: string, displayN
       creditsResetDate: null,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
-      createdAt:  serverTimestamp(), // server clock — immune to client clock skew
+      createdAt:  serverTimestamp(), // server clock  -  immune to client clock skew
       lastLogin:  serverTimestamp(),
     });
   } else {
-    // Existing user — just update last login
+    // Existing user  -  just update last login
     await updateDoc(ref, { lastLogin: serverTimestamp() });
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CHECK CREDITS — returns true if user can afford the action
+// CHECK CREDITS  -  returns true if user can afford the action
 // ═══════════════════════════════════════════════════════════════
 export async function hasCredits(uid: string, action: CreditAction): Promise<boolean> {
   const profile = await getUserProfile(uid);
@@ -150,7 +150,7 @@ export async function hasCredits(uid: string, action: CreditAction): Promise<boo
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DEDUCT CREDITS — atomic transaction to prevent race conditions
+// DEDUCT CREDITS  -  atomic transaction to prevent race conditions
 // ═══════════════════════════════════════════════════════════════
 export async function deductCredits(uid: string, action: CreditAction): Promise<{ success: boolean; remaining: number }> {
   const ref  = doc(db, "users", uid);
@@ -172,7 +172,7 @@ export async function deductCredits(uid: string, action: CreditAction): Promise<
         return { success: true, remaining: -1 };
       }
 
-      // Check balance inside the transaction — prevents TOCTOU race
+      // Check balance inside the transaction  -  prevents TOCTOU race
       if (credits < cost) {
         return { success: false, remaining: credits };
       }
@@ -190,7 +190,7 @@ export async function deductCredits(uid: string, action: CreditAction): Promise<
 }
 
 // ═══════════════════════════════════════════════════════════════
-// UPGRADE PLAN — called by Stripe webhook
+// UPGRADE PLAN  -  called by Stripe webhook
 // ═══════════════════════════════════════════════════════════════
 export async function upgradePlan(
   uid: string,
@@ -212,7 +212,7 @@ export async function upgradePlan(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CANCEL PLAN — revert to free
+// CANCEL PLAN  -  revert to free
 // ═══════════════════════════════════════════════════════════════
 export async function cancelPlan(uid: string) {
   await updateDoc(doc(db, "users", uid), {

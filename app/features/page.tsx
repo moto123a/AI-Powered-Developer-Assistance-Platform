@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Features — CoopilotX AI",
+  title: "Features  -  CoopilotX AI",
   description: "Every tool you need to prepare for interviews and land the offer.",
 };
 

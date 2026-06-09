@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MASTER_RESUME } from "../../data/masterResume";
@@ -931,7 +931,7 @@ export default function ResumePage() {
   };
 
   /* ════════════════════════════════════════════════════════════════
-     EXPORT PDF — uses Puppeteer via Spring Boot → pdf-service
+     EXPORT PDF  -  uses Puppeteer via Spring Boot → pdf-service
      No browser print dialog, no headers/footers, perfect margins
   ════════════════════════════════════════════════════════════════ */
   const handleExportPDF = async () => {
@@ -969,7 +969,7 @@ export default function ResumePage() {
   };
 
   /* ════════════════════════════════════════════════════════════════
-     EXPORT WORD — uses docx library via Spring Boot → pdf-service
+     EXPORT WORD  -  uses docx library via Spring Boot → pdf-service
   ════════════════════════════════════════════════════════════════ */
   const handleExportWord = async () => {
     if (isExportingWord) return;

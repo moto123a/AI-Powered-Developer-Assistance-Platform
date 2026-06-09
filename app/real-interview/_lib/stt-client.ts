@@ -1,4 +1,4 @@
-// app/real-interview/_lib/stt-client.ts
+﻿// app/real-interview/_lib/stt-client.ts
 
 type StartOptions = {
   onStatus:        (s: string) => void;
@@ -7,7 +7,7 @@ type StartOptions = {
   onError:         (err: string) => void;
   maxDelay?:       number;
   operatingPoint?: "enhanced" | "standard";
-  authToken?:      string;   // Firebase ID token — sent as Authorization header
+  authToken?:      string;   // Firebase ID token  -  sent as Authorization header
 };
 
 const WORKLET_CODE = `
@@ -58,14 +58,14 @@ export class SpeechmaticsClient {
       this.ws.onmessage = (evt) => this.handleMessage(evt, opts);
       this.ws.onerror   = (e)   => {
         console.error("WS error:", e);
-        opts.onError("Connection error — please try again");
+        opts.onError("Connection error  -  please try again");
         this.stop();
       };
       this.ws.onclose   = (e)   => {
         if (this.started) {
           // code 1000 = normal intentional close; anything else is unexpected
           if (e.code !== 1000) {
-            opts.onError(`Disconnected (${e.code}) — please try again`);
+            opts.onError(`Disconnected (${e.code})  -  please try again`);
           } else {
             opts.onStatus("Disconnected");
           }
@@ -95,7 +95,7 @@ export class SpeechmaticsClient {
       this.audioCtx  = new AudioCtx({ latencyHint: "interactive", sampleRate: 16000 });
       await this.audioCtx.resume();
 
-      // ── StartRecognition — language always in config, never in URL ──
+      // ── StartRecognition  -  language always in config, never in URL ──
       this.ws?.send(JSON.stringify({
         message:      "StartRecognition",
         audio_format: {
@@ -172,7 +172,7 @@ export class SpeechmaticsClient {
       else if (msg.message === "Error") {
         const reason = msg.reason || msg.type || "Speechmatics error";
         console.error("Speechmatics error:", msg);
-        opts.onError(reason === "not_authorised" ? "Not authorised — press Space to retry" : reason);
+        opts.onError(reason === "not_authorised" ? "Not authorised  -  press Space to retry" : reason);
         this.stop();
       }
     } catch {}

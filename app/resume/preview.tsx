@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, {
   useRef, useEffect, useState, useMemo, useLayoutEffect,
 } from "react";
@@ -225,7 +225,7 @@ export default function ResumePreview({
            ...
          This means the packer works at entry-level granularity.
          An entry that doesn't fit on the current page moves to the
-         next — no more whole-section jumps creating huge gaps.
+         next  -  no more whole-section jumps creating huge gaps.
 
          The heading key (e.g. "experience:heading") is kept with its
          first entry by "looking ahead": if a heading fits but its
@@ -264,7 +264,7 @@ export default function ResumePreview({
             curPage.sectionKeys.push(sec.key);
             usedH += h;
           } else if (headFits && curPage.sectionKeys.length > 0) {
-            // Heading fits but first entry won't — break before heading
+            // Heading fits but first entry won't  -  break before heading
             pushPage();
             curPage.sectionKeys.push(sec.key);
             usedH += h;

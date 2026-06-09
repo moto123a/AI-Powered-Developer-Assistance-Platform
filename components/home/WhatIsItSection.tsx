@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRef } from "react";
 import { motion, useInView, useScroll, useTransform } from "framer-motion";
 
@@ -88,7 +88,7 @@ function FeatureRow({
                 <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
                 <div className="w-3 h-3 rounded-full bg-green-500/70" />
                 <div className="ml-3 flex-1 bg-white/5 rounded-md h-5 flex items-center px-3">
-                  <span className="text-[10px] text-gray-500">CoopilotX — {tag}</span>
+                  <span className="text-[10px] text-gray-500">CoopilotX  -  {tag}</span>
                 </div>
               </div>
               <div className="bg-gray-900 p-6 min-h-[260px] space-y-3">

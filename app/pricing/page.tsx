@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
@@ -40,7 +40,7 @@ function StarIcon() {
   );
 }
 function DashIcon() {
-  return <span className="w-4 h-4 flex-shrink-0 flex items-center justify-center text-gray-300">–</span>;
+  return <span className="w-4 h-4 flex-shrink-0 flex items-center justify-center text-gray-300">-</span>;
 }
 
 // ─── PLANS ────────────────────────────────────────────────────────────────────

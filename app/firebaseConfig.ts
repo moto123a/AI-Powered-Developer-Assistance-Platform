@@ -1,10 +1,10 @@
-// app/firebaseConfig.ts
+﻿// app/firebaseConfig.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Credentials prefer NEXT_PUBLIC_* env vars (set on your server/CI).
-// Firebase client config is a public identifier — security is enforced by
+// Firebase client config is a public identifier  -  security is enforced by
 // Firebase Security Rules and the server-side Admin SDK, not by keeping
 // these values secret.
 const firebaseConfig = {

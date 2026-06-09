@@ -1,4 +1,4 @@
-// app/real-interview/_hooks/useSession.ts
+﻿// app/real-interview/_hooks/useSession.ts
 // All session I/O goes through /api/sessions (Firebase Admin SDK on the server),
 // so Firestore client security rules never block saves or reads.
 //
@@ -19,7 +19,7 @@ export type Turn = {
 
 export type Session = {
   id:            string;
-  createdAt:     any;           // raw from API — use formatDate() to display
+  createdAt:     any;           // raw from API  -  use formatDate() to display
   companyName:   string;
   role:          string;
   resumeSnippet: string;
@@ -34,7 +34,7 @@ export type Session = {
 // ─────────────────────────────────────────────
 
 // Returns a fresh Firebase ID token, or empty string if not signed in.
-// Always call this immediately before a fetch — tokens expire after 1 hour
+// Always call this immediately before a fetch  -  tokens expire after 1 hour
 // but Firebase auto-refreshes them so getIdToken() returns a valid one.
 async function getAuthToken(): Promise<string> {
   try {
@@ -59,7 +59,7 @@ export function useSession(userEmail: string) {
 
   // ── UPSERT SESSION ────────────────────────────────────────────────────────
   // Creates a Firestore doc on the first call, then updates it on subsequent
-  // calls — same behaviour as the Windows native app writing to a .txt file
+  // calls  -  same behaviour as the Windows native app writing to a .txt file
   // after every Q&A exchange.
   const upsertSession = useCallback(async (payload: {
     companyName:   string;
@@ -175,7 +175,7 @@ export function useSession(userEmail: string) {
   // ── FORMAT DATE ───────────────────────────────────────────────────────────
   // Handles both Admin SDK timestamps ({ _seconds }) and client SDK Timestamps
   const formatDate = (ts: any): string => {
-    if (!ts) return "—";
+    if (!ts) return " - ";
     try {
       let date: Date;
       if (typeof ts._seconds === "number")      date = new Date(ts._seconds * 1000);
@@ -186,7 +186,7 @@ export function useSession(userEmail: string) {
         month: "short", day: "numeric", year: "numeric",
         hour: "2-digit", minute: "2-digit",
       });
-    } catch { return "—"; }
+    } catch { return " - "; }
   };
 
   // ── FORMAT DURATION ───────────────────────────────────────────────────────

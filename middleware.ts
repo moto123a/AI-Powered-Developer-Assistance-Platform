@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Only these routes require a valid session cookie.
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   // Check for session cookie set by AuthProvider
   const sessionCookie = request.cookies.get("coopilotx_session");
   if (!sessionCookie?.value) {
-    // No session cookie — redirect to home with auth=required flag so the
+    // No session cookie  -  redirect to home with auth=required flag so the
     // auth modal opens automatically. Preserve the intended path so the user
     // can navigate back after signing in.
     const url = request.nextUrl.clone();

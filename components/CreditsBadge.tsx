@@ -1,5 +1,5 @@
-// frontend/components/CreditsBadge.tsx
-// Shows "⚡ 85 credits" in the header — real-time from Firestore
+﻿// frontend/components/CreditsBadge.tsx
+// Shows "⚡ 85 credits" in the header  -  real-time from Firestore
 "use client";
 
 import { useState, useEffect } from "react";

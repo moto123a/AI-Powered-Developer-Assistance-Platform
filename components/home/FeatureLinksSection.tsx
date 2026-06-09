@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
@@ -19,7 +19,7 @@ export default function FeatureLinksSection({ onNav }: { onNav: (p: string) => v
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
 
-          {/* Resume Builder — matches Windows download button style */}
+          {/* Resume Builder  -  matches Windows download button style */}
           <motion.button
             onClick={() => onNav("resume")}
             initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -32,7 +32,7 @@ export default function FeatureLinksSection({ onNav }: { onNav: (p: string) => v
             <span className="text-indigo-300 text-[11px] font-semibold bg-indigo-500/40 px-2 py-0.5 rounded-full">Free</span>
           </motion.button>
 
-          {/* Mock Interview — same fill style, violet */}
+          {/* Mock Interview  -  same fill style, violet */}
           <motion.button
             onClick={() => onNav("mock-interview")}
             initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -45,7 +45,7 @@ export default function FeatureLinksSection({ onNav }: { onNav: (p: string) => v
             <span className="text-violet-300 text-[11px] font-semibold bg-violet-500/40 px-2 py-0.5 rounded-full">Popular</span>
           </motion.button>
 
-          {/* Live Copilot — outlined style, matches macOS button */}
+          {/* Live Copilot  -  outlined style, matches macOS button */}
           <motion.button
             onClick={() => onNav("real-interview")}
             initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}

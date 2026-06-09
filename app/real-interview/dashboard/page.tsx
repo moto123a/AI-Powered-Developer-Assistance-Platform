@@ -1,4 +1,4 @@
-// app/real-interview/dashboard/page.tsx
+﻿// app/real-interview/dashboard/page.tsx
 
 "use client";
 
@@ -17,7 +17,7 @@ import AuthModal from "../../../components/AuthModal";
 import { useSession } from "../_hooks/useSession";
 import SessionCard from "../_components/SessionCard";
 
-// Design tokens — matches the rest of the app
+// Design tokens  -  matches the rest of the app
 const C = {
   pageBg:  "#dde3ed",
   panelBg: "#f2f4f8",

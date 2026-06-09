@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -24,7 +24,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       // Always update lastActive so "Live" badge stays accurate
       updateDoc(userRef, { lastActive: serverTimestamp() }).catch(() => {});
 
-      // Per-session tracking — fires once per browser tab open
+      // Per-session tracking  -  fires once per browser tab open
       const sessionKey = "cx_tracked_" + user.uid;
       if (!sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, "1");
@@ -47,7 +47,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             }
           } catch (_) { /* offline or blocked */ }
 
-          // 2. Login history entry (ISO string — serverTimestamp can't go inside arrayUnion)
+          // 2. Login history entry (ISO string  -  serverTimestamp can't go inside arrayUnion)
           const loginEntry: Record<string, string> = {
             at: new Date().toISOString(), ...geo,
           };
@@ -68,7 +68,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         })();
       }
 
-      // Exit tracking — register once, clean up in useEffect cleanup
+      // Exit tracking  -  register once, clean up in useEffect cleanup
       if (exitHandler) window.removeEventListener("beforeunload", exitHandler);
       exitHandler = () => {
         updateDoc(userRef, { lastExit: serverTimestamp() }).catch(() => {});

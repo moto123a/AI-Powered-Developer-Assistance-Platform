@@ -1,6 +1,6 @@
-// frontend/app/api/stripe/webhook/route.ts
+﻿// frontend/app/api/stripe/webhook/route.ts
 // ═══════════════════════════════════════════════════════════════
-// Stripe Webhook — verifies signature then updates Firestore
+// Stripe Webhook  -  verifies signature then updates Firestore
 //
 // Setup in Stripe Dashboard:
 // 1. Go to dashboard.stripe.com → Developers → Webhooks
@@ -48,7 +48,7 @@ const PLAN_CREDITS: Record<string, number> = {
 
 // ── Stripe signature verification ───────────────────────────────
 // Implements https://stripe.com/docs/webhooks/signatures manually
-// using HMAC-SHA256 — no Stripe SDK needed.
+// using HMAC-SHA256  -  no Stripe SDK needed.
 function verifyStripeSignature(
   rawBody: string,
   sigHeader: string,
@@ -101,19 +101,19 @@ function getNextResetDate(): string {
 
 // ── POST /api/stripe/webhook ─────────────────────────────────────
 export async function POST(req: Request) {
-  // Must read raw body BEFORE any JSON parsing — Stripe verifies against raw bytes
+  // Must read raw body BEFORE any JSON parsing  -  Stripe verifies against raw bytes
   const rawBody = await req.text();
   const sigHeader = req.headers.get("stripe-signature") ?? "";
 
   // Reject if secret not configured in env
   if (!WEBHOOK_SECRET) {
-    console.error("[webhook] STRIPE_WEBHOOK_SECRET is not set — rejecting all events");
+    console.error("[webhook] STRIPE_WEBHOOK_SECRET is not set  -  rejecting all events");
     return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
   }
 
-  // Verify signature — reject anything that doesn't match
+  // Verify signature  -  reject anything that doesn't match
   if (!verifyStripeSignature(rawBody, sigHeader, WEBHOOK_SECRET)) {
-    console.warn("[webhook] Signature verification FAILED — possible replay or forgery");
+    console.warn("[webhook] Signature verification FAILED  -  possible replay or forgery");
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    // ── CHECKOUT COMPLETED — user just paid ──────────────────────
+    // ── CHECKOUT COMPLETED  -  user just paid ──────────────────────
     if (event.type === "checkout.session.completed") {
       const session      = event.data.object;
       const uid          = session.metadata?.uid;
@@ -165,7 +165,7 @@ export async function POST(req: Request) {
       console.log(`✅ Firestore updated: ${uid} → plan=${plan}, credits=${credits}`);
     }
 
-    // ── SUBSCRIPTION CANCELED — revert to free ───────────────────
+    // ── SUBSCRIPTION CANCELED  -  revert to free ───────────────────
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object;
       const uid          = subscription.metadata?.uid;
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // ── INVOICE PAID — monthly credit renewal ────────────────────
+    // ── INVOICE PAID  -  monthly credit renewal ────────────────────
     if (event.type === "invoice.paid" && STRIPE_SECRET) {
       const invoice        = event.data.object;
       const subscriptionId = invoice.subscription;

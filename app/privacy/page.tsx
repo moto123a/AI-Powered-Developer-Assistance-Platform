@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — CoopilotX AI",
+  title: "Privacy Policy  -  CoopilotX AI",
   description: "How CoopilotX collects, uses, and protects your data.",
 };
 
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
               {[
                 { name: "Firebase (Google)", purpose: "Authentication and account management" },
                 { name: "Stripe", purpose: "Payment processing and subscription management" },
-                { name: "Groq", purpose: "LLM inference — text only, no audio ever sent" },
+                { name: "Groq", purpose: "LLM inference  -  text only, no audio ever sent" },
                 { name: "Speechmatics", purpose: "Real-time speech-to-text (audio stays on device)" },
               ].map((s, i) => (
                 <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4">

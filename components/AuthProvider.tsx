@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../app/firebaseConfig";
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Effect 1: Auth listener — runs ONCE only (never re-subscribes on nav)
+  // Effect 1: Auth listener  -  runs ONCE only (never re-subscribes on nav)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Effect 2: Route protection — watches pathname separately to avoid re-subscribing auth
+  // Effect 2: Route protection  -  watches pathname separately to avoid re-subscribing auth
   useEffect(() => {
     if (loading) return;
     if (!user) {

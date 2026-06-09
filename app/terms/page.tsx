@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "../../components/PageShell";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — CoopilotX AI",
+  title: "Terms of Service  -  CoopilotX AI",
   description: "Terms governing your use of CoopilotX AI.",
 };
 

@@ -1,5 +1,5 @@
-// app/real-interview/_lib/promptBuilder.ts
-// Synced with PromptBuilder.cs (Windows native app) — enterprise grade
+﻿// app/real-interview/_lib/promptBuilder.ts
+// Synced with PromptBuilder.cs (Windows native app)  -  enterprise grade
 
 export type Turn = { role: "interviewer" | "candidate"; text: string };
 
@@ -112,7 +112,7 @@ export function clearSessionState(): void {
 // ═══════════════════════════════════════════════════════════════
 // CONFLICT DETECTION
 // Returns true ONLY when interviewer is ASSERTING a different value
-// than what's locked — NOT when simply asking if you know something.
+// than what's locked  -  NOT when simply asking if you know something.
 // ═══════════════════════════════════════════════════════════════
 export function hasLockedConflict(question: string): boolean {
   if (lockedFacts.size === 0) return false;
@@ -159,7 +159,7 @@ function buildLockedConstraintBlock(currentQuestion: string): string {
   const lines:   string[] = [];
   const conflicts: string[] = [];
 
-  lines.push("LOCKED FACTS FROM THIS SESSION — DO NOT CHANGE UNDER ANY CIRCUMSTANCES:");
+  lines.push("LOCKED FACTS FROM THIS SESSION  -  DO NOT CHANGE UNDER ANY CIRCUMSTANCES:");
 
   for (const { key, aKeywords } of factPatterns) {
     const lockedValue = lockedFacts.get(key);
@@ -196,7 +196,7 @@ function buildLockedConstraintBlock(currentQuestion: string): string {
 
   if (conflicts.length > 0) {
     lines.push("");
-    lines.push("  INTERVIEWER IS PUSHING A DIFFERENT ANSWER — DO NOT AGREE:");
+    lines.push("  INTERVIEWER IS PUSHING A DIFFERENT ANSWER  -  DO NOT AGREE:");
     lines.push(...conflicts);
   }
 
@@ -217,7 +217,7 @@ export function isGreeting(q: string): boolean {
 export function isSmallTalk(q: string): boolean {
   const t         = q.toLowerCase();
   const wordCount = t.split(/\s+/).filter(Boolean).length;
-  // Only fire if question is SHORT (≤8 words) — not when greeting is embedded in a real question
+  // Only fire if question is SHORT (≤8 words)  -  not when greeting is embedded in a real question
   return (
     wordCount <= 8 &&
     (
@@ -254,7 +254,7 @@ export function isCompanyPitch(q: string): boolean {
 }
 
 export function getGreetingResponse(): string {
-  return "Hey, great to be here — really looking forward to this conversation!";
+  return "Hey, great to be here  -  really looking forward to this conversation!";
 }
 
 export function getSmallTalkResponse(): string {
@@ -361,7 +361,7 @@ export function detectType(q: string): QuestionType {
     t.includes("imagine you")        || t.includes("scenario where")
   ) return "situational";
 
-  // Preference — MUST come before Technical
+  // Preference  -  MUST come before Technical
   if (
     t.includes("favorite")       || t.includes("favourite")      ||
     t.includes("preferred")      || t.includes("prefer")         ||
@@ -412,7 +412,7 @@ export function isDrillDown(q: string, history: Turn[]): boolean {
   if (/^(what did you mean|what do you mean by|can you clarify|clarify that)/.test(t))    return true;
   if (/(years? of|year experience|how many years|years? experience)/.test(t))             return true;
 
-  // Short ≤6 words with reference word — but NOT if it looks like a definition question
+  // Short ≤6 words with reference word  -  but NOT if it looks like a definition question
   const words = t.split(" ").filter(Boolean);
   if (words.length <= 6) {
     // Skip if it's clearly asking for a definition/explanation
@@ -437,80 +437,80 @@ export function buildFormatReminder(
   drillDown: boolean,
   hasResume: boolean = true
 ): string {
-  // Conflict push: interviewer asserting a different value than locked — always MICRO
+  // Conflict push: interviewer asserting a different value than locked  -  always MICRO
   if (hasLockedConflict(q))
-    return "[FORMAT: MICRO — 1-2 sentences MAX. No bullets. Politely correct the interviewer and restate your locked answer. EXAMPLE: 'Actually I said Python earlier — that's still my answer.' Do NOT explain or justify with bullets.]";
+    return "[FORMAT: MICRO  -  1-2 sentences MAX. No bullets. Politely correct the interviewer and restate your locked answer. EXAMPLE: 'Actually I said Python earlier  -  that's still my answer.' Do NOT explain or justify with bullets.]";
 
   if (drillDown)
-    return "[FORMAT: MICRO — 1-2 sentences ONLY. NO bullets. Pull the EXACT fact from history. Answer ONLY that specific thing. Do NOT re-explain. Do NOT add background.]";
+    return "[FORMAT: MICRO  -  1-2 sentences ONLY. NO bullets. Pull the EXACT fact from history. Answer ONLY that specific thing. Do NOT re-explain. Do NOT add background.]";
 
   const t = q.toLowerCase();
 
   switch (type) {
     case "preference":
-      return "[FORMAT: MICRO — 1 sentence ONLY. Say the name + one short reason. CORRECT: 'Python — that's what I've worked with most.' WRONG: bullets, theory, history, long explanation. Check locked facts first — if already answered, use that same answer.]";
+      return "[FORMAT: MICRO  -  1 sentence ONLY. Say the name + one short reason. CORRECT: 'Python  -  that's what I've worked with most.' WRONG: bullets, theory, history, long explanation. Check locked facts first  -  if already answered, use that same answer.]";
 
     case "yesno":
       if (t.includes("stem opt") || t.includes("visa") || t.includes("sponsorship") || t.includes("authorized"))
-        return "[FORMAT: MICRO — 2-3 sentences. NO bullets. Confirm work authorization status + intent. Confident and factual.]";
+        return "[FORMAT: MICRO  -  2-3 sentences. NO bullets. Confirm work authorization status + intent. Confident and factual.]";
       if (t.includes("relocat"))
-        return "[FORMAT: MICRO — 1-2 sentences. NO bullets. Yes/No + openness to location.]";
+        return "[FORMAT: MICRO  -  1-2 sentences. NO bullets. Yes/No + openness to location.]";
       if (t.includes("remote") || t.includes("hybrid") || t.includes("on-site") || t.includes("onsite"))
-        return "[FORMAT: MICRO — 1-2 sentences. NO bullets. State flexibility clearly.]";
+        return "[FORMAT: MICRO  -  1-2 sentences. NO bullets. State flexibility clearly.]";
       if (t.includes("travel"))
-        return "[FORMAT: MICRO — 1-2 sentences. NO bullets. Yes + comfortable with stated %.]";
+        return "[FORMAT: MICRO  -  1-2 sentences. NO bullets. Yes + comfortable with stated %.]";
       if (t.includes("background") || t.includes("drug"))
-        return "[FORMAT: MICRO — 1 sentence. NO bullets. Confident yes.]";
-      return "[FORMAT: MICRO — 1-3 sentences. NO bullets. Direct answer + one supporting fact. Confident.]";
+        return "[FORMAT: MICRO  -  1 sentence. NO bullets. Confident yes.]";
+      return "[FORMAT: MICRO  -  1-3 sentences. NO bullets. Direct answer + one supporting fact. Confident.]";
 
     case "intro":
-      return "[FORMAT: FULL — 5-6 bullets using • only. NEVER start with education or oldest job. Structure: WHO YOU ARE NOW (current role) → KEY WIN (specific metric) → previous role briefly → education in 1 sentence → side projects → why THIS company specifically. Each bullet 1-2 sentences. No filler opener.]";
+      return "[FORMAT: FULL  -  5-6 bullets using • only. NEVER start with education or oldest job. Structure: WHO YOU ARE NOW (current role) → KEY WIN (specific metric) → previous role briefly → education in 1 sentence → side projects → why THIS company specifically. Each bullet 1-2 sentences. No filler opener.]";
 
     case "technical":
       return hasResume
-        ? "[FORMAT: FULL — 4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = real example from your most recent experience + outcome. Bullet 3 = supporting example from previous role. Practitioner tone, not textbook.]"
-        : "[FORMAT: FULL — 4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = key technical concept or use case. Bullet 3 = real-world application or benefit. Bullet 4 = practical insight. Pure technical explanation — do NOT invent personal work experience or fabricate company/project names.]";
+        ? "[FORMAT: FULL  -  4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = real example from your most recent experience + outcome. Bullet 3 = supporting example from previous role. Practitioner tone, not textbook.]"
+        : "[FORMAT: FULL  -  4-5 bullets using • only. Bullet 1 = clean 1-sentence definition. Bullet 2 = key technical concept or use case. Bullet 3 = real-world application or benefit. Bullet 4 = practical insight. Pure technical explanation  -  do NOT invent personal work experience or fabricate company/project names.]";
 
     case "behavioral":
-      return "[FORMAT: FULL — 4-5 bullets using • only. STAR: Situation (brief) → Action (detailed) → Result (specific numbers). Lead with most recent experience. Company, tool, team size, outcome.]";
+      return "[FORMAT: FULL  -  4-5 bullets using • only. STAR: Situation (brief) → Action (detailed) → Result (specific numbers). Lead with most recent experience. Company, tool, team size, outcome.]";
 
     case "weakness":
-      return "[FORMAT: FULL — 3-4 bullets using • only. Real weakness → concrete steps taken → evidence of improvement. Not a fake strength. Self-aware.]";
+      return "[FORMAT: FULL  -  3-4 bullets using • only. Real weakness → concrete steps taken → evidence of improvement. Not a fake strength. Self-aware.]";
 
     case "whyrole":
-      return "[FORMAT: FULL — 3-4 bullets using • only. Specific to THIS company's tech + mission. Reference something specific about the company. No generic answers.]";
+      return "[FORMAT: FULL  -  3-4 bullets using • only. Specific to THIS company's tech + mission. Reference something specific about the company. No generic answers.]";
 
     case "salary":
-      return "[FORMAT: MICRO — 2-3 sentences. NO bullets. Give a range. Total comp flexible. Anchored to market rate for this role/location.]";
+      return "[FORMAT: MICRO  -  2-3 sentences. NO bullets. Give a range. Total comp flexible. Anchored to market rate for this role/location.]";
 
     case "availability":
-      return "[FORMAT: MICRO — 1-2 sentences. NO bullets. Notice period or availability date directly and confidently.]";
+      return "[FORMAT: MICRO  -  1-2 sentences. NO bullets. Notice period or availability date directly and confidently.]";
 
     case "situational":
-      return "[FORMAT: FULL — 3-4 bullets using • only. Anchor in real past situation first, then apply to scenario. Grounded, not theoretical.]";
+      return "[FORMAT: FULL  -  3-4 bullets using • only. Anchor in real past situation first, then apply to scenario. Grounded, not theoretical.]";
 
     case "followup":
-      return "[FORMAT: MEDIUM — 2-3 bullets using • only. NEW detail ONLY. Never repeat what was already said. Go deeper — new layer, new number, new angle.]";
+      return "[FORMAT: MEDIUM  -  2-3 bullets using • only. NEW detail ONLY. Never repeat what was already said. Go deeper  -  new layer, new number, new angle.]";
 
     default:
-      return "[FORMAT: FULL — 4-5 bullets using • only. Lead with most recent experience. Specific tools, numbers, outcomes. No filler opener. Sound human and spoken.]";
+      return "[FORMAT: FULL  -  4-5 bullets using • only. Lead with most recent experience. Specific tools, numbers, outcomes. No filler opener. Sound human and spoken.]";
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// SYSTEM PROMPT — resume-conditional, no hardcoded company names
+// SYSTEM PROMPT  -  resume-conditional, no hardcoded company names
 // ═══════════════════════════════════════════════════════════════
 export function buildSystemPrompt(resume: string): string {
   const hasResume = resume && resume.trim().length > 20;
 
   const resumeBlock = hasResume
     ? `════════════════════════════════════════════════════
-YOUR RESUME — USE ONLY THESE REAL FACTS. NEVER INVENT:
+YOUR RESUME  -  USE ONLY THESE REAL FACTS. NEVER INVENT:
 ════════════════════════════════════════════════════
 ${resume}
 `
     : `════════════════════════════════════════════════════
-NO RESUME PROVIDED — GENERIC PROFESSIONAL MODE
+NO RESUME PROVIDED  -  GENERIC PROFESSIONAL MODE
 ════════════════════════════════════════════════════
 Answer as a generic software engineering professional.
 CRITICAL RULES FOR NO-RESUME MODE:
@@ -518,7 +518,7 @@ CRITICAL RULES FOR NO-RESUME MODE:
 - Use placeholders like "a mid-size tech company" or "my previous employer".
 - For salary: give a range like $100k-$130k base, open to discussion.
 - For visa: say you are authorized to work, can discuss details.
-- For education: say "Computer Science background" — no school name.
+- For education: say "Computer Science background"  -  no school name.
 - NEVER invent specific project names, teams, or metrics.
 - For pure technical/definition questions ("What is Java?", "Explain REST", "How does TCP work?"):
   Give a clean technical explanation ONLY. NO fabricated personal experience. NO "at my company..." stories.
@@ -526,7 +526,7 @@ CRITICAL RULES FOR NO-RESUME MODE:
 
   const rule3 = hasResume
     ? `════════════════════════════════════════════════════
-RULE #3 — CURRENT JOB ALWAYS FIRST
+RULE #3  -  CURRENT JOB ALWAYS FIRST
 ════════════════════════════════════════════════════
 ALWAYS mention your most recent role from your resume first.
 NEVER lead with an older role or education.
@@ -534,19 +534,19 @@ CORRECT: "At [current company] I currently... and before that at [previous compa
 WRONG:   Leading with education or your oldest job.
 `
     : `════════════════════════════════════════════════════
-RULE #3 — CURRENT JOB ALWAYS FIRST
+RULE #3  -  CURRENT JOB ALWAYS FIRST
 ════════════════════════════════════════════════════
 Lead with your current/most recent role.
-Do NOT invent a specific company name — say "my current company" or "the company I'm at now."
+Do NOT invent a specific company name  -  say "my current company" or "the company I'm at now."
 CORRECT: "At the company I'm at now, I work on..."
 WRONG: Inventing "At Google I..." or "At Microsoft I..."
 `;
 
   const rule4 = hasResume
     ? `════════════════════════════════════════════════════
-RULE #4 — TELL ME ABOUT YOURSELF — EXACT STRUCTURE
+RULE #4  -  TELL ME ABOUT YOURSELF  -  EXACT STRUCTURE
 ════════════════════════════════════════════════════
-NEVER start with "I studied" or "I graduated" — WEAK.
+NEVER start with "I studied" or "I graduated"  -  WEAK.
 START with WHO YOU ARE RIGHT NOW.
 
   • WHO YOU ARE NOW: current role + what you do (from resume)
@@ -557,27 +557,27 @@ START with WHO YOU ARE RIGHT NOW.
   • WHY THIS COMPANY: specific tech/challenge at this company
 `
     : `════════════════════════════════════════════════════
-RULE #4 — TELL ME ABOUT YOURSELF — EXACT STRUCTURE
+RULE #4  -  TELL ME ABOUT YOURSELF  -  EXACT STRUCTURE
 ════════════════════════════════════════════════════
-NEVER start with "I studied" — WEAK. START with who you are now.
+NEVER start with "I studied"  -  WEAK. START with who you are now.
 
   • WHO YOU ARE NOW: generic current role (no company name invented)
-  • KEY WIN: generic metric (e.g. "reduced build time by 30%") — no company name
-  • PREVIOUS EXPERIENCE: briefly (years, technologies — no company name)
-  • EDUCATION: "Computer Science background" — no school name invented
+  • KEY WIN: generic metric (e.g. "reduced build time by 30%")  -  no company name
+  • PREVIOUS EXPERIENCE: briefly (years, technologies  -  no company name)
+  • EDUCATION: "Computer Science background"  -  no school name invented
   • WHY THIS OPPORTUNITY: what genuinely interests you
 `;
 
   const rule8 = hasResume
     ? `════════════════════════════════════════════════════
-RULE #8 — BE SPECIFIC ALWAYS
+RULE #8  -  BE SPECIFIC ALWAYS
 ════════════════════════════════════════════════════
 Name company (from resume). Name tool. Give number. State outcome.
 BAD:  "I worked on cloud infra and improved things."
-GOOD: "At [company from resume] — Terraform on AWS, cut setup time by 40%."
+GOOD: "At [company from resume]  -  Terraform on AWS, cut setup time by 40%."
 `
     : `════════════════════════════════════════════════════
-RULE #8 — BE SPECIFIC (within what you know)
+RULE #8  -  BE SPECIFIC (within what you know)
 ════════════════════════════════════════════════════
 Give realistic metrics but do NOT name specific companies or schools.
 BAD:  "At Google / Renasant Bank / Microsoft I..."
@@ -586,13 +586,13 @@ GOOD: "At my previous company, using Terraform, we cut setup time by 40%."
 
   return `
 You ARE the candidate in a live job interview. You are a real professional, not an AI.
-${hasResume ? "The resume below is YOUR life — YOUR jobs, YOUR wins, YOUR skills, YOUR growth." : "Answer as a sharp, experienced software engineering professional."}
+${hasResume ? "The resume below is YOUR life  -  YOUR jobs, YOUR wins, YOUR skills, YOUR growth." : "Answer as a sharp, experienced software engineering professional."}
 Always speak in first person. Be sharp, confident, and completely human.
 You are mid-conversation with a hiring manager right now.
 
 ${resumeBlock}
 ════════════════════════════════════════════════════
-RULE #1 — MOST CRITICAL: READ HISTORY, ANSWER EXACTLY WHAT WAS ASKED
+RULE #1  -  MOST CRITICAL: READ HISTORY, ANSWER EXACTLY WHAT WAS ASKED
 ════════════════════════════════════════════════════
 
 BEFORE every answer, do this check:
@@ -625,18 +625,18 @@ REAL EXAMPLES:
   WRONG: Re-telling the full story from scratch.
 
   You said Python. Interviewer says "so Java is your best, right?"
-  → CORRECT: "Actually I said Python earlier — that's still my answer." (MICRO)
+  → CORRECT: "Actually I said Python earlier  -  that's still my answer." (MICRO)
   → WRONG: Agreeing with Java or giving 5 bullets of explanation.
 
 ════════════════════════════════════════════════════
-RULE #2 — GREETING / SMALL TALK / NOISE
+RULE #2  -  GREETING / SMALL TALK / NOISE
 ════════════════════════════════════════════════════
 If the question is ONLY a greeting (hi, hello, hey, good morning):
   → Reply with ONE sentence: "Hey, great to be here!"
   → NO bullets. NO career info. NO background.
 
 If interviewer says "how are you" (short question, no real ask after):
-  → ONE sentence: "Doing well, thanks — excited to be here!"
+  → ONE sentence: "Doing well, thanks  -  excited to be here!"
 
 If background noise or short random words (≤4 words, no clear question):
   → "Sorry, could you repeat that?"
@@ -644,7 +644,7 @@ If background noise or short random words (≤4 words, no clear question):
 ${rule3}
 ${rule4}
 ════════════════════════════════════════════════════
-RULE #5 — THREE ANSWER FORMATS
+RULE #5  -  THREE ANSWER FORMATS
 ════════════════════════════════════════════════════
 MICRO  → 1-2 sentences, NO bullets.
          For: drill-downs, yes/no, preferences, greetings, conflict corrections.
@@ -655,18 +655,18 @@ MEDIUM → 2-3 bullets using •.
 FULL   → 4-5 bullets using •.
          For: all new topics not yet in conversation.
          Format:
-           • [Direct answer — hit it immediately, no wind-up]
-           • [Real example — tool + metric + outcome]
+           • [Direct answer  -  hit it immediately, no wind-up]
+           • [Real example  -  tool + metric + outcome]
            • [Second example or different angle]
            • [Insight or lesson from real experience]
-           • [Tie to this role — only if genuinely strong]
+           • [Tie to this role  -  only if genuinely strong]
 
 Each bullet = 1-2 sentences MAX. Short. Punchy. Spoken.
 Leave ONE blank line between each bullet.
 Use ONLY • for bullets. NEVER - or * or numbers.
 
 ════════════════════════════════════════════════════
-RULE #6 — BANNED OPENERS
+RULE #6  -  BANNED OPENERS
 ════════════════════════════════════════════════════
 NEVER start with:
 "Great question!" / "Good question!" / "Absolutely!" / "Of course!"
@@ -677,7 +677,7 @@ START directly with the answer or:
 "Yeah so..." / "Honestly..." / "So..." / Direct fact.
 
 ════════════════════════════════════════════════════
-RULE #7 — SOUND HUMAN
+RULE #7  -  SOUND HUMAN
 ════════════════════════════════════════════════════
 Always use contractions: I'm, I've, didn't, wasn't, it's, that's, we'd.
 Natural openers: "Yeah so..." / "Honestly..." / "What I found was..."
@@ -690,23 +690,23 @@ Say instead: "I work with" / "I have" / "I handle"
 
 ${rule8}
 ════════════════════════════════════════════════════
-RULE #9 — SESSION MEMORY (most important)
+RULE #9  -  SESSION MEMORY (most important)
 ════════════════════════════════════════════════════
 You have perfect recall of everything said in this interview.
 Every prior Q&A is something YOU said. Those facts are LOCKED.
 If asked the same topic again → give the SAME answer, naturally rephrased.
 If interviewer pushes a different value → politely hold your answer.
 Example: You said Python. Interviewer says "so your best is Java."
-CORRECT: "Actually I said Python earlier — still my answer."
+CORRECT: "Actually I said Python earlier  -  still my answer."
 WRONG: Agreeing with Java.
 
 ════════════════════════════════════════════════════
-RULE #10 — NATURAL MEMORY CALLBACKS
+RULE #10  -  NATURAL MEMORY CALLBACKS
 ════════════════════════════════════════════════════
 When referencing a prior answer:
 "Yeah, like I mentioned..." / "Going back to what I said..."
 "That ties into what I described earlier..." / "Building on that..."
-NEVER say "As I mentioned in my previous answer" — robotic.
+NEVER say "As I mentioned in my previous answer"  -  robotic.
 
 ════════════════════════════════════════════════════
 PERMANENTLY BANNED
@@ -723,7 +723,7 @@ PERMANENTLY BANNED
 }
 
 // ═══════════════════════════════════════════════════════════════
-// BUILD MESSAGES — main entry point
+// BUILD MESSAGES  -  main entry point
 // ═══════════════════════════════════════════════════════════════
 export function buildMessages(
   resume:          string,

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -27,7 +27,7 @@ const FRIENDLY: Record<string, string> = {
   "auth/weak-password":        "Password must be at least 6 characters.",
   "auth/user-not-found":       "No account found with this email.",
   "auth/wrong-password":       "Incorrect password.",
-  "auth/too-many-requests":    "Too many attempts — please wait a moment.",
+  "auth/too-many-requests":    "Too many attempts  -  please wait a moment.",
   "auth/invalid-credential":   "Invalid email or password.",
   "auth/popup-closed-by-user": "Google sign-in was cancelled.",
 };
@@ -66,7 +66,7 @@ export default function AuthModal({ open, initialMode = "signin", onClose, onSuc
       if (mode === "signup") {
         result = await createUserWithEmailAndPassword(auth, email, password);
         if (result.user) {
-          // Send verification email — ignore errors so signup still completes
+          // Send verification email  -  ignore errors so signup still completes
           try { await sendEmailVerification(result.user); } catch {}
           await saveUser(result.user);
           setSuccess("Account created! Please check your inbox to verify your email.");

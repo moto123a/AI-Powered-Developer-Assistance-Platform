@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 // app/real-interview/page.tsx
 
@@ -30,7 +30,7 @@ function sanitizeText(text: string): string {
   return text
     .replace(/['']/g, "'")
     .replace(/[""]/g, '"')
-    .replace(/[–—]/g, "-")
+    .replace(/[- - ]/g, "-")
     .replace(/•/g, "•")
     .replace(/ /g, " ")
     .replace(/[^\x20-\x7E\n\r\t•]/g, " ")
@@ -145,7 +145,7 @@ export default function RealInterviewPage() {
     </div>
   );
 
-  // Matte design tokens — matches interview page
+  // Matte design tokens  -  matches interview page
   const PG  = "#dde3ed";
   const PNL = "#f2f4f8";
   const CRD = "#edf0f6";
@@ -190,7 +190,7 @@ export default function RealInterviewPage() {
             style={{ background: PNL, borderColor: BDR }}>
             <div className="max-w-[1400px] mx-auto px-6 h-[60px] flex items-center justify-between">
 
-              {/* Logo — CoopilotX AI */}
+              {/* Logo  -  CoopilotX AI */}
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img src="/logo.jpeg" alt="CoopilotX" className="w-9 h-9 rounded-xl shadow-md object-contain" />

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
@@ -44,7 +44,7 @@ async function extractPdfText(file: File): Promise<string> {
 function cleanText(text: string): string {
   return text
     .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-").replace(/•/g, "•")
+    .replace(/[- - ]/g, "-").replace(/•/g, "•")
     .replace(/ /g, " ").replace(/[^\x20-\x7E\n\r\t•]/g, "")
     .replace(/\n{3,}/g, "\n\n").trim();
 }
@@ -84,11 +84,11 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
           setUploading(false); return;
         }
       } else if (name.endsWith(".doc") || name.endsWith(".docx")) {
-        // .doc/.docx are binary Office formats — f.text() returns garbled data.
+        // .doc/.docx are binary Office formats  -  f.text() returns garbled data.
         setUploadError("Word documents (.doc/.docx) cannot be read directly. Please save as PDF or paste the text in the Paste tab.");
         setUploading(false); return;
       } else {
-        // Plain text (.txt) — safe to read as UTF-8
+        // Plain text (.txt)  -  safe to read as UTF-8
         text = await f.text();
       }
       const cleaned = cleanText(text);
@@ -240,7 +240,7 @@ export default function SetupForm({ onStart, onDashboard }: Props) {
         )}
       </div>
 
-      {/* Start button — always enabled */}
+      {/* Start button  -  always enabled */}
       <motion.button
         whileTap={{ scale: 0.98 }} whileHover={{ scale: 1.01 }}
         onClick={() => onStart(cfg)}

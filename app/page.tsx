@@ -22,7 +22,7 @@ import {
 } from "../components/home/MidSections";
 
 const WINDOWS_DOWNLOAD = "/app.msixbundle";
-const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/download/v1.0.25/InterviewCopilot-mac.dmg";
+const MAC_DOWNLOAD     = "https://github.com/moto123a/interview-copilot-mac/releases/latest/download/InterviewCopilot-mac.dmg";
 
 export default function Home() {
   const router       = useRouter();

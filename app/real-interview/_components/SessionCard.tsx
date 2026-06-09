@@ -1,4 +1,4 @@
-// app/real-interview/_components/SessionCard.tsx
+﻿// app/real-interview/_components/SessionCard.tsx
 
 "use client";
 
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { Session } from "../_hooks/useSession";
 
-// Design tokens — matches the rest of the app
+// Design tokens  -  matches the rest of the app
 const C = {
   panelBg: "#f2f4f8",
   cardBg:  "#edf0f6",

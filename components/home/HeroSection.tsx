@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useRef, useEffect } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 
@@ -48,7 +48,7 @@ export function OSDownloadButtons({ detectedOS, mounted, onDownload, size = "def
   );
 }
 
-/* Waveform heights/timings — fixed values, SSR safe */
+/* Waveform heights/timings  -  fixed values, SSR safe */
 const WAVE = [
   {h:10,d:1.9,dl:0.0},{h:22,d:2.2,dl:0.15},{h:16,d:1.7,dl:0.4},{h:38,d:2.0,dl:0.1},
   {h:12,d:2.4,dl:0.6},{h:28,d:1.8,dl:0.3},{h:44,d:2.1,dl:0.05},{h:18,d:1.6,dl:0.5},
@@ -102,7 +102,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
         style={{ x: b3x, y: b3y, bottom: "-60px", left: "50%", marginLeft: "-400px", width: "800px", height: "450px", borderRadius: "50%",
           background: "radial-gradient(ellipse, rgba(147,51,234,0.12) 0%, transparent 68%)", filter: "blur(110px)" }} />
 
-      {/* Waveform — thematic, barely visible */}
+      {/* Waveform  -  thematic, barely visible */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.055 }}>
         <div className="flex items-end gap-[4px]">
           {WAVE.map((w, i) => (
@@ -115,7 +115,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
         </div>
       </div>
 
-      {/* Dot grid — texture only */}
+      {/* Dot grid  -  texture only */}
       <div className="absolute inset-0 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
@@ -138,7 +138,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </span>
             </motion.div>
 
-            {/* Headline — tighter, more enterprise */}
+            {/* Headline  -  tighter, more enterprise */}
             <motion.h1
               initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -150,7 +150,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </span>
             </motion.h1>
 
-            {/* Sub-headline — concise */}
+            {/* Sub-headline  -  concise */}
             <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
               className="text-[1rem] text-gray-500 leading-relaxed mb-7 max-w-[420px]">
               Listens live, reads your resume, and delivers the{" "}
@@ -158,11 +158,11 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               {" "}completely undetectable.
             </motion.p>
 
-            {/* ── PRIMARY: Download buttons — full width, always visible ── */}
+            {/* ── PRIMARY: Download buttons  -  full width, always visible ── */}
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
               className="flex flex-col sm:flex-row gap-3 mb-4">
 
-              {/* Windows — primary gradient */}
+              {/* Windows  -  primary gradient */}
               <button onClick={() => onDownload("win")}
                 className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
                 style={{ background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 6px 24px rgba(109,40,217,0.34), 0 2px 6px rgba(234,88,12,0.14)" }}>
@@ -176,7 +176,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 <span className="relative ml-auto text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
               </button>
 
-              {/* macOS — dark secondary */}
+              {/* macOS  -  dark secondary */}
               <button onClick={() => onDownload("mac")}
                 className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
                 style={{ background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -191,7 +191,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </button>
             </motion.div>
 
-            {/* Free note + secondary CTA — compact row */}
+            {/* Free note + secondary CTA  -  compact row */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
               className="flex items-center gap-4 mb-8">
               <span className="text-[11px] text-gray-400">Free forever · No credit card needed</span>
@@ -205,7 +205,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </button>
             </motion.div>
 
-            {/* Stats row — compact, below CTAs */}
+            {/* Stats row  -  compact, below CTAs */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}
               className="flex items-center gap-6 mb-6 flex-wrap">
               {[
@@ -343,7 +343,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </div>
             </div>
 
-            {/* Floating badge — stealth */}
+            {/* Floating badge  -  stealth */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.1, duration: 0.5, type: "spring" }}
@@ -362,7 +362,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </div>
             </motion.div>
 
-            {/* Floating badge — speed */}
+            {/* Floating badge  -  speed */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.4, duration: 0.5, type: "spring" }}

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +63,7 @@ async function logUsageAndIncrement(email: string, service: string, details: any
 // 3) HELPERS
 // ============================================================================
 function normalizeDashes(input: string) {
-  return (input || "").replace(/[–—−]/g, "-").replace(/\u00A0/g, " ");
+  return (input || "").replace(/[- - −]/g, "-").replace(/\u00A0/g, " ");
 }
 
 function sanitizeText(text: string) {
@@ -333,7 +333,7 @@ function sliceExperienceSection(resume: string): string {
     const idx = lower.indexOf(h);
     if (idx !== -1) { start = idx; break; }
   }
-  if (start === -1) return resume; // no experience section — scan everything
+  if (start === -1) return resume; // no experience section  -  scan everything
   let end = -1;
   for (const e of END_HEADERS) {
     const idx = lower.indexOf(e, start + 20);
@@ -344,7 +344,7 @@ function sliceExperienceSection(resume: string): string {
 
 // ── Parse a single date range string into {sm,sy,em,ey} ──
 // Handles: "Jan 2020 - Mar 2022",  "2020 - 2023",  "01/2020 - 03/2022",
-//          "Jan 2020 to Present",  "2020 - current", "May 2021 – Till Date"
+//          "Jan 2020 to Present",  "2020 - current", "May 2021 - Till Date"
 function parseDateRange(text: string): {
   sm: number; sy: number; em: number; ey: number; durationText: string;
 } | null {
@@ -374,7 +374,7 @@ function parseDateRange(text: string): {
   }
 
   // ─ Pattern 2: "YYYY - YYYY" or "YYYY - Present"
-  const re2 = /\b((?:19|20)\d{2})\s*[-–]\s*(present|current|now|till\s*date|ongoing|(?:19|20)\d{2})\b/i;
+  const re2 = /\b((?:19|20)\d{2})\s*[--]\s*(present|current|now|till\s*date|ongoing|(?:19|20)\d{2})\b/i;
   const m2  = s.match(re2);
   if (m2) {
     const sy = parseInt(m2[1]);
@@ -389,7 +389,7 @@ function parseDateRange(text: string): {
   }
 
   // ─ Pattern 3: "MM/YYYY - MM/YYYY" or "MM/YYYY - Present"
-  const re3 = /(\d{1,2})\/(\d{4})\s*[-–]\s*(present|current|now|\d{1,2}\/\d{4})/i;
+  const re3 = /(\d{1,2})\/(\d{4})\s*[--]\s*(present|current|now|\d{1,2}\/\d{4})/i;
   const m3  = s.match(re3);
   if (m3) {
     const sm = parseInt(m3[1]), sy = parseInt(m3[2]);
@@ -454,7 +454,7 @@ function extractJobs(text: string) {
     }
   }
 
-  // ── Pass 2: broad scan — any line (or adjacent line) with a date range ──
+  // ── Pass 2: broad scan  -  any line (or adjacent line) with a date range ──
   // Only runs if pass 1 found nothing
   if (jobs.length === 0) {
     for (let i = 0; i < lines.length; i++) {
@@ -465,7 +465,7 @@ function extractJobs(text: string) {
       const p = parseDateRange(line);
       if (p) {
         // Label: everything in this line minus the date part, or fall back to prev line
-        const stripped = line.replace(p.durationText, "").replace(/[|·•\-–]+/g, " ").replace(/\s+/g, " ").trim();
+        const stripped = line.replace(p.durationText, "").replace(/[|·•\--]+/g, " ").replace(/\s+/g, " ").trim();
         const label    = stripped.length >= 3 ? stripped : (i > 0 ? lines[i - 1].slice(0, 80) : "Position");
         const sIdx = monthIndex(p.sy, p.sm), eIdx = monthIndex(p.ey, p.em);
         jobs.push({ label, durationText: p.durationText, startIdx: sIdx, endIdx: eIdx, months: monthsInclusive(sIdx, eIdx) });
@@ -786,7 +786,7 @@ Return ONLY this exact JSON (no markdown):
     if (messages && Array.isArray(messages) && messages.length > 0) {
       // ── NEW PATH: use pre-built messages from promptBuilder ──
       // Full conversation history + system prompt + format reminder
-      // already assembled on the frontend — just pass through
+      // already assembled on the frontend  -  just pass through
       console.log(`📨 Using promptBuilder messages (${messages.length} turns)`);
       try {
         rawAnswer = await callLLMWithMessages(

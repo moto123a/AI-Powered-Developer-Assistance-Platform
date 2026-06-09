@@ -1,4 +1,4 @@
-// app/real-interview/_lib/formatAnswer.ts
+﻿// app/real-interview/_lib/formatAnswer.ts
 // Formats AI answer text into readable bullet points
 
 import React from "react";
@@ -11,7 +11,7 @@ export type AnswerLine =
   | { type: "text";   text: string };
 
 // ─────────────────────────────────────────────
-// PARSE — converts raw answer string into lines
+// PARSE  -  converts raw answer string into lines
 // ─────────────────────────────────────────────
 export function parseAnswer(raw: string): AnswerLine[] {
   if (!raw?.trim()) return [];
@@ -32,7 +32,7 @@ export function parseAnswer(raw: string): AnswerLine[] {
 }
 
 // ─────────────────────────────────────────────
-// IS MICRO — short answer with no bullets
+// IS MICRO  -  short answer with no bullets
 // ─────────────────────────────────────────────
 export function isMicroAnswer(raw: string): boolean {
   if (!raw?.trim()) return false;
@@ -40,8 +40,8 @@ export function isMicroAnswer(raw: string): boolean {
 }
 
 // ─────────────────────────────────────────────
-// CLEAN — removes markdown artifacts
-// Keeps • bullets intact — never strips them
+// CLEAN  -  removes markdown artifacts
+// Keeps • bullets intact  -  never strips them
 // ─────────────────────────────────────────────
 export function cleanAnswer(raw: string): string {
   if (!raw?.trim()) return "";
@@ -56,7 +56,7 @@ export function cleanAnswer(raw: string): string {
     .replace(/\r/g, "\n")
     // Collapse 3+ blank lines into 2
     .replace(/\n{3,}/g, "\n\n")
-    // Never strip • bullets — they are intentional
+    // Never strip • bullets  -  they are intentional
     .trim();
 }
 
@@ -92,7 +92,7 @@ export function formatForReading(raw: string): string {
 }
 
 // ─────────────────────────────────────────────
-// GET FONT SIZE — smaller text for long answers
+// GET FONT SIZE  -  smaller text for long answers
 // ─────────────────────────────────────────────
 export function getAnswerFontSize(text: string): string {
   if (!text) return "text-xl";

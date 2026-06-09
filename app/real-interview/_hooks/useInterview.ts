@@ -1,4 +1,4 @@
-// app/real-interview/_hooks/useInterview.ts
+﻿// app/real-interview/_hooks/useInterview.ts
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { SpeechmaticsClient }  from "../_lib/stt-client";
@@ -25,7 +25,7 @@ function sanitizeResume(text: string): string {
   return text
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, "-")
+    .replace(/[- - ]/g, "-")
     .replace(/•/g, "•")
     .replace(/ /g, " ")
     .replace(/…/g, "...")
@@ -112,7 +112,7 @@ export function useInterview(config: {
 
     // ── ZERO-LATENCY LOCAL REPLIES ──────────────────────────────
     // Handle greetings and noise instantly without API call.
-    // NOTE: isGeneratingRef is NOT set to true on these paths —
+    // NOTE: isGeneratingRef is NOT set to true on these paths  - 
     //       no cleanup needed.
     if (isGreeting(fullText) || isNoisyGreeting(fullText)) {
       const reply = getGreetingResponse();
@@ -143,7 +143,7 @@ export function useInterview(config: {
     }
 
     if (isCompanyPitch(fullText)) {
-      const reply = "That sounds like a really exciting challenge — I've been following what you're building and I have a lot of thoughts on how I can contribute.";
+      const reply = "That sounds like a really exciting challenge  -  I've been following what you're building and I have a lot of thoughts on how I can contribute.";
       setAnswer(reply);
       extractAndLockFacts(fullText, reply);
       const nextHistory: Turn[] = [
@@ -178,7 +178,7 @@ export function useInterview(config: {
       let authToken = "";
       try { authToken = (await auth.currentUser?.getIdToken()) ?? ""; } catch {}
 
-      // Pass history WITHOUT the just-added interviewer turn —
+      // Pass history WITHOUT the just-added interviewer turn  - 
       // buildMessages() receives it separately as `currentQuestion`.
       const messages = buildMessages(
         cleanResume,
@@ -323,7 +323,7 @@ export function useInterview(config: {
     if (isRecording) {
       generateAnswer(); // stop mic + generate
     } else if (!answer && (transcriptRef.current.trim() || partialRef.current.trim())) {
-      // Mic stopped due to error but no answer yet — still generate from what we got
+      // Mic stopped due to error but no answer yet  -  still generate from what we got
       generateAnswer();
     } else {
       // Either fresh start OR answer already shown → listen for next question
