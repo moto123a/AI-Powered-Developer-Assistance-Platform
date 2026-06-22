@@ -8,6 +8,11 @@ import {
   RefreshCw, Search, ChevronDown, ChevronUp, LogIn,
 } from "lucide-react";
 
+// A user counts as "online" if their last heartbeat was within this window.
+// The client sends a heartbeat every 60s, so 150s tolerates one missed beat
+// while still flipping to "Offline" ~2.5 min after they actually leave.
+const ONLINE_WINDOW_SECS = 150;
+
 // ── Relative time helper ─────────────────────────────────────────
 function timeAgo(ts: any): string {
   if (!ts) return "—";
@@ -133,11 +138,19 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    let poll: ReturnType<typeof setInterval> | null = null;
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) fetchAll();
-      else { setIsAdmin(false); setLoading(false); }
+      if (user) {
+        fetchAll();
+        // Auto-refresh every 30s so "Live Now" and last-seen stay accurate
+        if (poll) clearInterval(poll);
+        poll = setInterval(() => fetchAll(true), 30000);
+      } else {
+        setIsAdmin(false); setLoading(false);
+        if (poll) { clearInterval(poll); poll = null; }
+      }
     });
-    return () => unsub();
+    return () => { unsub(); if (poll) clearInterval(poll); };
   }, [fetchAll]);
 
   async function updatePlan(userId: string, plan: string, credits: number) {
@@ -188,7 +201,7 @@ export default function AdminPage() {
   );
 
   // ── Stats ─────────────────────────────────────────────────────
-  const liveCount  = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < 300).length;
+  const liveCount  = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < ONLINE_WINDOW_SECS).length;
   const proCount   = users.filter(u => ["pro","lifetime","teams"].includes(u.plan)).length;
   const totalMins  = users.reduce((acc, u) => acc + (u.totalMinutesSpent || 0), 0);
   const winDls     = downloads.filter(d => d.os === "win").length;
@@ -303,7 +316,7 @@ export default function AdminPage() {
                     <td className="px-5 py-4">
                       {(() => {
                         const lastActiveSecs = user.lastActive?._seconds ?? user.lastActive?.seconds ?? 0;
-                        const isOnline = (Date.now()/1000 - lastActiveSecs) < 300;
+                        const isOnline = (Date.now()/1000 - lastActiveSecs) < ONLINE_WINDOW_SECS;
                         return (
                           <div>
                             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
