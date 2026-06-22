@@ -88,27 +88,27 @@ const AI_MODELS: AiModel[] = [
 
 const MIN_QUESTIONS          = 5;
 const MAX_QUESTIONS_FREE     = 10;
-const MAX_QUESTIONS_BASIC    = 20;
 const MAX_QUESTIONS_PRO      = 50;
 const SILENCE_DELAY_MS       = 3500;
 
 const PLAN_MAX_QUESTIONS: Record<string, number> = {
-  free: MAX_QUESTIONS_FREE, basic: MAX_QUESTIONS_BASIC, pro: MAX_QUESTIONS_PRO,
+  free: MAX_QUESTIONS_FREE, pro: MAX_QUESTIONS_PRO, lifetime: MAX_QUESTIONS_PRO, teams: MAX_QUESTIONS_PRO,
 };
 const PLAN_DIFFICULTY_ACCESS: Record<string, Difficulty[]> = {
-  free:  ["easy", "behavioral", "mixed"],
-  basic: ["easy", "medium", "behavioral", "mixed"],
-  pro:   ["easy", "medium", "hard", "behavioral", "mixed"],
+  free:     ["easy", "behavioral", "mixed"],
+  pro:      ["easy", "medium", "hard", "behavioral", "mixed"],
+  lifetime: ["easy", "medium", "hard", "behavioral", "mixed"],
+  teams:    ["easy", "medium", "hard", "behavioral", "mixed"],
 };
 const DIFFICULTY_OPTIONS: {
   id: Difficulty; label: string; sub: string; color: string;
-  bg: string; brd: string; planRequired: "free" | "basic" | "pro";
+  bg: string; brd: string; planRequired: "free" | "pro";
 }[] = [
-  { id: "easy",       label: "Easy",       sub: "Fundamentals and basics",         color: "#059669", bg: "rgba(5,150,105,0.08)",  brd: "rgba(5,150,105,0.22)",  planRequired: "free"  },
-  { id: "medium",     label: "Medium",     sub: "Situational and problem-solving", color: "#d97706", bg: "rgba(217,119,6,0.08)",  brd: "rgba(217,119,6,0.22)",  planRequired: "basic" },
-  { id: "hard",       label: "Hard",       sub: "System design and leadership",    color: "#dc2626", bg: "rgba(220,38,38,0.08)",  brd: "rgba(220,38,38,0.22)",  planRequired: "pro"   },
-  { id: "behavioral", label: "Behavioral", sub: "STAR, culture fit, teamwork",     color: "#0891b2", bg: "rgba(8,145,178,0.08)",  brd: "rgba(8,145,178,0.22)",  planRequired: "free"  },
-  { id: "mixed",      label: "Mixed",      sub: "Full distribution across levels", color: "#4f46e5", bg: "rgba(79,70,229,0.08)",  brd: "rgba(79,70,229,0.22)",  planRequired: "free"  },
+  { id: "easy",       label: "Easy",       sub: "Fundamentals and basics",         color: "#059669", bg: "rgba(5,150,105,0.08)",  brd: "rgba(5,150,105,0.22)",  planRequired: "free" },
+  { id: "medium",     label: "Medium",     sub: "Situational and problem-solving", color: "#d97706", bg: "rgba(217,119,6,0.08)",  brd: "rgba(217,119,6,0.22)",  planRequired: "pro"  },
+  { id: "hard",       label: "Hard",       sub: "System design and leadership",    color: "#dc2626", bg: "rgba(220,38,38,0.08)",  brd: "rgba(220,38,38,0.22)",  planRequired: "pro"  },
+  { id: "behavioral", label: "Behavioral", sub: "STAR, culture fit, teamwork",     color: "#0891b2", bg: "rgba(8,145,178,0.08)",  brd: "rgba(8,145,178,0.22)",  planRequired: "free" },
+  { id: "mixed",      label: "Mixed",      sub: "Full distribution across levels", color: "#4f46e5", bg: "rgba(79,70,229,0.08)",  brd: "rgba(79,70,229,0.22)",  planRequired: "free" },
 ];
 const CONTEXT_HISTORY_TURNS = 4; // last N turns injected into AI memory
 
@@ -561,7 +561,7 @@ function DifficultyCard({ opt, selected, onSelect, locked }: {
               {locked && (
                 <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
                   border: `1px solid ${T.border}`, color: T.textFaint }}>
-                  {opt.planRequired === "basic" ? "Basic" : "Pro"}
+                  Pro+
                 </span>
               )}
             </div>
@@ -1083,12 +1083,6 @@ export default function MockInterviewPage() {
           height: 58, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ position: "relative" }}>
-              <img src="/logo.jpeg" alt="CoopilotX"
-                style={{ width: 34, height: 34, borderRadius: 10, objectFit: "contain", border: `1px solid ${T.border}` }} />
-              <div style={{ position: "absolute", top: -2, right: -2, width: 9, height: 9,
-                background: "#22c55e", borderRadius: "50%", border: `2px solid ${T.panel}` }} />
-            </div>
             <span style={{ fontSize: 15, fontWeight: 800, color: T.text, letterSpacing: "-0.02em" }}>CoopilotX</span>
             <span style={{ fontSize: 9, fontWeight: 900, padding: "2px 7px", borderRadius: 6,
               background: T.accentBg, border: `1px solid ${T.accentBrd}`, color: T.accent,
@@ -1331,7 +1325,7 @@ export default function MockInterviewPage() {
                         <div style={{ padding: 10, display: "flex", flexDirection: "column", gap: 6,
                           maxHeight: 380, overflowY: "auto" }} className="light-scrollbar">
                           {DIFFICULTY_OPTIONS.map(opt => {
-                            const planOrder: Record<string, number> = { free: 0, basic: 1, pro: 2 };
+                            const planOrder: Record<string, number> = { free: 0, pro: 1, lifetime: 1, teams: 1 };
                             const locked = (planOrder[userPlan] ?? 0) < (planOrder[opt.planRequired] ?? 0);
                             return (
                               <DifficultyCard key={opt.id} opt={opt} selected={difficulty === opt.id} locked={locked}

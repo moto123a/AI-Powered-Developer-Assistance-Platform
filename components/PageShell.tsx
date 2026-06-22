@@ -11,7 +11,6 @@ export function PageHeader() {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <img src="/logo.jpeg" alt="CoopilotX" className="w-8 h-8 rounded-lg object-contain" />
           <span className="text-[15px] font-black text-gray-900 tracking-tight">
             CoopilotX <span className="text-indigo-600">AI</span>
           </span>
@@ -41,7 +40,6 @@ export function PageFooter() {
     <footer className="border-t border-gray-100 bg-white">
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
         <div className="flex items-center gap-2">
-          <img src="/logo.jpeg" alt="CoopilotX" className="w-5 h-5 rounded object-contain opacity-60" />
           <span>© {new Date().getFullYear()} CoopilotX AI. All rights reserved.</span>
         </div>
         <div className="flex items-center gap-6">

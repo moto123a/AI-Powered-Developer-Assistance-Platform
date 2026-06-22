@@ -26,7 +26,7 @@ export const PLAN_CONFIG = {
   free: {
     label: "Free",
     totalCredits: 100,
-    monthlyReset: false,
+    monthlyReset: true,
     allowedModels: ["llama-3.1-8b-instant"],
     features: {
       resumeBuilder: true,
@@ -38,29 +38,46 @@ export const PLAN_CONFIG = {
       sessionRecordings: false,
     },
   },
-  basic: {
-    label: "Basic",
-    totalCredits: 1000,
+  pro: {
+    label: "Pro",
+    totalCredits: -1, // unlimited
     monthlyReset: true,
-    price: 12,
-    stripePriceId: "", // Set after creating Stripe product
-    allowedModels: ["llama-3.1-8b-instant", "gpt-4o-mini"],
+    price: 24.99,
+    stripePriceId: "",
+    allowedModels: ["llama-3.1-8b-instant", "gpt-4o-mini", "gpt-4.1"],
     features: {
       resumeBuilder: true,
       aiTailor: true,
       mockInterview: true,
       realTimeInterview: true,
       desktopApp: true,
-      cameraMode: false,
-      sessionRecordings: false,
+      cameraMode: true,
+      sessionRecordings: true,
     },
   },
-  pro: {
-    label: "Pro",
-    totalCredits: -1, // unlimited
+  lifetime: {
+    label: "Lifetime",
+    totalCredits: 2000, // 2k/month cap — resets monthly, protects API costs
     monthlyReset: true,
-    price: 29,
-    stripePriceId: "", // Set after creating Stripe product
+    price: 299,
+    stripePriceId: "",
+    allowedModels: ["llama-3.1-8b-instant", "gpt-4o-mini", "gpt-4.1"],
+    features: {
+      resumeBuilder: true,
+      aiTailor: true,
+      mockInterview: true,
+      realTimeInterview: true,
+      desktopApp: true,
+      cameraMode: true,
+      sessionRecordings: true,
+    },
+  },
+  teams: {
+    label: "Teams",
+    totalCredits: -1, // unlimited per seat
+    monthlyReset: true,
+    price: 49,
+    stripePriceId: "",
     allowedModels: ["llama-3.1-8b-instant", "gpt-4o-mini", "gpt-4.1"],
     features: {
       resumeBuilder: true,
@@ -121,10 +138,10 @@ export async function initializeUserCredits(uid: string, email: string, displayN
       plan: "free",
       credits: PLAN_CONFIG.free.totalCredits,
       creditsUsed: 0,
-      creditsResetDate: null,
+      creditsResetDate: getNextResetDate(),
       stripeCustomerId: null,
       stripeSubscriptionId: null,
-      createdAt:  serverTimestamp(), // server clock  -  immune to client clock skew
+      createdAt:  serverTimestamp(),
       lastLogin:  serverTimestamp(),
     });
   } else {
@@ -217,8 +234,8 @@ export async function upgradePlan(
 export async function cancelPlan(uid: string) {
   await updateDoc(doc(db, "users", uid), {
     plan: "free",
-    credits: 0, // they used their free credits already
-    creditsResetDate: null,
+    credits: PLAN_CONFIG.free.totalCredits,
+    creditsResetDate: getNextResetDate(),
     stripeSubscriptionId: null,
   });
 }

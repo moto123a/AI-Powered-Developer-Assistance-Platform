@@ -68,14 +68,16 @@ function StatCard({ icon, label, value, color = "text-white", gradient }: any) {
 // ── Plan Badge ────────────────────────────────────────────────────
 function PlanBadge({ plan }: { plan: string }) {
   const cfg: Record<string, string> = {
-    pro:   "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    basic: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    free:  "bg-gray-800/50 text-gray-500 border-gray-700/50",
+    pro:      "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    lifetime: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    teams:    "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    free:     "bg-gray-800/50 text-gray-500 border-gray-700/50",
   };
   const key = (plan || "free").toLowerCase();
+  const emoji = { pro: "👑 ", lifetime: "♾️ ", teams: "🏢 " }[key] || "";
   return (
     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${cfg[key] || cfg.free}`}>
-      {key === "pro" && "👑 "}{key === "basic" && "⚡ "}{plan || "Free"}
+      {emoji}{plan || "Free"}
     </span>
   );
 }
@@ -187,7 +189,7 @@ export default function AdminPage() {
 
   // ── Stats ─────────────────────────────────────────────────────
   const liveCount  = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < 300).length;
-  const proCount   = users.filter(u => u.plan === "pro").length;
+  const proCount   = users.filter(u => ["pro","lifetime","teams"].includes(u.plan)).length;
   const totalMins  = users.reduce((acc, u) => acc + (u.totalMinutesSpent || 0), 0);
   const winDls     = downloads.filter(d => d.os === "win").length;
   const macDls     = downloads.filter(d => d.os === "mac").length;
@@ -357,14 +359,15 @@ export default function AdminPage() {
                           value={user.plan || "free"}
                           onChange={e => {
                             const p = e.target.value;
-                            const credits = p === "pro" ? 99999 : p === "basic" ? 1000 : 100;
+                            const credits = (p === "pro" || p === "teams") ? 99999 : p === "lifetime" ? 2000 : 100;
                             updatePlan(user.id, p, credits);
                           }}
                           className="text-[10px] bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-gray-400 cursor-pointer focus:outline-none focus:border-violet-500/50 hover:border-gray-700 transition-colors"
                         >
                           <option value="free">Free</option>
-                          <option value="basic">Basic</option>
                           <option value="pro">Pro</option>
+                          <option value="lifetime">Lifetime</option>
+                          <option value="teams">Teams</option>
                         </select>
                       </div>
                     </td>

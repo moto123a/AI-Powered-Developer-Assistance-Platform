@@ -83,9 +83,6 @@ export default function Footer({ isDark = true }) {
             className="flex flex-col space-y-4"
           >
             <div className="flex items-center space-x-3">
-              <motion.div whileHover={{ rotate: 360, scale: 1.1 }} transition={{ duration: 0.6 }} className="w-10 h-10">
-                <img src="/logo.jpeg" alt="CoopilotX Logo" className="w-full h-full object-contain rounded-lg" />
-              </motion.div>
               <span className="text-[15px] font-bold tracking-tight">
                 CoopilotX <span className="text-indigo-400">AI</span>
               </span>

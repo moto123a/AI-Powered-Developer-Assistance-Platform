@@ -119,7 +119,6 @@ export default function AuthModal({ open, initialMode = "signin", onClose, onSuc
               {/* Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">
-                  <img src="/logo.jpeg" alt="CoopilotX" className="w-7 h-7 rounded-lg shadow-sm" />
                   <span className="text-[14px] font-extrabold text-gray-900">
                     CoopilotX{" "}
                     <span style={{ background: "linear-gradient(135deg,#7c3aed,#ea580c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>AI</span>

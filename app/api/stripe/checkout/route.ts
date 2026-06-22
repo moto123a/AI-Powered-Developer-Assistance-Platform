@@ -1,6 +1,6 @@
 ﻿// frontend/app/api/stripe/checkout/route.ts
 // ═══════════════════════════════════════════════════════════════
-// Creates Stripe Checkout session for Basic ($12) or Pro ($29)
+// Creates Stripe Checkout session for Pro ($24.99/mo), Lifetime ($299 one-time), Teams ($49/mo)
 // After payment, Stripe redirects to /pricing?success=true
 // Stripe webhook updates Firestore plan + credits
 // ═══════════════════════════════════════════════════════════════
@@ -29,16 +29,17 @@ function ensureAdminInit() {
 
 // ── STRIPE PRICE IDS  -  create these in Stripe Dashboard ──
 // Go to: dashboard.stripe.com → Products → Create Product
-// Create "Basic Monthly" → $12/mo → copy price ID (price_xxxx)
-// Create "Basic Annual" → $96/yr → copy price ID
-// Create "Pro Monthly" → $29/mo → copy price ID
-// Create "Pro Annual" → $228/yr → copy price ID
-// Paste them below:
+// Pro Monthly   → $24.99/mo  → copy price ID → STRIPE_PRO_MONTHLY_PRICE
+// Pro Annual    → $149/yr    → copy price ID → STRIPE_PRO_ANNUAL_PRICE
+// Lifetime      → $299 once  → one-time price → STRIPE_LIFETIME_PRICE
+// Teams Monthly → $49/mo     → copy price ID → STRIPE_TEAMS_MONTHLY_PRICE
+// Teams Annual  → $396/yr    → copy price ID → STRIPE_TEAMS_ANNUAL_PRICE
 const PRICE_IDS: Record<string, string> = {
-  basic_monthly: process.env.STRIPE_BASIC_MONTHLY_PRICE || "price_REPLACE_ME",
-  basic_annual: process.env.STRIPE_BASIC_ANNUAL_PRICE || "price_REPLACE_ME",
-  pro_monthly: process.env.STRIPE_PRO_MONTHLY_PRICE || "price_REPLACE_ME",
-  pro_annual: process.env.STRIPE_PRO_ANNUAL_PRICE || "price_REPLACE_ME",
+  pro_monthly:    process.env.STRIPE_PRO_MONTHLY_PRICE    || "price_REPLACE_ME",
+  pro_annual:     process.env.STRIPE_PRO_ANNUAL_PRICE     || "price_REPLACE_ME",
+  lifetime:       process.env.STRIPE_LIFETIME_PRICE       || "price_REPLACE_ME",
+  teams_monthly:  process.env.STRIPE_TEAMS_MONTHLY_PRICE  || "price_REPLACE_ME",
+  teams_annual:   process.env.STRIPE_TEAMS_ANNUAL_PRICE   || "price_REPLACE_ME",
 };
 
 export async function POST(req: Request) {
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
 
     // Reject unknown plans  -  prevents crafted requests from creating
     // checkout sessions with arbitrary metadata values.
-    if (!plan || !["basic", "pro"].includes(plan)) {
+    if (!plan || !["pro", "lifetime", "teams"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -80,7 +81,8 @@ export async function POST(req: Request) {
     // Always use server-verified email, not client-supplied value
     const email = verifiedEmail ?? "";
 
-    const priceKey = `${plan}_${annual ? "annual" : "monthly"}`;
+    const isLifetime = plan === "lifetime";
+    const priceKey = isLifetime ? "lifetime" : `${plan}_${annual ? "annual" : "monthly"}`;
     const priceId = PRICE_IDS[priceKey];
 
     if (!priceId || priceId === "price_REPLACE_ME") {
@@ -91,7 +93,8 @@ export async function POST(req: Request) {
     const origin = req.headers.get("origin") || "http://localhost:3000";
 
     const params = new URLSearchParams();
-    params.append("mode", "subscription");
+    // Lifetime is a one-time payment; everything else is a subscription
+    params.append("mode", isLifetime ? "payment" : "subscription");
     params.append("payment_method_types[0]", "card");
     params.append("line_items[0][price]", priceId);
     params.append("line_items[0][quantity]", "1");
@@ -100,8 +103,13 @@ export async function POST(req: Request) {
     params.append("customer_email", email || "");
     params.append("metadata[uid]", uid);
     params.append("metadata[plan]", plan);
-    params.append("subscription_data[metadata][uid]", uid);
-    params.append("subscription_data[metadata][plan]", plan);
+    if (isLifetime) {
+      params.append("payment_intent_data[metadata][uid]", uid);
+      params.append("payment_intent_data[metadata][plan]", plan);
+    } else {
+      params.append("subscription_data[metadata][uid]", uid);
+      params.append("subscription_data[metadata][plan]", plan);
+    }
 
     const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",

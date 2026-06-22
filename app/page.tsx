@@ -125,7 +125,6 @@ export default function Home() {
           {/* ── Logo ── */}
           <button onClick={() => router.push("/")}
             className="flex items-center gap-2.5 flex-shrink-0 group">
-            <img src="/logo.jpeg" alt="CoopilotX" className="w-8 h-8 rounded-xl shadow-sm group-hover:shadow-md transition-shadow" />
             <span className="text-[15px] font-extrabold tracking-tight text-gray-900">
               CoopilotX{" "}
               <span style={{ background: "linear-gradient(135deg, #7c3aed, #ea580c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>AI</span>

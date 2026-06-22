@@ -42,8 +42,9 @@ const db = admin.apps.length ? admin.firestore() : null;
 
 // ── Plan credit amounts ──────────────────────────────────────────
 const PLAN_CREDITS: Record<string, number> = {
-  basic: 1000,
-  pro:   99999, // unlimited sentinel
+  pro:      99999, // unlimited sentinel
+  lifetime: 2000,  // generous monthly cap, resets each month
+  teams:    99999, // unlimited per seat
 };
 
 // ── Stripe signature verification ───────────────────────────────
@@ -143,7 +144,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ received: true });
       }
 
-      if (!["basic", "pro"].includes(plan)) {
+      if (!["pro", "lifetime", "teams"].includes(plan)) {
         console.error("[webhook] Unknown plan in metadata:", plan);
         return NextResponse.json({ received: true });
       }
@@ -174,8 +175,8 @@ export async function POST(req: Request) {
         console.log(`⚠️ CANCELED: ${uid}`);
         await db.collection("users").doc(uid).update({
           plan:                 "free",
-          credits:              0,
-          creditsResetDate:     null,
+          credits:              100,
+          creditsResetDate:     getNextResetDate(),
           stripeSubscriptionId: null,
         });
       }
@@ -195,7 +196,7 @@ export async function POST(req: Request) {
         const uid  = sub.metadata?.uid;
         const plan = sub.metadata?.plan;
 
-        if (uid && plan && ["basic", "pro"].includes(plan)) {
+        if (uid && plan && ["pro", "teams"].includes(plan)) { // lifetime is one-time, no renewal
           const credits = PLAN_CREDITS[plan] ?? 1000;
           await db.collection("users").doc(uid).update({
             credits,

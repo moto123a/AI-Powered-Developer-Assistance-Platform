@@ -3,12 +3,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Zap, Crown, X } from "lucide-react";
+import { Zap, Crown, X, Infinity } from "lucide-react";
 
 interface PaywallModalProps {
   onClose: () => void;
   creditsRemaining: number;
-  action: string; // e.g. "Mock Interview Session"
+  action: string;
   creditsNeeded: number;
 }
 
@@ -27,7 +27,7 @@ export default function PaywallModal({ onClose, creditsRemaining, action, credit
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           <button onClick={onClose} className="absolute top-4 right-4 text-slate-600 hover:text-white transition-colors">
             <X size={20} />
@@ -43,34 +43,41 @@ export default function PaywallModal({ onClose, creditsRemaining, action, credit
               <span className="text-amber-400 font-bold">{creditsNeeded} credits</span>.
               You have <span className="text-red-400 font-bold">{creditsRemaining}</span> remaining.
             </p>
+            <p className="text-slate-500 text-xs mt-2">Your 100 free credits reset at the start of next month.</p>
           </div>
 
           <div className="space-y-3 mb-6">
-            <div className="bg-blue-950/30 border border-blue-500/20 rounded-xl p-4 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-bold text-white">Basic · $12/mo</div>
-                <div className="text-xs text-slate-400">1,000 credits/month</div>
-              </div>
-              <button
-                onClick={() => router.push("/pricing")}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold transition-all"
-              >
-                Upgrade
-              </button>
-            </div>
-
+            {/* Pro */}
             <div className="bg-purple-950/30 border border-purple-500/20 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <div className="text-sm font-bold text-white flex items-center gap-2">
-                  Pro · $29/mo <Crown size={14} className="text-purple-400" />
+                  Pro <Crown size={13} className="text-purple-400" />
+                  <span className="text-purple-400 font-black">$24.99/mo</span>
                 </div>
-                <div className="text-xs text-slate-400">Unlimited credits</div>
+                <div className="text-xs text-slate-400 mt-0.5">Unlimited. No credits, no limits ever.</div>
               </div>
               <button
                 onClick={() => router.push("/pricing")}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm font-bold transition-all"
               >
                 Upgrade
+              </button>
+            </div>
+
+            {/* Lifetime */}
+            <div className="bg-orange-950/20 border border-orange-500/20 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-bold text-white flex items-center gap-2">
+                  Lifetime <Infinity size={13} className="text-orange-400" />
+                  <span className="text-orange-400 font-black">$299 once</span>
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">Pay once. All Pro features forever.</div>
+              </div>
+              <button
+                onClick={() => router.push("/pricing")}
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-bold transition-all"
+              >
+                Get it
               </button>
             </div>
           </div>
