@@ -166,7 +166,8 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
               className="flex flex-col sm:flex-row gap-3 mb-4">
 
-              {/* Windows  -  primary gradient */}
+              {/* Windows  -  primary gradient (hidden for Mac visitors) */}
+              {(!mounted || detectedOS !== "mac") && (
               <button onClick={() => onDownload("win")}
                 className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
                 style={{ background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 6px 24px rgba(109,40,217,0.34), 0 2px 6px rgba(234,88,12,0.14)" }}>
@@ -179,8 +180,10 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 </span>
                 <span className="relative ml-auto text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
               </button>
+              )}
 
-              {/* macOS  -  dark secondary */}
+              {/* macOS  -  dark secondary (hidden for Windows visitors) */}
+              {(!mounted || detectedOS !== "win") && (
               <button onClick={() => onDownload("mac")}
                 className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
                 style={{ background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -193,6 +196,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 </span>
                 <span className="relative ml-auto text-[9px] font-black bg-white/10 px-2 py-0.5 rounded-full text-gray-400">FREE</span>
               </button>
+              )}
             </motion.div>
 
             {/* Free note + secondary CTA  -  compact row */}
