@@ -40,8 +40,11 @@ export default function Home() {
 
   useEffect(() => {
     const ua = navigator.userAgent;
-    if (/Windows/i.test(ua))  setDetectedOS("win");
-    else if (/Mac/i.test(ua)) setDetectedOS("mac");
+    // Phones/tablets can't run the desktop app and iOS reports "Mac OS X",
+    // so exclude them first → "other" (shows both, no misleading .dmg).
+    if (/iPhone|iPad|iPod|Android/i.test(ua)) setDetectedOS("other");
+    else if (/Windows/i.test(ua)) setDetectedOS("win");
+    else if (/Mac/i.test(ua))     setDetectedOS("mac");
   }, []);
 
   useEffect(() => { setMounted(true); }, []);
@@ -152,8 +155,9 @@ export default function Home() {
           {/* Spacer (md, no nav links) */}
           <div className="flex-1 lg:hidden" />
 
-          {/* ── Download pills  -  md+ ── */}
+          {/* ── Download pills  -  md+ (only the visitor's own OS; both if unknown) ── */}
           <div className="hidden md:flex items-center gap-2 mr-1">
+            {(!mounted || detectedOS !== "mac") && (
             <button onClick={() => download("win")}
               className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
               style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.28)" }}>
@@ -162,6 +166,8 @@ export default function Home() {
               </svg>
               Windows
             </button>
+            )}
+            {(!mounted || detectedOS !== "win") && (
             <button onClick={() => download("mac")}
               className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-gray-700 bg-white border border-gray-200 hover:border-violet-300 hover:text-violet-700 rounded-full transition-all active:scale-[0.97] shadow-sm whitespace-nowrap">
               <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -169,6 +175,7 @@ export default function Home() {
               </svg>
               macOS
             </button>
+            )}
           </div>
 
           {/* ── Thin separator ── */}
@@ -305,7 +312,8 @@ export default function Home() {
             {/* Download  -  only on < md (md+ already shows pills in navbar) */}
             <div className="px-4 pb-3 md:hidden">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Download App</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${mounted && detectedOS !== "other" ? "grid-cols-1" : "grid-cols-2"}`}>
+                {(!mounted || detectedOS !== "mac") && (
                 <button onClick={() => { download("win"); setShowMobile(false); }}
                   className="flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-white rounded-xl"
                   style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)" }}>
@@ -314,6 +322,8 @@ export default function Home() {
                   </svg>
                   Windows
                 </button>
+                )}
+                {(!mounted || detectedOS !== "win") && (
                 <button onClick={() => { download("mac"); setShowMobile(false); }}
                   className="flex items-center justify-center gap-2 py-3 text-[12px] font-bold text-gray-700 bg-gray-100 border border-gray-200 rounded-xl">
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -321,6 +331,7 @@ export default function Home() {
                   </svg>
                   macOS
                 </button>
+                )}
               </div>
             </div>
 

@@ -43,7 +43,11 @@ export function OSDownloadButtons({ detectedOS, mounted, onDownload, size = "def
   if (!mounted) return <div className="flex gap-3">{btn("win", true)}</div>;
   return (
     <div className="flex flex-col sm:flex-row gap-3">
-      {detectedOS === "mac" ? <>{btn("mac", true)}{btn("win", false)}</> : <>{btn("win", true)}{btn("mac", false)}</>}
+      {/* Show ONLY the visitor's own OS. Only fall back to showing both
+          when the OS is unknown (Linux / mobile / unrecognized). */}
+      {detectedOS === "mac" ? btn("mac", true)
+        : detectedOS === "win" ? btn("win", true)
+        : <>{btn("win", true)}{btn("mac", false)}</>}
     </div>
   );
 }

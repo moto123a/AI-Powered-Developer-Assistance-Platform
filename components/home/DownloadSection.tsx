@@ -53,11 +53,6 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
                   className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white font-black text-lg rounded-2xl shadow-[0_8px_40px_rgba(37,99,235,0.4)] hover:shadow-[0_12px_48px_rgba(37,99,235,0.55)] transition-all active:scale-[0.97]">
                   <WinIcon className="w-6 h-6" /> Download for Windows, Free
                 </button>
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <button onClick={() => onDownload("mac")} className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors">
-                    <MacIcon className="w-4 h-4" /> Also available for macOS
-                  </button>
-                </div>
               </div>
             )}
 
@@ -72,11 +67,6 @@ export default function DownloadSection({ mounted, detectedOS, onDownload }: Pro
                   className="inline-flex items-center gap-3 px-10 py-5 bg-gray-900 hover:bg-black text-white font-black text-lg rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.45)] transition-all active:scale-[0.97]">
                   <MacIcon className="w-6 h-6" /> Download for macOS, Free
                 </button>
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <button onClick={() => onDownload("win")} className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-300 transition-colors">
-                    <WinIcon className="w-4 h-4" /> Also available for Windows
-                  </button>
-                </div>
               </div>
             )}
 
