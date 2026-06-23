@@ -30,6 +30,25 @@ function timeAgo(ts: any): string {
   } catch { return "—"; }
 }
 
+// Normalize any timestamp shape (Firestore {_seconds}, ISO string, or epoch ms
+// number from Firebase Auth) to epoch milliseconds. Returns 0 if unparseable.
+function toMs(ts: any): number {
+  if (!ts) return 0;
+  try {
+    if (typeof ts === "number") return ts;
+    if (ts.toDate)            return ts.toDate().getTime();
+    if (ts._seconds != null)  return ts._seconds * 1000;
+    if (ts.seconds  != null)  return ts.seconds  * 1000;
+    const d = new Date(ts).getTime();
+    return isNaN(d) ? 0 : d;
+  } catch { return 0; }
+}
+
+// Most recent of several timestamps (mixed shapes). 0 if none.
+function latestMs(...tss: any[]): number {
+  return Math.max(0, ...tss.map(toMs));
+}
+
 function fmtTs(ts: any): string {
   if (!ts) return "—";
   try {
@@ -122,10 +141,12 @@ export default function AdminPage() {
       const data = await res.json();
       setIsAdmin(true);
       const userList: any[] = data.users || [];
-      userList.sort((a: any, b: any) =>
-        (b.lastActive?._seconds || b.lastActive?.seconds || 0) -
-        (a.lastActive?._seconds || a.lastActive?.seconds || 0)
+      // Sort by most-recent activity of ANY kind (heartbeat, web login, or
+      // desktop sign-in via Firebase Auth) so recently-active users surface.
+      const seenMs = (u: any) => latestMs(
+        u.lastActive, u.lastEntry, u.authLastSignIn, u.lastLoginAt, u.lastLogin, u.createdAt, u.authCreated
       );
+      userList.sort((a: any, b: any) => seenMs(b) - seenMs(a));
       setUsers(userList);
       setDownloads(data.downloads || []);
       setLastRefreshed(new Date());
@@ -317,6 +338,12 @@ export default function AdminPage() {
                       {(() => {
                         const lastActiveSecs = user.lastActive?._seconds ?? user.lastActive?.seconds ?? 0;
                         const isOnline = (Date.now()/1000 - lastActiveSecs) < ONLINE_WINDOW_SECS;
+                        // Most recent signal of any kind — includes desktop
+                        // sign-ins (authLastSignIn) the heartbeat can't see.
+                        const lastSeen = latestMs(
+                          user.lastActive, user.lastEntry, user.authLastSignIn,
+                          user.lastLoginAt, user.lastLogin, user.createdAt, user.authCreated
+                        );
                         return (
                           <div>
                             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
@@ -326,7 +353,7 @@ export default function AdminPage() {
                               {isOnline ? "Live" : "Offline"}
                             </span>
                             <div className="text-[10px] text-gray-600 mt-1.5">
-                              {isOnline ? "active now" : timeAgo(user.lastActive || user.lastEntry || user.lastLoginAt || user.lastLogin || user.createdAt)}
+                              {isOnline ? "active now" : timeAgo(lastSeen)}
                             </div>
                           </div>
                         );

@@ -86,8 +86,35 @@ export async function GET(req: Request) {
       db.collection("app_downloads").get(),
     ]);
 
+    // Firebase Auth records lastSignInTime on EVERY login (web or desktop),
+    // independent of any Firestore write. The desktop app authenticates but
+    // doesn't write the lastActive/lastLogin tracking fields, so without this
+    // its logins are invisible to the dashboard. Merge the authoritative
+    // sign-in time in by uid so last-seen is accurate for desktop users too.
+    const authMeta: Record<string, { lastSignIn?: number; created?: number }> = {};
+    try {
+      let pageToken: string | undefined;
+      do {
+        const page = await admin.auth().listUsers(1000, pageToken);
+        for (const u of page.users) {
+          authMeta[u.uid] = {
+            lastSignIn: u.metadata.lastSignInTime ? Date.parse(u.metadata.lastSignInTime) : undefined,
+            created:    u.metadata.creationTime   ? Date.parse(u.metadata.creationTime)   : undefined,
+          };
+        }
+        pageToken = page.pageToken;
+      } while (pageToken);
+    } catch (e) {
+      console.error("[admin] listUsers (auth meta) failed:", e);
+    }
+
     return NextResponse.json({
-      users:     usersSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+      users: usersSnap.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+        authLastSignIn: authMeta[d.id]?.lastSignIn ?? null,
+        authCreated:    authMeta[d.id]?.created    ?? null,
+      })),
       downloads: dlSnap.docs.map(d => ({ id: d.id, ...d.data() })),
     });
   } catch (err: any) {
