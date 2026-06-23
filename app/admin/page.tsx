@@ -326,7 +326,7 @@ export default function AdminPage() {
                               {isOnline ? "Live" : "Offline"}
                             </span>
                             <div className="text-[10px] text-gray-600 mt-1.5">
-                              {isOnline ? "active now" : timeAgo(user.lastActive || user.lastEntry || user.lastLoginAt)}
+                              {isOnline ? "active now" : timeAgo(user.lastActive || user.lastEntry || user.lastLoginAt || user.lastLogin || user.createdAt)}
                             </div>
                           </div>
                         );
