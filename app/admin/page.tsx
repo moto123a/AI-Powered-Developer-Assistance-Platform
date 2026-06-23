@@ -224,7 +224,7 @@ export default function AdminPage() {
   // ── Stats ─────────────────────────────────────────────────────
   const liveCount  = users.filter(u => (Date.now()/1000 - (u.lastActive?._seconds ?? u.lastActive?.seconds ?? 0)) < ONLINE_WINDOW_SECS).length;
   const proCount   = users.filter(u => ["pro","lifetime","teams"].includes(u.plan)).length;
-  const totalMins  = users.reduce((acc, u) => acc + (u.totalMinutesSpent || 0), 0);
+  const totalMins  = users.reduce((acc, u) => acc + (u.realUsageMinutes || 0), 0);
   const winDls     = downloads.filter(d => d.os === "win").length;
   const macDls     = downloads.filter(d => d.os === "mac").length;
   const filteredUsers = users.filter(u =>
@@ -432,7 +432,7 @@ export default function AdminPage() {
                       <div className="flex items-center justify-end gap-3">
                         <div className="text-right">
                           <div className="text-[9px] text-gray-700 uppercase tracking-wide">Usage</div>
-                          <div className="text-xs font-mono text-gray-400 font-semibold">{formatTime(user.totalMinutesSpent)}</div>
+                          <div className="text-xs font-mono text-gray-400 font-semibold">{formatTime(user.realUsageMinutes)}</div>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
