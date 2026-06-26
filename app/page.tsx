@@ -16,6 +16,8 @@ import DemoSection from "../components/home/DemoSection";
 import FeaturesSection from "../components/home/FeaturesSection";
 import SuccessSection from "../components/home/SuccessSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import EnterpriseSection from "../components/home/EnterpriseSection";
+import WhyUsSection from "../components/home/WhyUsSection";
 import {
   TrustedBySection, StatsSection,
   HowItWorksSection, CtaSection,
@@ -122,6 +124,16 @@ export default function Home() {
       <motion.header
         style={{ backgroundColor: headerBg as any, borderBottom: "1px solid rgba(124,58,237,0.07)" }}
         className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl">
+
+        {/* Announcement banner — slim top bar */}
+        {!user && (
+          <div className="w-full text-center py-2 text-[11px] font-semibold hidden md:flex items-center justify-center gap-3"
+            style={{ background: "linear-gradient(90deg, rgba(109,40,217,0.06), rgba(234,88,12,0.05))", borderBottom: "1px solid rgba(109,40,217,0.08)" }}>
+            <span className="text-[9px] font-black text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full uppercase tracking-widest">NEW</span>
+            <span className="text-gray-600">Screen analysis + multi-platform audio capture now live.</span>
+            <button onClick={() => go("real-interview")} className="text-violet-600 font-bold hover:text-violet-800 transition-colors underline underline-offset-2">Try it free →</button>
+          </div>
+        )}
 
         <div className="max-w-7xl mx-auto px-5 h-16 flex items-center gap-3">
 
@@ -369,10 +381,12 @@ export default function Home() {
       <HeroSection mounted={mounted} detectedOS={detectedOS} onDownload={download} onNav={go} />
       <TrustedBySection />
       <StatsSection />
+      <EnterpriseSection />
       <WhatIsItSection onNav={go} />
       <DemoSection onNav={go} />
       <HowItWorksSection />
       <FeaturesSection />
+      <WhyUsSection />
       <SuccessSection />
       <TestimonialsSection />
       <DownloadSection mounted={mounted} detectedOS={detectedOS} onDownload={download} />

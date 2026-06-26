@@ -130,16 +130,25 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
           {/* ── LEFT: Text + CTAs ── */}
           <div className="flex flex-col">
 
-            {/* Badge */}
+            {/* Announcement badge */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-              className="inline-flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full bg-white/80 border border-violet-200/70 shadow-sm backdrop-blur-sm self-start">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-60" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
-              </span>
-              <span className="text-[11px] font-semibold text-gray-600 tracking-wide">
-                Real-Time &nbsp;·&nbsp; Stealth Mode &nbsp;·&nbsp; Sub-2s Response
-              </span>
+              className="flex flex-col gap-2 mb-5 self-start">
+              {/* New feature pill */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full self-start"
+                style={{ background: "linear-gradient(135deg, rgba(109,40,217,0.08), rgba(234,88,12,0.06))", border: "1px solid rgba(109,40,217,0.18)" }}>
+                <span className="text-[9px] font-black text-violet-600 uppercase tracking-widest bg-violet-100 px-1.5 py-0.5 rounded-full">NEW</span>
+                <span className="text-[11px] font-semibold text-gray-600">Screen Analysis + Multi-platform audio capture</span>
+              </div>
+              {/* Status pill */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-violet-200/70 shadow-sm backdrop-blur-sm self-start">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-60" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
+                </span>
+                <span className="text-[11px] font-semibold text-gray-600 tracking-wide">
+                  Real-Time &nbsp;·&nbsp; Stealth Mode &nbsp;·&nbsp; Sub-2s Response
+                </span>
+              </div>
             </motion.div>
 
             {/* Headline  -  tighter, more enterprise */}
@@ -156,7 +165,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
 
             {/* Sub-headline  -  concise */}
             <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.7 }}
-              className="text-[1rem] text-gray-500 leading-relaxed mb-7 max-w-[420px]">
+              className="text-[1rem] text-gray-500 leading-relaxed mb-5 max-w-[420px]">
               Listens live, reads your resume, and delivers the{" "}
               <span className="text-violet-600 font-semibold">perfect answer in 1.8s</span>
               {" "}completely undetectable.
@@ -164,7 +173,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
 
             {/* ── PRIMARY: Download buttons ── */}
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-              className="flex flex-col gap-3 mb-4">
+              className="flex flex-col gap-2 mb-3">
 
               {/* Button row: primary OS gets gradient, both shown when OS unknown */}
               <div className="flex flex-col sm:flex-row gap-3">
@@ -255,18 +264,31 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               </div>
             </motion.div>
 
-            {/* Free note + secondary CTA  -  compact row */}
+            {/* Free note + secondary CTA + trust micro-line */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-              className="flex items-center gap-4 mb-8">
-              <span className="text-[11px] text-gray-400">Free forever · No credit card needed</span>
-              <div className="w-px h-3 bg-gray-200" />
-              <button onClick={() => onNav("real-interview")}
-                className="text-[12px] font-semibold text-violet-600 hover:text-violet-800 transition-colors flex items-center gap-1 group">
-                Try in browser
-                <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+              className="flex flex-col gap-2 mb-6">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  <span className="text-[11px] text-gray-500">Free forever</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  <span className="text-[11px] text-gray-500">No credit card</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  <span className="text-[11px] text-gray-500">Zero audio stored</span>
+                </div>
+                <div className="w-px h-3 bg-gray-200" />
+                <button onClick={() => onNav("real-interview")}
+                  className="text-[12px] font-semibold text-violet-600 hover:text-violet-800 transition-colors flex items-center gap-1 group">
+                  Try in browser
+                  <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </motion.div>
 
             {/* Stats row  -  compact, below CTAs */}
@@ -276,7 +298,7 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 { value: "50K+",  label: "Sessions" },
                 { value: "1.8s",  label: "Response time" },
                 { value: "87%",   label: "Offer rate" },
-                { value: "< 2s",  label: "Live answers" },
+                { value: "4.9★",  label: "Rating" },
               ].map((s, i) => (
                 <div key={s.value} className="flex items-center gap-5">
                   {i > 0 && <div className="w-px h-7 bg-gray-200" />}
