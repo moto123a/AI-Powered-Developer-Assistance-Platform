@@ -737,10 +737,11 @@ export default function PricingPage() {
               Start free today. No card needed. See it work in your next real interview, then decide.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={() => !user && setShowAuth(true)}
-                className="px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg"
+              <button
+                onClick={() => user ? window.location.href = "/real-interview" : setShowAuth(true)}
+                className="px-8 py-3.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg hover:-translate-y-0.5 active:scale-[0.97]"
                 style={{ background: "linear-gradient(135deg, #6d28d9, #9333ea, #ea580c)", boxShadow: "0 6px 24px rgba(109,40,217,0.3)" }}>
-                Start for free
+                {user ? "Go to dashboard →" : "Start for free"}
               </button>
               <Link href="/real-interview"
                 className="px-8 py-3.5 rounded-xl border border-gray-200 bg-white hover:border-violet-300 text-gray-700 hover:text-violet-700 font-semibold text-sm transition-all">
