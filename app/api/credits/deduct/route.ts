@@ -63,6 +63,21 @@ const CREDIT_COSTS: Record<string, number> = {
   verify_resume:           0,
 };
 
+// Monthly caps — must match PLAN_MONTHLY_CREDITS (stt/tokens), PLAN_CONFIG
+// (credits.ts) and PLAN_CREDITS (webhook).
+const PLAN_MONTHLY_CREDITS: Record<string, number> = {
+  free: 100, pro: 1000, lifetime: 1000, teams: 2000,
+};
+const OWNER_EMAIL = (process.env.ADMIN_EMAIL || "krishnapk288@gmail.com").toLowerCase();
+
+function nextResetISO(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 export async function POST(req: Request) {
   try {
     // ── VERIFY FIREBASE ID TOKEN ──────────────────────────────────
@@ -114,22 +129,39 @@ export async function POST(req: Request) {
       }
 
       const userData = userDoc.data()!;
-      const plan    = userData.plan    || "free";
-      const credits = userData.credits || 0;
+      const email   = String(userData.email || "").toLowerCase();
+      const plan    = userData.plan || "free";
+      const cap     = PLAN_MONTHLY_CREDITS[plan] ?? PLAN_MONTHLY_CREDITS.free;
+      let   credits = typeof userData.credits === "number" ? userData.credits : cap;
 
-      if (plan === "pro") {
+      // Owner/internal account: never charged.
+      if (email === OWNER_EMAIL) {
         transaction.update(userRef, { creditsUsed: admin.firestore.FieldValue.increment(cost) });
-        return { success: true, remaining: -1, plan: "pro" };
+        return { success: true, remaining: -1, plan };
       }
 
+      // Lazy monthly reset: refill to the plan cap once the reset date passes.
+      const resetAt = userData.creditsResetDate ? Date.parse(userData.creditsResetDate) : 0;
+      let didReset = false;
+      if (resetAt && Date.now() >= resetAt) { credits = cap; didReset = true; }
+
       if (credits < cost) {
+        if (didReset) transaction.update(userRef, { credits, creditsUsed: 0, creditsResetDate: nextResetISO() });
         throw Object.assign(new Error("Insufficient credits"), { status: 402, remaining: credits, needed: cost, plan });
       }
 
-      transaction.update(userRef, {
-        credits:     admin.firestore.FieldValue.increment(-cost),
-        creditsUsed: admin.firestore.FieldValue.increment(cost),
-      });
+      if (didReset) {
+        transaction.update(userRef, {
+          credits:          credits - cost,
+          creditsUsed:      cost,
+          creditsResetDate: nextResetISO(),
+        });
+      } else {
+        transaction.update(userRef, {
+          credits:     admin.firestore.FieldValue.increment(-cost),
+          creditsUsed: admin.firestore.FieldValue.increment(cost),
+        });
+      }
 
       return { success: true, remaining: credits - cost, deducted: cost, plan };
     });

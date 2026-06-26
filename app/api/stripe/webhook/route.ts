@@ -40,11 +40,13 @@ if (!admin.apps.length) {
 
 const db = admin.apps.length ? admin.firestore() : null;
 
-// ── Plan credit amounts ──────────────────────────────────────────
+// ── Plan credit amounts (monthly caps; refill via lazy reset) ─────
+// Must match PLAN_MONTHLY_CREDITS in app/api/stt/tokens/route.ts and
+// PLAN_CONFIG in app/lib/credits.ts.
 const PLAN_CREDITS: Record<string, number> = {
-  pro:      99999, // unlimited sentinel
-  lifetime: 2000,  // generous monthly cap, resets each month
-  teams:    99999, // unlimited per seat
+  pro:      1000, // 1000/month
+  lifetime: 1000, // 1000/month, pay once
+  teams:    2000, // 2000/month
 };
 
 // ── Stripe signature verification ───────────────────────────────

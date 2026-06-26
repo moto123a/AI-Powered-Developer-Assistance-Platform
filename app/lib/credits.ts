@@ -40,7 +40,7 @@ export const PLAN_CONFIG = {
   },
   pro: {
     label: "Pro",
-    totalCredits: -1, // unlimited
+    totalCredits: 1000, // 1000/month — refills monthly, protects API margin
     monthlyReset: true,
     price: 24.99,
     stripePriceId: "",
@@ -57,7 +57,7 @@ export const PLAN_CONFIG = {
   },
   lifetime: {
     label: "Lifetime",
-    totalCredits: 2000, // 2k/month cap — resets monthly, protects API costs
+    totalCredits: 1000, // 1000/month — pay once, refills monthly forever
     monthlyReset: true,
     price: 299,
     stripePriceId: "",
@@ -74,7 +74,7 @@ export const PLAN_CONFIG = {
   },
   teams: {
     label: "Teams",
-    totalCredits: -1, // unlimited per seat
+    totalCredits: 2000, // 2000/month — refills monthly, protects API margin
     monthlyReset: true,
     price: 49,
     stripePriceId: "",
@@ -157,11 +157,6 @@ export async function hasCredits(uid: string, action: CreditAction): Promise<boo
   const profile = await getUserProfile(uid);
   if (!profile) return false;
 
-  const plan = PLAN_CONFIG[profile.plan];
-
-  // Pro = unlimited
-  if (plan.totalCredits === -1) return true;
-
   const cost = CREDIT_COSTS[action];
   return profile.credits >= cost;
 }
@@ -181,23 +176,35 @@ export async function deductCredits(uid: string, action: CreditAction): Promise<
       const data    = snap.data();
       const planKey = (data.plan as PlanId) in PLAN_CONFIG ? (data.plan as PlanId) : "free";
       const plan    = PLAN_CONFIG[planKey];
-      const credits = (data.credits as number) || 0;
+      let   credits = (data.credits as number) || 0;
 
-      // Pro = unlimited, still track usage
-      if (plan.totalCredits === -1) {
-        transaction.update(ref, { creditsUsed: increment(cost) });
-        return { success: true, remaining: -1 };
+      // Lazy monthly reset: once the reset date passes, refill to the plan
+      // cap before charging. Without this a capped user who hit 0 is stuck.
+      const resetAt = data.creditsResetDate ? Date.parse(data.creditsResetDate) : 0;
+      let didReset = false;
+      if (resetAt && Date.now() >= resetAt) {
+        credits  = plan.totalCredits;
+        didReset = true;
       }
 
       // Check balance inside the transaction  -  prevents TOCTOU race
       if (credits < cost) {
+        if (didReset) transaction.update(ref, { credits, creditsUsed: 0, creditsResetDate: getNextResetDate() });
         return { success: false, remaining: credits };
       }
 
-      transaction.update(ref, {
-        credits:     increment(-cost),
-        creditsUsed: increment(cost),
-      });
+      if (didReset) {
+        transaction.update(ref, {
+          credits:          credits - cost,
+          creditsUsed:      cost,
+          creditsResetDate: getNextResetDate(),
+        });
+      } else {
+        transaction.update(ref, {
+          credits:     increment(-cost),
+          creditsUsed: increment(cost),
+        });
+      }
 
       return { success: true, remaining: credits - cost };
     });
@@ -220,7 +227,7 @@ export async function upgradePlan(
 
   await updateDoc(ref, {
     plan,
-    credits: planConfig.totalCredits === -1 ? 99999 : planConfig.totalCredits,
+    credits: planConfig.totalCredits, // monthly cap; refills via lazy reset
     creditsUsed: 0,
     creditsResetDate: getNextResetDate(),
     stripeCustomerId,

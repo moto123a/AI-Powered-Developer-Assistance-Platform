@@ -427,7 +427,8 @@ export default function AdminPage() {
                           value={user.plan || "free"}
                           onChange={e => {
                             const p = e.target.value;
-                            const credits = (p === "pro" || p === "teams") ? 99999 : p === "lifetime" ? 2000 : 100;
+                            // Monthly caps — must match PLAN_MONTHLY_CREDITS / PLAN_CONFIG / webhook.
+                            const credits = p === "teams" ? 2000 : (p === "pro" || p === "lifetime") ? 1000 : 100;
                             updatePlan(user.id, p, credits);
                           }}
                           className="text-[10px] bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-gray-400 cursor-pointer focus:outline-none focus:border-violet-500/50 hover:border-gray-700 transition-colors"

@@ -264,6 +264,30 @@ const CREDIT_COSTS: Record<string, number> = {
   realtime:           2,
 };
 
+// ── Monthly credit caps per plan (single source of truth for enforcement) ──
+// Sized so worst-case API cost stays under plan revenue → always profitable.
+// Refills every month via the lazy reset below.
+const PLAN_MONTHLY_CREDITS: Record<string, number> = {
+  free:     100,
+  pro:      1000,
+  lifetime: 1000,
+  teams:    2000,
+};
+
+// Owner/internal accounts are never charged (so testing isn't capped).
+const UNLIMITED_EMAILS = new Set([
+  (process.env.ADMIN_EMAIL || "krishnapk288@gmail.com").toLowerCase(),
+]);
+
+// First day of next month, midnight — when the monthly allowance refills.
+function nextResetISO(): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 async function checkAndDeductCredits(
   email: string,
   mode:  string
@@ -271,17 +295,38 @@ async function checkAndDeductCredits(
   if (!db) return { allowed: true, remaining: -1 };
   const cost = CREDIT_COSTS[mode] ?? 2;
   if (cost === 0) return { allowed: true, remaining: -1 };
+
+  // Owner/internal accounts: unlimited, just track usage.
+  if (email && UNLIMITED_EMAILS.has(email.toLowerCase())) {
+    try {
+      const q = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!q.empty) await q.docs[0].ref.update({ creditsUsed: admin.firestore.FieldValue.increment(cost) });
+    } catch {}
+    return { allowed: true, remaining: -1 };
+  }
+
   try {
     const userQuery = await db.collection("users").where("email", "==", email).limit(1).get();
     if (userQuery.empty) return { allowed: true, remaining: -1 };
     const userDoc  = userQuery.docs[0];
     const userData = userDoc.data();
-    const plan     = userData.plan    || "free";
-    const credits  = userData.credits || 0;
-    if (plan === "pro") {
-      await userDoc.ref.update({ creditsUsed: admin.firestore.FieldValue.increment(cost) });
-      return { allowed: true, remaining: -1 };
+    const plan     = userData.plan || "free";
+    const cap      = PLAN_MONTHLY_CREDITS[plan] ?? PLAN_MONTHLY_CREDITS.free;
+    let   credits  = typeof userData.credits === "number" ? userData.credits : cap;
+
+    // ── Lazy monthly reset ──────────────────────────────────────
+    // If the reset date has passed, refill to this plan's cap before
+    // charging. This is what makes capped plans sustainable — without
+    // it a user who hit 0 would be stuck forever.
+    const resetAt = userData.creditsResetDate ? Date.parse(userData.creditsResetDate) : 0;
+    if (resetAt && Date.now() >= resetAt) {
+      credits = cap;
+      await userDoc.ref.update({ credits: cap, creditsUsed: 0, creditsResetDate: nextResetISO() });
+    } else if (!userData.creditsResetDate) {
+      // Backfill a reset date for older docs that never had one.
+      await userDoc.ref.update({ creditsResetDate: nextResetISO() });
     }
+
     if (credits < cost) return { allowed: false, remaining: credits };
     await userDoc.ref.update({
       credits:     admin.firestore.FieldValue.increment(-cost),
