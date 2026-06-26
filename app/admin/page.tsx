@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { auth } from "../firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   Shield, Zap, Crown, Clock, Users, Activity,
   MapPin, Trash2, Edit3, Check, X, Monitor, Apple,
@@ -119,9 +119,13 @@ export default function AdminPage() {
   const [search, setSearch]             = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [authedEmail, setAuthedEmail]   = useState<string | null>(null);
+  const [authChecked, setAuthChecked]   = useState(false);
 
   async function adminApi(path: string, opts?: RequestInit) {
-    const token = await auth.currentUser?.getIdToken() ?? "";
+    // force-refresh the ID token so a stale/expired token never causes a
+    // false "Access Restricted" for a genuinely signed-in admin.
+    const token = (await auth.currentUser?.getIdToken(true)) ?? "";
     return fetch(path, {
       ...opts,
       headers: {
@@ -161,6 +165,8 @@ export default function AdminPage() {
   useEffect(() => {
     let poll: ReturnType<typeof setInterval> | null = null;
     const unsub = onAuthStateChanged(auth, (user) => {
+      setAuthedEmail(user?.email ?? null);
+      setAuthChecked(true);
       if (user) {
         fetchAll();
         // Auto-refresh every 30s so "Live Now" and last-seen stay accurate
@@ -212,11 +218,33 @@ export default function AdminPage() {
           <Shield size={28} className="text-red-500" />
         </div>
         <h2 className="text-white font-bold text-xl mb-2">Access Restricted</h2>
-        <p className="text-gray-500 text-sm mb-6">This area is for administrators only. Please sign in with your admin account.</p>
-        <a href="/?auth=required&next=/admin"
-           className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl transition-all">
-          <LogIn size={16} /> Sign In as Admin
-        </a>
+        {authedEmail ? (
+          <>
+            <p className="text-gray-500 text-sm mb-2">
+              You're signed in as <span className="text-gray-300 font-semibold">{authedEmail}</span>,
+              which isn't the admin account.
+            </p>
+            <p className="text-gray-600 text-xs mb-6">
+              Sign out and sign back in with the owner account to access the dashboard.
+            </p>
+            <button
+              onClick={async () => { await signOut(auth); window.location.href = "/?auth=required&next=/admin"; }}
+              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl transition-all">
+              <LogIn size={16} /> Sign out &amp; switch account
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-gray-500 text-sm mb-6">
+              {authChecked ? "You're not signed in. Sign in with your admin account to continue."
+                           : "Checking your session…"}
+            </p>
+            <a href="/?auth=required&next=/admin"
+               className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl transition-all">
+              <LogIn size={16} /> Sign In as Admin
+            </a>
+          </>
+        )}
       </div>
     </div>
   );
