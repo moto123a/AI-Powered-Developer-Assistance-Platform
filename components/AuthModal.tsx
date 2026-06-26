@@ -52,7 +52,9 @@ export default function AuthModal({ open, initialMode = "signin", onClose, onSuc
   const handleGoogle = async () => {
     clear(); setLoading(true);
     try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      const result = await signInWithPopup(auth, provider);
       if (result.user) await saveUser(result.user);
       onSuccess?.(); onClose();
     } catch (err: any) { setError(FRIENDLY[err.code] ?? "Something went wrong."); }
