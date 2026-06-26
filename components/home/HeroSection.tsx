@@ -162,41 +162,76 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
               {" "}completely undetectable.
             </motion.p>
 
-            {/* ── PRIMARY: Download buttons  -  full width, always visible ── */}
+            {/* ── PRIMARY: Download buttons ── */}
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-              className="flex flex-col sm:flex-row gap-3 mb-4">
+              className="flex flex-col gap-3 mb-4">
 
-              {/* Windows  -  primary gradient (hidden for Mac visitors) */}
-              {(!mounted || detectedOS !== "mac") && (
-              <button onClick={() => onDownload("win")}
-                className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
-                style={{ background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 6px 24px rgba(109,40,217,0.34), 0 2px 6px rgba(234,88,12,0.14)" }}>
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #c2410c 100%)" }} />
-                <WinIcon className="w-5 h-5 relative flex-shrink-0" />
-                <span className="relative text-left leading-tight">
-                  <span className="block text-[9px] font-medium opacity-70 mb-0.5 uppercase tracking-wider">Download for</span>
-                  <span className="block text-[15px] font-black">Windows</span>
-                </span>
-                <span className="relative ml-auto text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
-              </button>
-              )}
+              {/* Button row: primary OS gets gradient, both shown when OS unknown */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Windows button — primary when on Windows, secondary when on Mac */}
+                {(!mounted || detectedOS !== "mac") && (
+                <button onClick={() => onDownload("win")}
+                  className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] sm:flex-none"
+                  style={
+                    !mounted || detectedOS === "win" || detectedOS === "other"
+                      ? { background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 6px 24px rgba(109,40,217,0.34), 0 2px 6px rgba(234,88,12,0.14)" }
+                      : { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
+                  }>
+                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: "linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #c2410c 100%)" }} />
+                  <WinIcon className="w-5 h-5 relative flex-shrink-0" />
+                  <span className="relative text-left leading-tight">
+                    <span className="block text-[9px] font-medium opacity-70 mb-0.5 uppercase tracking-wider">Download for</span>
+                    <span className="block text-[15px] font-black">Windows</span>
+                  </span>
+                  <span className="relative ml-auto text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
+                </button>
+                )}
 
-              {/* macOS  -  dark secondary (hidden for Windows visitors) */}
-              {(!mounted || detectedOS !== "win") && (
-              <button onClick={() => onDownload("mac")}
-                className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] flex-1 sm:flex-none"
-                style={{ background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "linear-gradient(135deg, #27272a, #3f3f46)" }} />
-                <MacIcon className="w-5 h-5 relative flex-shrink-0 text-gray-300" />
-                <span className="relative text-left leading-tight">
-                  <span className="block text-[9px] font-medium opacity-55 mb-0.5 uppercase tracking-wider">Download for</span>
-                  <span className="block text-[15px] font-black">macOS</span>
-                </span>
-                <span className="relative ml-auto text-[9px] font-black bg-white/10 px-2 py-0.5 rounded-full text-gray-400">FREE</span>
-              </button>
-              )}
+                {/* macOS button — primary when on Mac, secondary when on Windows */}
+                {(!mounted || detectedOS !== "win") && (
+                <button onClick={() => onDownload("mac")}
+                  className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] sm:flex-none"
+                  style={
+                    mounted && detectedOS === "win"
+                      ? { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
+                      : { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
+                  }>
+                  <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ background: "linear-gradient(135deg, #27272a, #3f3f46)" }} />
+                  <MacIcon className="w-5 h-5 relative flex-shrink-0 text-gray-300" />
+                  <span className="relative text-left leading-tight">
+                    <span className="block text-[9px] font-medium opacity-55 mb-0.5 uppercase tracking-wider">Download for</span>
+                    <span className="block text-[15px] font-black">macOS</span>
+                  </span>
+                  <span className="relative ml-auto text-[9px] font-black bg-white/10 px-2 py-0.5 rounded-full text-gray-400">FREE</span>
+                </button>
+                )}
+              </div>
+
+              {/* Secondary cross-platform nudge — always visible */}
+              <div className="flex items-center gap-2">
+                {mounted && detectedOS === "win" && (
+                  <button onClick={() => onDownload("mac")}
+                    className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-700 transition-colors group">
+                    <MacIcon className="w-3 h-3 flex-shrink-0" />
+                    <span>Also available for macOS</span>
+                    <svg className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
+                {mounted && detectedOS === "mac" && (
+                  <button onClick={() => onDownload("win")}
+                    className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-700 transition-colors group">
+                    <WinIcon className="w-3 h-3 flex-shrink-0" />
+                    <span>Also available for Windows</span>
+                    <svg className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </motion.div>
 
             {/* Free note + secondary CTA  -  compact row */}
