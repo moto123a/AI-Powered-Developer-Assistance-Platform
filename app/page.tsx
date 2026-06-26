@@ -155,25 +155,33 @@ export default function Home() {
           {/* Spacer (md, no nav links) */}
           <div className="flex-1 lg:hidden" />
 
-          {/* ── Download pills  -  md+ (only the visitor's own OS; both if unknown) ── */}
+          {/* ── Download pills  -  md+ ── */}
           <div className="hidden md:flex items-center gap-2 mr-1">
             {(!mounted || detectedOS !== "mac") && (
             <button onClick={() => download("win")}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
+              className="group relative flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap overflow-hidden"
               style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.28)" }}>
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 pointer-events-none"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)" }} />
               <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
               </svg>
               Windows
+              <svg className="w-2.5 h-2.5 group-hover:translate-y-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             )}
             {(!mounted || detectedOS !== "win") && (
             <button onClick={() => download("mac")}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-gray-700 bg-white border border-gray-200 hover:border-violet-300 hover:text-violet-700 rounded-full transition-all active:scale-[0.97] shadow-sm whitespace-nowrap">
+              className="group flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-bold text-gray-700 bg-white border border-gray-200 hover:border-violet-300 hover:text-violet-700 rounded-full transition-all active:scale-[0.97] shadow-sm whitespace-nowrap">
               <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
               </svg>
               macOS
+              <svg className="w-2.5 h-2.5 group-hover:translate-y-0.5 transition-transform flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
             )}
           </div>
@@ -187,18 +195,23 @@ export default function Home() {
 
             {!user ? (
               <>
-                {/* Log in  -  always visible on all screen sizes */}
+                {/* Log in  -  clearly outlined so it reads as "secondary" */}
                 <button onClick={() => setAuthModal({ open: true, mode: "signin" })}
-                  className="px-3.5 py-1.5 text-[13px] font-semibold text-gray-600 hover:text-violet-700 transition-colors whitespace-nowrap rounded-lg hover:bg-violet-50/70">
+                  className="px-4 py-1.5 text-[13px] font-semibold text-gray-600 hover:text-violet-700 border border-gray-200 hover:border-violet-300 rounded-full transition-all whitespace-nowrap bg-white hover:bg-violet-50/60 shadow-sm">
                   Log in
                 </button>
 
-                {/* Get started  -  primary CTA */}
+                {/* Get started  -  unmissable primary CTA */}
                 <button onClick={() => setAuthModal({ open: true, mode: "signup" })}
-                  className="px-4 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap"
-                  style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 2px 10px rgba(91,33,182,0.30)" }}>
-                  <span className="hidden sm:inline">Get started free</span>
-                  <span className="sm:hidden">Sign up</span>
+                  className="group flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold text-white rounded-full transition-all active:scale-[0.97] whitespace-nowrap relative overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, #5b21b6, #ea580c)", boxShadow: "0 3px 12px rgba(91,33,182,0.38), 0 1px 3px rgba(234,88,12,0.20)" }}>
+                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 pointer-events-none"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }} />
+                  <span className="relative hidden sm:inline">Start free</span>
+                  <span className="relative sm:hidden">Sign up</span>
+                  <svg className="relative w-3 h-3 group-hover:translate-x-0.5 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </>
             ) : (

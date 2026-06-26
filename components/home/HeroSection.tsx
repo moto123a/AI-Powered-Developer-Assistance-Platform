@@ -174,9 +174,14 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                   className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] sm:flex-none"
                   style={
                     !mounted || detectedOS === "win" || detectedOS === "other"
-                      ? { background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 6px 24px rgba(109,40,217,0.34), 0 2px 6px rgba(234,88,12,0.14)" }
+                      ? { background: "linear-gradient(135deg, #6d28d9 0%, #9333ea 50%, #ea580c 100%)", boxShadow: "0 8px 28px rgba(109,40,217,0.40), 0 2px 8px rgba(234,88,12,0.18)" }
                       : { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
                   }>
+                  {/* auto-running shimmer sweep */}
+                  <motion.span className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.28) 50%, transparent 70%)", width: "60%" }}
+                    animate={{ x: ["-80%", "220%"] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }} />
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{ background: "linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #c2410c 100%)" }} />
                   <WinIcon className="w-5 h-5 relative flex-shrink-0" />
@@ -184,7 +189,12 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                     <span className="block text-[9px] font-medium opacity-70 mb-0.5 uppercase tracking-wider">Download for</span>
                     <span className="block text-[15px] font-black">Windows</span>
                   </span>
-                  <span className="relative ml-auto text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
+                  <span className="relative ml-auto flex items-center gap-1">
+                    <span className="text-[9px] font-black bg-white/22 px-2 py-0.5 rounded-full">FREE</span>
+                    <svg className="w-3.5 h-3.5 opacity-70 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
                 </button>
                 )}
 
@@ -193,10 +203,16 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                 <button onClick={() => onDownload("mac")}
                   className="group relative flex items-center gap-3 px-6 py-4 rounded-xl text-white font-bold overflow-hidden transition-all active:scale-[0.97] sm:flex-none"
                   style={
-                    mounted && detectedOS === "win"
-                      ? { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
-                      : { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 6px 24px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
+                    mounted && detectedOS === "mac"
+                      ? { background: "linear-gradient(135deg, #18181b 0%, #3f3f46 100%)", boxShadow: "0 8px 28px rgba(0,0,0,0.28)", border: "1px solid rgba(255,255,255,0.10)" }
+                      : { background: "linear-gradient(135deg, #18181b 0%, #27272a 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "1px solid rgba(255,255,255,0.07)" }
                   }>
+                  {mounted && detectedOS === "mac" && (
+                    <motion.span className="absolute inset-0 pointer-events-none"
+                      style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.14) 50%, transparent 70%)", width: "60%" }}
+                      animate={{ x: ["-80%", "220%"] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }} />
+                  )}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{ background: "linear-gradient(135deg, #27272a, #3f3f46)" }} />
                   <MacIcon className="w-5 h-5 relative flex-shrink-0 text-gray-300" />
@@ -204,7 +220,12 @@ export default function HeroSection({ mounted, detectedOS, onDownload, onNav }: 
                     <span className="block text-[9px] font-medium opacity-55 mb-0.5 uppercase tracking-wider">Download for</span>
                     <span className="block text-[15px] font-black">macOS</span>
                   </span>
-                  <span className="relative ml-auto text-[9px] font-black bg-white/10 px-2 py-0.5 rounded-full text-gray-400">FREE</span>
+                  <span className="relative ml-auto flex items-center gap-1">
+                    <span className="text-[9px] font-black bg-white/10 px-2 py-0.5 rounded-full text-gray-400">FREE</span>
+                    <svg className="w-3.5 h-3.5 opacity-40 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
                 </button>
                 )}
               </div>
