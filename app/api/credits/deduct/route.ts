@@ -66,7 +66,7 @@ const CREDIT_COSTS: Record<string, number> = {
 // Monthly caps — must match PLAN_MONTHLY_CREDITS (stt/tokens), PLAN_CONFIG
 // (credits.ts) and PLAN_CREDITS (webhook).
 const PLAN_MONTHLY_CREDITS: Record<string, number> = {
-  free: 100, pro: 1000, lifetime: 1000, teams: 2000,
+  free: 100, pro: 5000, lifetime: 5000, teams: 10000,
 };
 const OWNER_EMAIL = (process.env.ADMIN_EMAIL || "krishnapk288@gmail.com").toLowerCase();
 

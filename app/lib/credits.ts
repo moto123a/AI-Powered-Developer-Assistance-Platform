@@ -40,7 +40,7 @@ export const PLAN_CONFIG = {
   },
   pro: {
     label: "Pro",
-    totalCredits: 1000, // 1000/month — refills monthly, protects API margin
+    totalCredits: 5000, // 5000/month ≈ 40 hrs live or 300+ mock sessions
     monthlyReset: true,
     price: 24.99,
     stripePriceId: "",
@@ -57,7 +57,7 @@ export const PLAN_CONFIG = {
   },
   lifetime: {
     label: "Lifetime",
-    totalCredits: 1000, // 1000/month — pay once, refills monthly forever
+    totalCredits: 5000, // 5000/month — pay once, refills monthly forever
     monthlyReset: true,
     price: 299,
     stripePriceId: "",
@@ -74,7 +74,7 @@ export const PLAN_CONFIG = {
   },
   teams: {
     label: "Teams",
-    totalCredits: 2000, // 2000/month — refills monthly, protects API margin
+    totalCredits: 10000, // 10000/month ≈ 83 hrs live or 650+ mock sessions
     monthlyReset: true,
     price: 49,
     stripePriceId: "",

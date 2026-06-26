@@ -121,6 +121,7 @@ export default function AdminPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [authedEmail, setAuthedEmail]   = useState<string | null>(null);
   const [authChecked, setAuthChecked]   = useState(false);
+  const [serverError, setServerError]   = useState<string | null>(null);
 
   async function adminApi(path: string, opts?: RequestInit) {
     // force-refresh the ID token so a stale/expired token never causes a
@@ -141,7 +142,16 @@ export default function AdminPage() {
       if (!silent) setLoading(true);
       else setRefreshing(true);
       const res = await adminApi("/api/admin");
-      if (!res.ok) { setIsAdmin(false); setLoading(false); setRefreshing(false); return; }
+      if (!res.ok) {
+        if (res.status === 403) {
+          setIsAdmin(false);
+        } else {
+          // 500 / quota / server error — don't show "Access Restricted"
+          try { const e = await res.json(); setServerError(e.error || `Server error ${res.status}`); }
+          catch { setServerError(`Server error ${res.status}`); }
+        }
+        setLoading(false); setRefreshing(false); return;
+      }
       const data = await res.json();
       setIsAdmin(true);
       const userList: any[] = data.users || [];
@@ -171,7 +181,7 @@ export default function AdminPage() {
         fetchAll();
         // Auto-refresh every 30s so "Live Now" and last-seen stay accurate
         if (poll) clearInterval(poll);
-        poll = setInterval(() => fetchAll(true), 30000);
+        poll = setInterval(() => fetchAll(true), 120000); // 2 min — was 30s, was burning Firestore daily quota
       } else {
         setIsAdmin(false); setLoading(false);
         if (poll) { clearInterval(poll); poll = null; }
@@ -206,6 +216,27 @@ export default function AdminPage() {
       </div>
       <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden">
         <div className="h-full bg-violet-600 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" style={{ width: "60%", animation: "pulse 1.5s ease-in-out infinite" }} />
+      </div>
+    </div>
+  );
+
+  // ── Server error (quota, Firebase init failure, etc.) ─────────
+  if (serverError) return (
+    <div className="min-h-screen bg-[#050508] flex items-center justify-center">
+      <div className="text-center max-w-sm mx-auto p-8 bg-[#0d0d14] rounded-3xl border border-gray-800">
+        <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Shield size={28} className="text-amber-500" />
+        </div>
+        <h2 className="text-white font-bold text-xl mb-2">Server Error</h2>
+        <p className="text-gray-500 text-sm mb-2 font-mono text-xs break-all">{serverError}</p>
+        <p className="text-gray-600 text-xs mb-6">
+          This is usually a Firestore quota or Firebase Admin issue — not a sign-in problem. Try refreshing in a minute.
+        </p>
+        <button
+          onClick={() => { setServerError(null); setLoading(true); fetchAll(); }}
+          className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl transition-all">
+          <RefreshCw size={16} /> Retry
+        </button>
       </div>
     </div>
   );
@@ -428,7 +459,7 @@ export default function AdminPage() {
                           onChange={e => {
                             const p = e.target.value;
                             // Monthly caps — must match PLAN_MONTHLY_CREDITS / PLAN_CONFIG / webhook.
-                            const credits = p === "teams" ? 2000 : (p === "pro" || p === "lifetime") ? 1000 : 100;
+                            const credits = p === "teams" ? 10000 : (p === "pro" || p === "lifetime") ? 5000 : 100;
                             updatePlan(user.id, p, credits);
                           }}
                           className="text-[10px] bg-gray-900 border border-gray-800 rounded-lg px-2 py-1 text-gray-400 cursor-pointer focus:outline-none focus:border-violet-500/50 hover:border-gray-700 transition-colors"

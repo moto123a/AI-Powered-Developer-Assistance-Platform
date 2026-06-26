@@ -44,9 +44,9 @@ const db = admin.apps.length ? admin.firestore() : null;
 // Must match PLAN_MONTHLY_CREDITS in app/api/stt/tokens/route.ts and
 // PLAN_CONFIG in app/lib/credits.ts.
 const PLAN_CREDITS: Record<string, number> = {
-  pro:      1000, // 1000/month
-  lifetime: 1000, // 1000/month, pay once
-  teams:    2000, // 2000/month
+  pro:      5000,  // 5000/month ≈ 40 hrs live
+  lifetime: 5000,  // 5000/month, pay once
+  teams:    10000, // 10000/month ≈ 83 hrs live
 };
 
 // ── Stripe signature verification ───────────────────────────────

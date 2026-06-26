@@ -269,9 +269,9 @@ const CREDIT_COSTS: Record<string, number> = {
 // Refills every month via the lazy reset below.
 const PLAN_MONTHLY_CREDITS: Record<string, number> = {
   free:     100,
-  pro:      1000,
-  lifetime: 1000,
-  teams:    2000,
+  pro:      5000,
+  lifetime: 5000,
+  teams:    10000,
 };
 
 // Owner/internal accounts are never charged (so testing isn't capped).

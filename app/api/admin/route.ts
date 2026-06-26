@@ -57,7 +57,7 @@ function getDb(): admin.firestore.Firestore | null {
 // large, so cache the per-email aggregate to avoid re-reading it on
 // every 30s admin poll.
 let usageCache: { at: number; byEmail: Record<string, number> } | null = null;
-const USAGE_TTL_MS = 120_000;
+const USAGE_TTL_MS = 600_000; // 10 min — reduces quota burn from admin auto-refresh
 
 async function getRealUsageMinutes(db: admin.firestore.Firestore): Promise<Record<string, number>> {
   if (usageCache && Date.now() - usageCache.at < USAGE_TTL_MS) return usageCache.byEmail;
