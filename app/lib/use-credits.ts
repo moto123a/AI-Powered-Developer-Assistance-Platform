@@ -60,8 +60,7 @@ export function useCredits() {
     const cost = CREDIT_COSTS[action];
     const planConfig = PLAN_CONFIG[plan];
 
-    // Pro = unlimited
-    if (planConfig.totalCredits === -1) return true;
+    // No longer used (sentinel removed — all plans now have finite credit caps)
 
     if (credits < cost) {
       setPaywallAction(action.replace(/_/g, " "));
@@ -120,6 +119,6 @@ export function useCredits() {
     paywallCost,
     serverError,
     setServerError,
-    isUnlimited: PLAN_CONFIG[plan].totalCredits === -1,
+    isUnlimited: false,
   };
 }
