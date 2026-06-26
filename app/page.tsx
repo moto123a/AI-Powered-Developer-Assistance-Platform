@@ -152,12 +152,14 @@ export default function Home() {
           {/* ── Nav links  -  desktop (lg+) ── */}
           <nav className="hidden lg:flex items-center gap-0 flex-1">
             {[
-              { label: "Resume",         path: "resume" },
-              { label: "Mock Interview", path: "mock-interview" },
-              { label: "Real-Time AI",   path: "real-interview" },
-              { label: "Pricing",        path: "pricing" },
+              { label: "Features",       path: "features",       direct: true },
+              { label: "Resume",         path: "resume",         direct: false },
+              { label: "Mock Interview", path: "mock-interview", direct: false },
+              { label: "Real-Time AI",   path: "real-interview", direct: false },
+              { label: "Pricing",        path: "pricing",        direct: true },
             ].map(item => (
-              <button key={item.path} onClick={() => go(item.path)}
+              <button key={item.path}
+                onClick={() => item.direct ? router.push("/" + item.path) : go(item.path)}
                 className="px-4 py-2 text-[13px] font-semibold text-gray-600 hover:text-violet-700 hover:bg-violet-50/70 rounded-lg transition-all duration-150 whitespace-nowrap">
                 {item.label}
               </button>
@@ -319,12 +321,14 @@ export default function Home() {
             <div className="px-4 pt-3 pb-2 space-y-0.5">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-2">Features</p>
               {[
-                { label: "Resume Builder",  path: "resume",         icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-                { label: "Mock Interview",  path: "mock-interview", icon: "M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" },
-                { label: "Real-Time AI",    path: "real-interview", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
-                { label: "Pricing",         path: "pricing",        icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
+                { label: "Features",        path: "features",       direct: true,  icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" },
+                { label: "Resume Builder",  path: "resume",         direct: false, icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+                { label: "Mock Interview",  path: "mock-interview", direct: false, icon: "M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" },
+                { label: "Real-Time AI",    path: "real-interview", direct: false, icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
+                { label: "Pricing",         path: "pricing",        direct: true,  icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
               ].map(item => (
-                <button key={item.path} onClick={() => { go(item.path); setShowMobile(false); }}
+                <button key={item.path}
+                  onClick={() => { item.direct ? router.push("/" + item.path) : go(item.path); setShowMobile(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-[14px] font-semibold text-gray-700 hover:text-violet-700 hover:bg-violet-50 rounded-xl transition-all">
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
