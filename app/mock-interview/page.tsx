@@ -831,7 +831,8 @@ export default function MockInterviewPage() {
 
       ws.onmessage = async (e) => {
         if (typeof e.data !== "string") return;
-        const msg = JSON.parse(e.data);
+        let msg: any;
+        try { msg = JSON.parse(e.data); } catch { return; } // ignore any non-JSON frame instead of throwing
 
         if (msg.message === "RecognitionStarted") {
           window.clearTimeout(connectTimeout);

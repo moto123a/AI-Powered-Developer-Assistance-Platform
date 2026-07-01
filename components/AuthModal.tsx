@@ -27,7 +27,7 @@ const FRIENDLY: Record<string, string> = {
   "auth/weak-password":        "Password must be at least 6 characters.",
   "auth/user-not-found":       "No account found with this email.",
   "auth/wrong-password":       "Incorrect password.",
-  "auth/too-many-requests":    "Too many attempts  -  please wait a moment.",
+  "auth/too-many-requests":    "Too many attempts. Please wait a moment and try again.",
   "auth/invalid-credential":   "Invalid email or password.",
   "auth/popup-closed-by-user": "Google sign-in was cancelled.",
 };

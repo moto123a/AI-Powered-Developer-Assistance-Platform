@@ -58,14 +58,14 @@ export class SpeechmaticsClient {
       this.ws.onmessage = (evt) => this.handleMessage(evt, opts);
       this.ws.onerror   = (e)   => {
         console.error("WS error:", e);
-        opts.onError("Connection error  -  please try again");
+        opts.onError("Connection error. Please try again.");
         this.stop();
       };
       this.ws.onclose   = (e)   => {
         if (this.started) {
           // code 1000 = normal intentional close; anything else is unexpected
           if (e.code !== 1000) {
-            opts.onError(`Disconnected (${e.code})  -  please try again`);
+            opts.onError(`Disconnected (${e.code}). Please try again.`);
           } else {
             opts.onStatus("Disconnected");
           }
@@ -172,7 +172,7 @@ export class SpeechmaticsClient {
       else if (msg.message === "Error") {
         const reason = msg.reason || msg.type || "Speechmatics error";
         console.error("Speechmatics error:", msg);
-        opts.onError(reason === "not_authorised" ? "Not authorised  -  press Space to retry" : reason);
+        opts.onError(reason === "not_authorised" ? "Session expired. Press Space to reconnect." : reason);
         this.stop();
       }
     } catch {}
