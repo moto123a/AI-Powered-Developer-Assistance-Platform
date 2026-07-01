@@ -111,7 +111,7 @@ export function StatsSection() {
         <FadeUp delay={0.5} className="mt-10 flex flex-wrap items-center justify-center gap-8 text-center">
           {[
             { icon: "🎯", text: "Tailored to your role" },
-            { icon: "⚡", text: "Groq LPU — 10× faster than GPT" },
+            { icon: "⚡", text: "Groq LPU runs 10x faster than GPT" },
             { icon: "🔒", text: "Zero data stored" },
             { icon: "🌍", text: "Works in 40+ countries" },
           ].map((item, i) => (

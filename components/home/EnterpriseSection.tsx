@@ -59,7 +59,7 @@ const TRUST = [
       </svg>
     ),
     title: "Sub-2s Response",
-    desc: "Groq LPU inference — 10× faster than standard GPT. Answers stream before you hesitate.",
+    desc: "Groq LPU inference runs roughly 10x faster than standard GPT, so your answer is on screen before you even hesitate.",
     color: "text-orange-600",
     bg: "bg-orange-50",
     border: "border-orange-100",

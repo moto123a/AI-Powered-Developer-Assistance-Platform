@@ -16,7 +16,7 @@ const STORIES = [
     name: "Priya Sharma", role: "PM @ Microsoft", initials: "PS",
     grad: "from-violet-500 to-pink-500",
     metric: "4 offers", metricLabel: "in 3 weeks",
-    quote: "The resume builder rewrote my CV overnight. Then I practiced every behavioral with mock mode. Microsoft, Google, Meta, Stripe — all called back. I chose Microsoft for the team.",
+    quote: "The resume builder rewrote my CV overnight. Then I practiced every behavioral question with mock mode. Microsoft, Google, Meta, and Stripe all called back. I went with Microsoft for the team.",
     tags: ["Resume Builder", "Mock Interview"],
     verified: "Verified 4 offer letters · Feb 2025",
   },
