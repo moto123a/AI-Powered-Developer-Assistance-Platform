@@ -154,6 +154,7 @@ export default function AdminPage() {
       }
       const data = await res.json();
       setIsAdmin(true);
+      setServerError(null);
       const userList: any[] = data.users || [];
       // Sort by most-recent activity of ANY kind (heartbeat, web login, or
       // desktop sign-in via Firebase Auth) so recently-active users surface.
@@ -181,7 +182,7 @@ export default function AdminPage() {
         fetchAll();
         // Auto-refresh every 30s so "Live Now" and last-seen stay accurate
         if (poll) clearInterval(poll);
-        poll = setInterval(() => fetchAll(true), 120000); // 2 min — was 30s, was burning Firestore daily quota
+        poll = setInterval(() => fetchAll(true), 120000); // 2 min — reduces Firestore quota burn vs the old 30s interval
       } else {
         setIsAdmin(false); setLoading(false);
         if (poll) { clearInterval(poll); poll = null; }

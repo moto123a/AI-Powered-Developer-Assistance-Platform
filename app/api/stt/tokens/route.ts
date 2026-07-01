@@ -799,6 +799,7 @@ Return ONLY this exact JSON (no markdown):
         const userPrompt = `RESUME:\n${safeResume}\n\nJD:\n${safeJd || "N/A"}\n\nQ:\n${safeQ}\n\nANSWER:\n${safeA}`;
         const rawContent = await callLLM(selectedModel, systemPrompt, userPrompt, { temperature: 0.3, max_tokens: 400, json: true });
         const parsed = JSON.parse(cleanJson(rawContent));
+        await logUsageAndIncrement(userEmail || "Unknown", `Feedback-${provider}`, { mode: "generate_feedback", transcript: safeQ, duration: duration || 0 });
         return NextResponse.json({
           score:               typeof parsed.score === "number" ? Math.min(10, Math.max(0, parsed.score)) : 0,
           strengths:           Array.isArray(parsed.strengths)    ? parsed.strengths    : [],
