@@ -3,6 +3,9 @@ const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   optimizeFonts: false,
+  // Don't advertise the framework/version in response headers (removes the
+  // "X-Powered-By: Next.js" fingerprint attackers use to target known CVEs).
+  poweredByHeader: false,
 
   webpack: (config) => {
     config.module.rules.push({
