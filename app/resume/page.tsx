@@ -678,10 +678,15 @@ export default function ResumePage() {
   const MIN_SIDEBAR_WIDTH = 300;
   const MAX_SIDEBAR_WIDTH = 600;
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("resume-sidebar-width");
-      return saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
-    }
+    // localStorage can throw when storage is disabled/blocked (some privacy
+    // modes), and a corrupted value can parse to NaN — guard both so the page
+    // never crashes on load and never gets a NaN width.
+    try {
+      if (typeof window !== "undefined") {
+        const n = parseInt(localStorage.getItem("resume-sidebar-width") || "", 10);
+        if (!Number.isNaN(n)) return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, n));
+      }
+    } catch { /* storage unavailable — fall through to default */ }
     return DEFAULT_SIDEBAR_WIDTH;
   });
   const isDragging     = useRef(false);
@@ -699,7 +704,7 @@ export default function ResumePage() {
       const delta = ev.clientX - dragStartX.current;
       const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, dragStartWidth.current + delta));
       setSidebarWidth(newWidth);
-      localStorage.setItem("resume-sidebar-width", String(newWidth));
+      try { localStorage.setItem("resume-sidebar-width", String(newWidth)); } catch {}
     };
     const onMouseUp = () => {
       isDragging.current = false;
@@ -713,7 +718,7 @@ export default function ResumePage() {
   };
   const handleDividerDoubleClick = () => {
     setSidebarWidth(DEFAULT_SIDEBAR_WIDTH);
-    localStorage.setItem("resume-sidebar-width", String(DEFAULT_SIDEBAR_WIDTH));
+    try { localStorage.setItem("resume-sidebar-width", String(DEFAULT_SIDEBAR_WIDTH)); } catch {}
   };
 
   const fontObj = FONTS.find(f => f.key === fontKey) || FONTS[0];
