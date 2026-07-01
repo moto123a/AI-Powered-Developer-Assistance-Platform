@@ -1,5 +1,6 @@
 ﻿import { NextResponse } from "next/server";
 import admin from "firebase-admin";
+import { rateLimit, clientIp } from "../../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -591,6 +592,18 @@ export async function GET(req: Request) {
       }
     } else if (idToken === "") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit token minting: each call mints a real Speechmatics token,
+    // so cap per-user (or per-IP) to stop token farming. 30/min is far above
+    // a real interview's ~1-per-100s refresh rate.
+    const rlKey = verifiedEmail !== "Unknown User" ? `sttmint:${verifiedEmail}` : `sttmint:${clientIp(req)}`;
+    const rl = rateLimit(rlKey, 30, 60_000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many token requests. Please wait a moment." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      );
     }
 
     const apiKey = process.env.SPEECHMATICS_API_KEY;

@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
+import { rateLimit, clientIp } from "../../lib/rate-limit";
 
 // Admin email is kept server-side only  -  never exposed in the client bundle
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "krishnapk288@gmail.com").toLowerCase();
@@ -95,6 +96,16 @@ async function verifyAdmin(req: Request): Promise<string | null> {
 
 // ── GET /api/admin  -  list all users + downloads ──────────────────
 export async function GET(req: Request) {
+  // Rate limit before doing any Firestore work so a hammered admin token
+  // can't burn the daily read quota. 60/min is well above the 120s auto-poll.
+  const rlGet = rateLimit(`admin:${clientIp(req)}`, 60, 60_000);
+  if (!rlGet.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment." },
+      { status: 429, headers: { "Retry-After": String(rlGet.retryAfter) } }
+    );
+  }
+
   const adminEmail = await verifyAdmin(req);
   if (!adminEmail) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
