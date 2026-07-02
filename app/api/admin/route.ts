@@ -51,30 +51,13 @@ function getDb(): admin.firestore.Firestore | null {
   }
 }
 
-// ── Real usage aggregation ──────────────────────────────────────
-// "Usage" must reflect actual product use (transcription/AI call time
-// from api_usage_logs.durationSeconds), NOT minutes a browser tab sat
-// open (the old totalMinutesSpent, inflated ~50x). api_usage_logs is
-// large, so cache the per-email aggregate to avoid re-reading it on
-// every 30s admin poll.
-let usageCache: { at: number; byEmail: Record<string, number> } | null = null;
-const USAGE_TTL_MS = 600_000; // 10 min — reduces quota burn from admin auto-refresh
-
-async function getRealUsageMinutes(db: admin.firestore.Firestore): Promise<Record<string, number>> {
-  if (usageCache && Date.now() - usageCache.at < USAGE_TTL_MS) return usageCache.byEmail;
-  const sec: Record<string, number> = {};
-  const snap = await db.collection("api_usage_logs").get();
-  snap.forEach(d => {
-    const x = d.data();
-    const e = String(x.userEmail || "").toLowerCase();
-    if (!e) return;
-    sec[e] = (sec[e] || 0) + (Number(x.durationSeconds) || 0);
-  });
-  const byEmail: Record<string, number> = {};
-  for (const e in sec) byEmail[e] = Math.round(sec[e] / 60);
-  usageCache = { at: Date.now(), byEmail };
-  return byEmail;
-}
+// ── Real usage ──────────────────────────────────────────────────
+// Per-user usage minutes come from each user doc's `totalDurationSeconds`
+// (incremented alongside every api_usage_logs write in logUsageAndIncrement).
+// We intentionally do NOT scan the whole api_usage_logs collection anymore —
+// that unbounded scan read tens of thousands of docs on every refresh and
+// exhausted the Firestore daily read quota (RESOURCE_EXHAUSTED: Quota exceeded).
+// Reading the aggregate off the user doc we already fetch costs ZERO extra reads.
 
 // ── Verify that the caller is the admin ─────────────────────────
 async function verifyAdmin(req: Request): Promise<string | null> {
@@ -117,10 +100,9 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [usersSnap, dlSnap, usageByEmail] = await Promise.all([
+    const [usersSnap, dlSnap] = await Promise.all([
       db.collection("users").get(),
       db.collection("app_downloads").get(),
-      getRealUsageMinutes(db),
     ]);
 
     // Firebase Auth records lastSignInTime on EVERY login (web or desktop),
@@ -148,13 +130,13 @@ export async function GET(req: Request) {
     return NextResponse.json({
       users: usersSnap.docs.map(d => {
         const data = d.data();
-        const email = String(data.email || "").toLowerCase();
         return {
           id: d.id,
           ...data,
           authLastSignIn:   authMeta[d.id]?.lastSignIn ?? null,
           authCreated:      authMeta[d.id]?.created    ?? null,
-          realUsageMinutes: usageByEmail[email] ?? 0,
+          // Aggregate read straight off the user doc — no api_usage_logs scan.
+          realUsageMinutes: Math.round((Number(data.totalDurationSeconds) || 0) / 60),
         };
       }),
       downloads: dlSnap.docs.map(d => ({ id: d.id, ...d.data() })),
