@@ -210,6 +210,53 @@ export async function POST(req: Request) {
       }
     }
 
+    // ── SUBSCRIPTION UPDATED  -  safety-net downgrade on terminal status ──
+    // Stripe sends this on plan changes and status transitions. We ONLY act on
+    // clearly-dead statuses (downgrade to free), as a backstop in case a clean
+    // customer.subscription.deleted never arrives. Active renewals are handled
+    // by invoice.paid, so we never re-assign a plan here — that avoids ever
+    // wrongly downgrading a paying user mid-cycle.
+    if (event.type === "customer.subscription.updated") {
+      const sub  = event.data.object;
+      const uid  = sub.metadata?.uid;
+      const dead = ["canceled", "unpaid", "incomplete_expired"];
+      if (uid && dead.includes(sub.status)) {
+        console.log(`⚠️ SUBSCRIPTION ${String(sub.status).toUpperCase()}: ${uid} → free`);
+        await db.collection("users").doc(uid).update({
+          plan:                 "free",
+          credits:              100,
+          creditsResetDate:     getNextResetDate(),
+          stripeSubscriptionId: null,
+        });
+      }
+    }
+
+    // ── PAYMENT FAILED  -  record only, do NOT downgrade ──────────────
+    // Stripe automatically retries failed renewals; only if it ultimately
+    // gives up does subscription.deleted/updated fire (handled above). So we
+    // keep the user active through the retry window and just record the
+    // failure timestamp so it's visible (admin/support).
+    if (event.type === "invoice.payment_failed" && STRIPE_SECRET) {
+      const invoice        = event.data.object;
+      const subscriptionId = invoice.subscription;
+      if (subscriptionId) {
+        try {
+          const subRes = await fetch(
+            `https://api.stripe.com/v1/subscriptions/${subscriptionId}`,
+            { headers: { Authorization: `Bearer ${STRIPE_SECRET}` } }
+          );
+          const sub = await subRes.json();
+          const uid = sub.metadata?.uid;
+          if (uid) {
+            console.warn(`⚠️ PAYMENT FAILED (renewal): ${uid} — Stripe will retry`);
+            await db.collection("users").doc(uid).update({ lastPaymentFailedAt: new Date().toISOString() });
+          }
+        } catch (e) {
+          console.error("[webhook] payment_failed lookup error:", e);
+        }
+      }
+    }
+
     return NextResponse.json({ received: true });
   } catch (err: any) {
     console.error("[webhook] Handler error:", err);
