@@ -86,7 +86,13 @@ export async function POST(req: Request) {
     const priceId = PRICE_IDS[priceKey];
 
     if (!priceId || priceId === "price_REPLACE_ME") {
-      return NextResponse.json({ error: `Price ID not set for ${priceKey}` }, { status: 500 });
+      // Price not configured yet. Don't leak the internal env-key name to the
+      // client; log it server-side and show the user a graceful message.
+      console.error(`[checkout] Missing Stripe price ID for "${priceKey}". Set the matching STRIPE_*_PRICE env var.`);
+      return NextResponse.json(
+        { error: "This plan isn't available for checkout yet. Please try another plan or contact support." },
+        { status: 503 }
+      );
     }
 
     // Create Stripe Checkout Session using fetch (no SDK needed)
