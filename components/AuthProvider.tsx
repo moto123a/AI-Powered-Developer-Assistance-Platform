@@ -1,6 +1,6 @@
 ﻿"use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onIdTokenChanged, User } from "firebase/auth";
 import { auth } from "../app/firebaseConfig";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -22,17 +22,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Effect 1: Auth listener  -  runs ONCE only (never re-subscribes on nav)
+  // Effect 1: Auth listener  -  runs ONCE only (never re-subscribes on nav).
+  // onIdTokenChanged (not onAuthStateChanged) also fires every time Firebase
+  // rotates the ID token (~hourly), so the cookie the middleware verifies is
+  // always a live token. The cookie's max-age matches the token's own 1-hour
+  // lifetime — a stolen cookie is useless once the token inside it expires,
+  // instead of lingering for 7 days like before.
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
 
       if (firebaseUser) {
-        // Keep session cookie fresh so middleware can verify auth
         const token = await firebaseUser.getIdToken();
         const secure = typeof window !== "undefined" && window.location.protocol === "https:" ? "; Secure" : "";
-        document.cookie = `coopilotx_session=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict${secure}`;
+        document.cookie = `coopilotx_session=${token}; path=/; max-age=3600; SameSite=Strict${secure}`;
       } else {
         // Clear session cookie on logout
         document.cookie = "coopilotx_session=; path=/; max-age=0";

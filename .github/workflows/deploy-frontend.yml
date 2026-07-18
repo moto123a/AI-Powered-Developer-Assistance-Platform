@@ -20,10 +20,16 @@ jobs:
             set -e
             cd ~/coopilotx/frontend
             git pull origin main
+
+            # Keep the currently-running image as a rollback target before
+            # building the new one.
+            docker tag coopilotx-frontend:latest coopilotx-frontend:previous 2>/dev/null || true
+
             docker build --no-cache \
               --build-arg NEXT_PUBLIC_BACKEND_URL=https://coopilotxai.com \
               --build-arg NEXT_PUBLIC_SPEECHMATICS_RT_HOST=eu.rt.speechmatics.com \
-              -t coopilotx-frontend .
+              -t coopilotx-frontend:latest .
+
             docker rm -f coopilotx-frontend || true
             docker run -d \
               --name coopilotx-frontend \
@@ -31,5 +37,32 @@ jobs:
               -p 3000:3000 \
               --env-file ~/coopilotx/.env \
               -e PORT=3000 \
-              coopilotx-frontend
-            echo "Deployed successfully"
+              coopilotx-frontend:latest
+
+            # Health check: poll the new container for up to 60s. If it never
+            # serves traffic, roll back to the previous image automatically so
+            # a bad push can't take the site down.
+            healthy=false
+            for i in $(seq 1 12); do
+              sleep 5
+              if curl -fsS -o /dev/null http://localhost:3000; then
+                healthy=true
+                break
+              fi
+            done
+
+            if [ "$healthy" = "true" ]; then
+              echo "Deployed successfully — health check passed"
+            else
+              echo "Health check FAILED — rolling back to previous image"
+              docker rm -f coopilotx-frontend || true
+              docker run -d \
+                --name coopilotx-frontend \
+                --restart always \
+                -p 3000:3000 \
+                --env-file ~/coopilotx/.env \
+                -e PORT=3000 \
+                coopilotx-frontend:previous
+              echo "Rollback complete"
+              exit 1
+            fi

@@ -37,10 +37,13 @@ const db = admin.apps.length ? admin.firestore() : null;
 async function logUsageAndIncrement(email: string, service: string, details: any) {
   if (!db) return;
   try {
+    // PRIVACY: usage logs store metadata only — never the transcript text.
+    // Interview transcripts are personal data (the user's AND the interviewer's
+    // words); billing/analytics only needs volume, not content.
     await db.collection("api_usage_logs").add({
       userEmail:       email || "Anonymous",
       service,
-      transcript:      details.transcript || "",
+      transcriptChars: (details.transcript || "").length,
       durationSeconds: details.duration   || 0,
       timestamp:       admin.firestore.FieldValue.serverTimestamp(),
       mode:            details.mode       || "chat",
@@ -292,13 +295,18 @@ function nextResetISO(): string {
 async function checkAndDeductCredits(
   email: string,
   mode:  string
-): Promise<{ allowed: boolean; remaining: number }> {
-  if (!db) return { allowed: true, remaining: -1 };
+): Promise<{ allowed: boolean; remaining: number; unavailable?: boolean }> {
   const cost = CREDIT_COSTS[mode] ?? 2;
   if (cost === 0) return { allowed: true, remaining: -1 };
 
+  // FAIL CLOSED: if the credit store is unreachable, paid features pause rather
+  // than silently becoming free for everyone. `unavailable` lets the caller
+  // return 503 (temporary outage) instead of 402 (out of credits).
+  if (!db)    return { allowed: false, remaining: 0, unavailable: true };
+  if (!email) return { allowed: false, remaining: 0 };
+
   // Owner/internal accounts: unlimited, just track usage.
-  if (email && UNLIMITED_EMAILS.has(email.toLowerCase())) {
+  if (UNLIMITED_EMAILS.has(email.toLowerCase())) {
     try {
       const q = await db.collection("users").where("email", "==", email).limit(1).get();
       if (!q.empty) await q.docs[0].ref.update({ creditsUsed: admin.firestore.FieldValue.increment(cost) });
@@ -308,35 +316,52 @@ async function checkAndDeductCredits(
 
   try {
     const userQuery = await db.collection("users").where("email", "==", email).limit(1).get();
-    if (userQuery.empty) return { allowed: true, remaining: -1 };
-    const userDoc  = userQuery.docs[0];
-    const userData = userDoc.data();
-    const plan     = userData.plan || "free";
-    const cap      = PLAN_MONTHLY_CREDITS[plan] ?? PLAN_MONTHLY_CREDITS.free;
-    let   credits  = typeof userData.credits === "number" ? userData.credits : cap;
+    // No account document = nothing to charge = no service. (Signed-up users
+    // always have a doc; failing open here let unknown callers ride free.)
+    if (userQuery.empty) return { allowed: false, remaining: 0 };
+    const userRef = userQuery.docs[0].ref;
 
-    // ── Lazy monthly reset ──────────────────────────────────────
-    // If the reset date has passed, refill to this plan's cap before
-    // charging. This is what makes capped plans sustainable — without
-    // it a user who hit 0 would be stuck forever.
-    const resetAt = userData.creditsResetDate ? Date.parse(userData.creditsResetDate) : 0;
-    if (resetAt && Date.now() >= resetAt) {
-      credits = cap;
-      await userDoc.ref.update({ credits: cap, creditsUsed: 0, creditsResetDate: nextResetISO() });
-    } else if (!userData.creditsResetDate) {
-      // Backfill a reset date for older docs that never had one.
-      await userDoc.ref.update({ creditsResetDate: nextResetISO() });
-    }
+    // Read + reset + charge inside ONE transaction so parallel requests can
+    // never both pass the balance check and double-spend the same credits.
+    return await db.runTransaction(async (tx) => {
+      const snap     = await tx.get(userRef);
+      const userData = snap.data() ?? {};
+      const plan     = userData.plan || "free";
+      const cap      = PLAN_MONTHLY_CREDITS[plan] ?? PLAN_MONTHLY_CREDITS.free;
+      let   credits  = typeof userData.credits === "number" ? userData.credits : cap;
+      let   used     = typeof userData.creditsUsed === "number" ? userData.creditsUsed : 0;
 
-    if (credits < cost) return { allowed: false, remaining: credits };
-    await userDoc.ref.update({
-      credits:     admin.firestore.FieldValue.increment(-cost),
-      creditsUsed: admin.firestore.FieldValue.increment(cost),
+      const updates: Record<string, unknown> = {};
+
+      // ── Lazy monthly reset ──────────────────────────────────────
+      // If the reset date has passed, refill to this plan's cap before
+      // charging. This is what makes capped plans sustainable — without
+      // it a user who hit 0 would be stuck forever.
+      const resetAt = userData.creditsResetDate ? Date.parse(userData.creditsResetDate) : 0;
+      if (resetAt && Date.now() >= resetAt) {
+        credits = cap;
+        used    = 0;
+        updates.creditsUsed      = 0;
+        updates.creditsResetDate = nextResetISO();
+      } else if (!userData.creditsResetDate) {
+        // Backfill a reset date for older docs that never had one.
+        updates.creditsResetDate = nextResetISO();
+      }
+
+      if (credits < cost) {
+        if (Object.keys(updates).length) tx.update(userRef, updates);
+        return { allowed: false, remaining: credits };
+      }
+
+      updates.credits     = credits - cost;
+      updates.creditsUsed = used + cost;
+      tx.update(userRef, updates);
+      return { allowed: true, remaining: credits - cost };
     });
-    return { allowed: true, remaining: credits - cost };
   } catch (err) {
     console.error("Credit check error:", err);
-    return { allowed: true, remaining: -1 };
+    // FAIL CLOSED on store errors too — same rationale as the !db case.
+    return { allowed: false, remaining: 0, unavailable: true };
   }
 }
 
@@ -579,18 +604,24 @@ function verifyResumeDeterministic(resumeRaw: string): {
 // ============================================================================
 export async function GET(req: Request) {
   try {
+    // FAIL CLOSED: if Firebase Admin never initialized we cannot verify anyone,
+    // so no real Speechmatics tokens get minted for unverifiable callers.
+    if (!admin.apps.length) {
+      console.error("[stt GET] Firebase Admin not initialized — refusing token mint");
+      return NextResponse.json({ error: "Auth service unavailable" }, { status: 503 });
+    }
+
     // Verify Firebase ID token
     const authHeader = req.headers.get("authorization") ?? "";
     const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!idToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     let verifiedEmail = "Unknown User";
-    if (idToken && admin.apps.length) {
-      try {
-        const decoded = await admin.auth().verifyIdToken(idToken);
-        verifiedEmail = decoded.email ?? "Unknown User";
-      } catch {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else if (idToken === "") {
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      verifiedEmail = decoded.email ?? "Unknown User";
+    } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -639,17 +670,22 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     // ── VERIFY FIREBASE ID TOKEN ──────────────────────────────────
+    // FAIL CLOSED: no verification infrastructure = no service, never
+    // "skip the check and proceed".
+    if (!admin.apps.length) {
+      console.error("[stt POST] Firebase Admin not initialized — refusing request");
+      return NextResponse.json({ error: "Auth service unavailable" }, { status: 503 });
+    }
     const authHeader = req.headers.get("authorization") ?? "";
     const idToken    = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!idToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     let verifiedEmail: string | undefined;
-    if (idToken && admin.apps.length) {
-      try {
-        const decoded = await admin.auth().verifyIdToken(idToken);
-        verifiedEmail = decoded.email ?? undefined;
-      } catch {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-    } else if (!idToken) {
+    try {
+      const decoded = await admin.auth().verifyIdToken(idToken);
+      verifiedEmail = decoded.email ?? undefined;
+    } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -729,6 +765,14 @@ Return ONLY this exact JSON (no markdown):
     // ── CREDIT CHECK ──
     const creditResult = await checkAndDeductCredits(userEmail || "", mode || "realtime");
     if (!creditResult.allowed) {
+      // Store outage ≠ out of credits: surface a retryable 503 instead of
+      // telling a paying user to upgrade.
+      if (creditResult.unavailable) {
+        return NextResponse.json({
+          error:   "credit_service_unavailable",
+          message: "Service temporarily unavailable. Please try again in a moment.",
+        }, { status: 503 });
+      }
       return NextResponse.json({
         error:     "insufficient_credits",
         message:   "You've used all your credits. Upgrade to continue.",
